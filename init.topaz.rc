@@ -9,7 +9,7 @@ on early-fs
     mount ext4 /dev/store/cm-cache /cache wait noatime nosuid nodev barrier=1
 #    mount ext4 /dev/store/cm-devlog /devlog wait noatime nosuid nodev barrier=1
     
-    device /dev/block/mmcblk0p16 0460 radio diag
+#    device /dev/block/mmcblk0p16 0460 radio diag
 
 on fs
 

@@ -6,6 +6,7 @@ USE_CAMERA_STUB := true
 TARGET_SPECIFIC_HEADER_PATH := device/hp/topaz/include 
 
 TARGET_NO_BOOTLOADER := true
+TARGET_NO_KERNEL := false
 
 TARGET_BOARD_PLATFORM := msm8660
 TARGET_BOARD_PLATFORM_GPU := qcom-adreno200
@@ -35,8 +36,9 @@ WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/ar6000.ko"
 WIFI_DRIVER_MODULE_NAME     := "ar6000"
 
 # Audio 
-BOARD_USES_GENERIC_AUDIO := true
+BOARD_USES_GENERIC_AUDIO := false
 BOARD_PREBUILT_LIBAUDIO := false
+BOARD_USES_QCOM_AUDIO_V2 := true
 
 #Bluetooth
 BOARD_HAVE_BLUETOOTH := true
@@ -65,8 +67,8 @@ TARGET_BOOTLOADER_BOARD_NAME := topaz
 #TARGET_PROVIDES_LIBRIL := vendor/hp/topaz/proprietary/libril.so
 
 # topaz- these kernel settings are temporary to complete build
-BOARD_KERNEL_CMDLINE := no_console_suspend=1
-BOARD_KERNEL_BASE := 0x40400000
+BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.hardware=qcom
+BOARD_KERNEL_BASE := 0x40200000
 BOARD_PAGE_SIZE := 2048
 
 TARGET_USE_SCORPION_BIONIC_OPTIMIZATION := true
