@@ -64,12 +64,12 @@ index 5318de8..3bf75e0 100644
     cd hardware
     rm -rf msm7k
 
-4.  remove android/system/hardware/qcom/media/mmc-core and replace with gingerbread branch of:
+4.  remove android/system/hardware/qcom/media/mm-core and replace with gingerbread branch of:
         git://codeaurora.org/platform/vendor/qcom-opensource/omx/mm-core.git
 
     croot
     cd android/system/hardware/qcom/media
-    rm -rf mmc-core
+    rm -rf mm-core
     git clone git://codeaurora.org/platform/vendor/qcom-opensource/omx/mm-core.git -b "gingerbread"
 
     (or pick a branch such as "gingerbread_house"
@@ -106,11 +106,10 @@ index cc7ea64..18f5810 100644
  add_lunch_combo cyanogen_vega-eng
  add_lunch_combo cyanogen_vibrantmtd-eng
 
-5b.  Create a new file at vendor/cyanogen/products/cyanogen_topaz as follows:
+5b.  Create a new file at vendor/cyanogen/products/cyanogen_topaz.mk as follows:
 
 ------cut------
 
-cyanogen_topaz.mk 
 # Inherit AOSP device configuration for topaz.
 $(call inherit-product, device/hp/topaz/device_topaz.mk)
 
@@ -125,8 +124,7 @@ PRODUCT_BRAND := hp
 PRODUCT_DEVICE := topaz
 PRODUCT_MODEL := HP Touchpad
 PRODUCT_MANUFACTURER := hp
-PRODUCT_BUILD_PROP_OVERRIDES += PRODUCT_NAME=topaz BUILD_ID=GRJ22 BUILD_DISPLAY_ID=GRJ90 BUILD_FINGERPRINT=google/passion/passion:2.3.4/GR
-J22/121341:user/release-keys PRIVATE_BUILD_DESC="passion-user 2.3.4 GRJ22 121341 release-keys"
+PRODUCT_BUILD_PROP_OVERRIDES += PRODUCT_NAME=topaz BUILD_ID=GRJ22 BUILD_DISPLAY_ID=GRJ90 BUILD_FINGERPRINT=google/passion/passion:2.3.4/GRJ22/121341:user/release-keys PRIVATE_BUILD_DESC="passion-user 2.3.4 GRJ22 121341 release-keys"
 
 PRODUCT_PACKAGE_OVERLAYS += \
     vendor/cyanogen/overlay/tablet \
