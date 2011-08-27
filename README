@@ -70,10 +70,7 @@ index 5318de8..3bf75e0 100644
     croot
     cd android/system/hardware/qcom/media
     rm -rf mm-core
-    git clone git://codeaurora.org/platform/vendor/qcom-opensource/omx/mm-core.git -b "gingerbread"
-
-    (or pick a branch such as "gingerbread_house"
-       https://www.codeaurora.org/gitweb/quic/le/?p=platform/vendor/qcom-opensource/omx/mm-core.git;a=summary )
+    git clone git://codeaurora.org/platform/vendor/qcom-opensource/omx/mm-core.git -b "gingerbread_house"
 
 5.  Add topaz to cyanogenmod's vendor tree
 
