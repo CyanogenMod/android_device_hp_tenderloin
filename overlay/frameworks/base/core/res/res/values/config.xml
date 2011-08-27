@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+** Copyright 2009, The Android Open Source Project
+** Patched by Sven Dawitz; Copyright (C) 2011 CyanogenMod Project
+**
+** Licensed under the Apache License, Version 2.0 (the "License"); 
+** you may not use this file except in compliance with the License. 
+** You may obtain a copy of the License at 
+**
+**     http://www.apache.org/licenses/LICENSE-2.0 
+**
+** Unless required by applicable law or agreed to in writing, software 
+** distributed under the License is distributed on an "AS IS" BASIS, 
+** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+** See the License for the specific language governing permissions and 
+** limitations under the License.
+*/
+-->
+
+<!-- These resources are around just to allow their values to be customized
+     for different hardware and product builds. -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <!-- The duration (in milliseconds) that the radio will scan for a signal
+         when there's no network connection. If the scan doesn't timeout, use zero -->
+    <integer name="config_radioScanningTimeout">1</integer>
+
+    <!-- A product with no SD card == not removable. -->
+    <bool name="config_externalStorageRemovable" product="nosdcard">true</bool>
+    <!-- Configures whether the primary external storage device is
+         removable.  For example, if external storage is on an SD card,
+         it is removable; if it is built in to the device, it is not removable.
+         The default product has external storage on an SD card, which is
+         removable. -->
+    <bool name="config_externalStorageRemovable" product="default">false</bool>
+
+    <!-- XXXXX NOTE THE FOLLOWING RESOURCES USE THE WRONG NAMING CONVENTION.
+         Please don't copy them, copy anything else. -->
+
+    <!-- This string array should be overridden by the device to present a list of network
+         attributes.  This is used by the connectivity manager to decide which networks can coexist
+         based on the hardware -->
+    <!-- An Array of "[Connection name],[ConnectivityManager connection type],
+         [associated radio-type],[priority]  -->
+    <string-array translatable="false" name="networkAttributes">
+        <item>"wifi,1,1,1"</item>
+        <item>"mobile,0,0,0"</item>
+    </string-array>
+    
+    <!-- Flag indicating whether the we should enable the automatic brightness in Settings.
+         Software implementation will be used if config_hardware_auto_brightness_available is not set -->
+    <bool name="config_automatic_brightness_available">true</bool>
+
+    <!-- ************************************************
+         *                                              *
+         *    GLOBAL DEFAULT VALUES FOR CM SETTINGS     *
+         *                                              *
+         ************************************************
+
+         if you wanna change a behavior for your device,
+         just copy that value to your overlay file and
+         set it as you like -->
+
+    <!-- these values should be default for all phone devices! -->
+
+    <!-- toggles weather device is tablet or phone. right now,
+    tablets are know to have soft buttons, but phones have harware
+    buttons. this might change in the future - especially when the
+    honeycomb modifications become available for phones -->
+    <bool name="cm_default_is_tablet">true</bool>
+
+    <!-- toggles weather device uses soft buttons or got hardware
+    buttons. as the time of writing for android 2.3.3. all soft button
+    enabled devices are tablets, all disabled are phones. -->
+    <bool name="cm_default_has_soft_buttons">true</bool>
+
+    <!-- if true, status bar is shown on bottom by default -->
+    <bool name="cm_default_bottom_status_bar">true</bool>
+
+    <!-- toggle which buttons to show if soft buttons enabled
+    quickna: opens notification area with the press of one button
+    instead of swiping the long way up/down on big tablets -->
+    <bool name="cm_default_show_soft_home">true</bool>
+    <bool name="cm_default_show_soft_menu">false</bool>
+    <bool name="cm_default_show_soft_back">true</bool>
+    <bool name="cm_default_show_soft_search">true</bool>
+    <bool name="cm_default_show_soft_quick_na">true</bool>
+
+    <!-- when enabled, the power menu (shown when long-pressing
+    power... includes reboot and power off) is extended by
+    some more options which reflect the soft keys. ignored if soft
+    keys are disabled -->
+    <bool name="cm_default_extend_power_menu">true</bool>
+
+    <!-- If this value is true, the carrier supports sms delivery reports.
+         If false, sms delivery reports are not supported and the preference
+         option to enable/disable delivery reports is removed in the Messaging app. -->
+    <bool name="config_sms_delivery_reports_support">false</bool>
+
+    <!-- If this value is true, the carrier supports mms delivery reports.
+         If false, mms delivery reports are not supported and the preference
+         option to enable/disable delivery reports is removed in the Messaging app. -->
+    <bool name="config_mms_delivery_reports_support">false</bool>
+
+    <!-- If this value is true, the carrier supports mms read reports.
+         If false, mms read reports are not supported and the preference
+         option to enable/disable read reports is removed in the Messaging app. -->
+    <bool name="config_mms_read_reports_support">false</bool>
+
+</resources>
