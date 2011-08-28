@@ -21,7 +21,7 @@ INSTRUCTIONS:
     croot
     mkdir -p device/hp
     cd device/hp
-    git clone git@github.com:CyanogenMod/android_device_hp_topaz.git
+    git clone git@github.com:CyanogenMod/android_device_hp_topaz.git -b gingerbread
     mv android_device_hp_topaz topaz
 
 2.  git clone the android_hardware_qsd8x60 repo to /hardware
