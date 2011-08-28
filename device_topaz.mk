@@ -16,7 +16,7 @@
 
 # The gps config appropriate for this device
 #PRODUCT_COPY_FILES += \
-#    device/hp/topaz/gps.conf:system/etc/gps.conf
+    device/hp/topaz/prebuilt/gps.conf:system/etc/gps.conf
 
 ## (1) First, the most specific values, i.e. the aspects that are specific to GSM
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -52,14 +52,6 @@ PRODUCT_COPY_FILES += \
     frameworks/base/data/etc/android.hardware.usb.accessory.xml:system/etc/permissions/android.hardware.usb.accessory.xml \
     frameworks/base/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml
 
-#PRODUCT_PACKAGES += \
-#    gps.topaz \
-#    librs_jni \
-#    gralloc.msm8660 \
-#    copybit.msm8660 \
-#    overlay.default \
-#    com.android.future.usb.accessory
-
 PRODUCT_PACKAGES += \
     librs_jni \
     libaudio \
@@ -67,8 +59,6 @@ PRODUCT_PACKAGES += \
     overlay.default \
     copybit.msm8660 \
     com.android.future.usb.accessory
-
-
 #    libOmxCore \
 #    libOmxVenc \
 #    libOmxVdec
@@ -81,15 +71,14 @@ PRODUCT_PACKAGES += \
 
 # Keylayouts
 #PRODUCT_COPY_FILES += \
-#    device/hp/topaz/keychars/qwerty2.kcm.bin:system/usr/keychars/qwerty2.kcm.bin \
-#    device/hp/topaz/keychars/qwerty.kcm.bin:system/usr/keychars/qwerty.kcm.bin \
-#    device/hp/topaz/keychars/topaz-keypad.kcm.bin:system/usr/keychars/topaz-keypad.kcm.bin \
-#    device/hp/topaz/keychars/BT_HID.kcm.bin:system/usr/keychars/BT_HID.kcm.bin \
-#    device/hp/topaz/keylayout/h2w_headset.kl:system/usr/keylayout/h2w_headset.kl \
-#    device/hp/topaz/keylayout/qwerty.kl:system/usr/keylayout/qwerty.kl \
-#    device/hp/topaz/keylayout/topaz-keypad.kl:system/usr/keylayout/topaz-keypad.kl \
-#    device/hp/topaz/keylayout/BT_HID.kl:system/usr/keylayout/BT_HID.kl \
-#    device/hp/topaz/keylayout/AVRCP.kl:system/usr/keylayout/AVRCP.kl
+    device/hp/topaz/prebuilt/usr/keychars/qwerty2.kcm.bin:system/usr/keychars/qwerty2.kcm.bin \
+    device/hp/topaz/prebuilt/usr/keychars/qwerty.kcm.bin:system/usr/keychars/qwerty.kcm.bin \
+    device/hp/topaz/prebuilt/usr/keychars/ffa-keypad_numeric.kcm.bin:system/usr/keychars/ffa-keypad_numeric.kcm.bin \
+    device/hp/topaz/prebuilt/usr/keychars/ffa-keypad_qwerty.kcm.bin:system/usr/keychars/ffa-keypad_qwerty.kcm.bin \
+    device/hp/topaz/prebuilt/usr/keylayout/qwerty.kl:system/usr/keylayout/qwerty.kl \
+    device/hp/topaz/prebuilt/usr/keylayout/handset.kl:system/usr/keylayout/handset.kl \
+    device/hp/topaz/prebuilt/usr/keylayout/gpio-keys.kl:system/usr/keylayout/gpio-keys.kl \
+    device/hp/topaz/prebuilt/usr/keylayout/AVRCP.kl:system/usr/keylayout/AVRCP.kl
 # Firmware
 
 #PRODUCT_COPY_FILES += \
@@ -143,9 +132,6 @@ PRODUCT_LOCALES += hdpi
 PRODUCT_COPY_FILES += \
     device/hp/topaz/vold.fstab:system/etc/vold.fstab
 
-
-$(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
-
 # The gps config appropriate for this device
 #$(call inherit-product, device/common/gps/gps_eu_supl.mk)
 
@@ -160,12 +146,6 @@ endif
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_KERNEL):kernel
-
-# media profiles and capabilities spec
-#$(call inherit-product, device/hp/topaz/media_a1026.mk)
-
-# hp audio settings
-#$(call inherit-product, device/hp/topaz/media_hpaudio.mk)
 
 # stuff common to all HTC phones
 #$(call inherit-product, device/hp/common/common.mk)
