@@ -3,11 +3,27 @@ on early-fs
     mkdir /data 0771 system system
     mkdir /cache 0770 system cache
 #    mkdir /devlog 0700 root root
+
+# Enable LVM
+
+# We need to set LVM_SYSTEM_DIR for lvm to work and it does not work
+# with embedded export command until too late, so we exploit
+# the fact that there is /bin/sh on the 13th partition that we can use.
+mount ext3 /dev/block/mmcblk0p13 /mnt ro barrier=0
+# Unfortunately it's dynamically linked so we need to create this
+# /lib symlink first and kill it later when no longer needed.
+symlink /mnt/lib /lib
+# Also stupid lvm binary expects block devices to live in /dev,
+# not /dev/block
+symlink /dev/block/mmcblk0p14 /dev/mmcblk0p14
+exec /mnt/bin/sh -c "LVM_SYSTEM_DIR=/mnt/etc/lvm /mnt/usr/sbin/lvm.static vgchange -ay
     
     mount ext4 /dev/store/cm-system /system wait ro barrier=1
     mount ext4 /dev/store/cm-data /data wait noatime nosuid nodev barrier=1 noauto_da_alloc
     mount ext4 /dev/store/cm-cache /cache wait noatime nosuid nodev barrier=1
 #    mount ext4 /dev/store/cm-devlog /devlog wait noatime nosuid nodev barrier=1
+
+ exec /system/xbin/rm -rf /dev/mmcblk0p14 /lib
     
 #    device /dev/block/mmcblk0p16 0460 radio diag
 
