@@ -42,10 +42,11 @@
 
 #camera
 /dev/pmem_smipool       0660    system      audio
-/dev/msm_camera/*       0660    system      camera
+/dev/msm_camera/*       0660    system      system
 
 #graphics
 /dev/msm_rotator        0660    system      graphics
 /dev/kgsl-2d0           0666    root        root
 /dev/kgsl-3d0           0666    root        root
-
+/dev/kgs1-2d1		0666	root	    root
+/dev/pmem		0660	system	    graphics
