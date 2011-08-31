@@ -1,78 +1,68 @@
-CM7 TOPAZ BUILD INSTRUCTIONS  (please update as necessary)
-8/26/11
-
-
-CAVEATS
-
-* Does not build libOmxCore, libOmxVenc, or libOmxVdec.
-* Uses generic audio stub.
-* Probably doesn't work yet
-
-(as a local manifest becomes available, these instructions will be simplified)
-
-** THE RESULTING BINARY HAS NOT BEEN TESTED IN ANY WAY **
-
+CM7 TOPAZ BUILD INSTRUCTIONS
+8/31/11
 
 
 INSTRUCTIONS:
 
-1.  git clone the topaz device repo.  
+1.  Apply the following repo to .repo/local_manifest.xml
 
-    croot
-    mkdir -p device/hp
-    cd device/hp
-    git clone git@github.com:CyanogenMod/android_device_hp_topaz.git -b gingerbread
-    mv android_device_hp_topaz topaz
+----cut----
 
-2.  git clone the android_hardware_qsd8x60 repo to /hardware
+<?xml version="1.0" encoding="UTF-8"?>
+  <manifest>
 
-    croot
-    cd hardware
-    git clone git@github.com:CyanogenMod/android_hardware_qsd8x60.git
-    mv android_hardware_qsd8x60 qsd8x60
+  <remote  name="codeaurora"
+           fetch="git://codeaurora.org"/>
 
-    git apply below in qsd8x60 (two small changes... you can do manually too):
+  <remote  name = "privategh"
+           fetch="git@github.com:" />
 
-diff --git a/liboverlay/Android.mk b/liboverlay/Android.mk
-index 5318de8..3bf75e0 100644
---- a/liboverlay/Android.mk
-+++ b/liboverlay/Android.mk
-@@ -19,7 +19,8 @@ include $(CLEAR_VARS)
- LOCAL_PRELINK_MODULE := false
- LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)
- LOCAL_SHARED_LIBRARIES := liblog libcutils
--LOCAL_C_INCLUDES += hardware/msm7k/libgralloc-qsd8k
-+#LOCAL_C_INCLUDES += hardware/msm7k/libgralloc-qsd8k
-+LOCAL_C_INCLUDES += hardware/qsd8x60/libgralloc-qsd8k
- LOCAL_SRC_FILES := overlayLib.cpp
- LOCAL_MODULE := liboverlay
- LOCAL_MODULE_TAGS := optional
-@@ -35,7 +36,8 @@ include $(CLEAR_VARS)
- LOCAL_PRELINK_MODULE := false
- LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
- LOCAL_SHARED_LIBRARIES := liblog liboverlay libcutils
--LOCAL_C_INCLUDES += hardware/msm7k/libgralloc-qsd8k
-+#LOCAL_C_INCLUDES += hardware/msm7k/libgralloc-qsd8k
-+LOCAL_C_INCLUDES += hardware/qsd8x60/libgralloc-qsd8k
- LOCAL_SRC_FILES := overlay.cpp
- LOCAL_MODULE := overlay.default
- LOCAL_MODULE_TAGS := optional
+    <project path="device/hp/topaz"
+      name="CyanogenMod/android_device_hp_topaz"
+      remote="privategh"
+      revision="gingerbread"/>
 
-3.  REMOVE the whole hardware/msm7k tree cuz the makefiles clash with the qsd you just added.
+    <project path="device/htc/pyramid"
+      name="CyanogenMod/android_device_htc_pyramid"
+      remote="privategh"
+      revision="master"/>
 
-    croot
-    cd hardware
-    rm -rf msm7k
+    <remove-project path="hardware/msm7k"
+      name="CyanogenMod/android_hardware_msm7k"/>
 
-4.  remove android/system/hardware/qcom/media/mm-core and replace with gingerbread branch of:
-        git://codeaurora.org/platform/vendor/qcom-opensource/omx/mm-core.git
+    <project path="hardware/msm7k"
+      name = "CyanogenMod/android_hardware_qsd8x60"
+      remote="privategh"
+      revision="gingerbread"/>
 
-    croot
-    cd android/system/hardware/qcom/media
-    rm -rf mm-core
-    git clone git://codeaurora.org/platform/vendor/qcom-opensource/omx/mm-core.git -b "gingerbread_house"
+    <remove-project path="hardware/qcom/media"
+      name="CyanogenMod/android_hardware_qcom_media"/>
 
-5.  Add topaz to cyanogenmod's vendor tree
+    <project path="hardware/qcom/media/"
+      name = "CyanogenMod/ninjas_hardware_qcom_media"
+      remote="privategh"
+      revision="gingerbread" />
+
+    <remove-project path="frameworks/base"
+      name="CyanogenMod/android_frameworks_base"/>
+
+    <project path="frameworks/base"
+      name = "CyanogenMod/ninjas_frameworks_base"
+      remote="privategh"
+      revision="gingerbread" />
+
+    <!-- project path="hardware/qcom/media/mm-core"
+     name = "platform/vendor/qcom-opensource/omx/mm-core"
+     remote="codeaurora"
+     revision="gingerbread_house"/ -->
+
+  </manifest>
+
+
+----cut----
+
+
+2.  Add topaz to cyanogenmod's vendor tree
 
     croot
     cd vendor/cyanogenmod
@@ -103,7 +93,7 @@ index cc7ea64..18f5810 100644
  add_lunch_combo cyanogen_vega-eng
  add_lunch_combo cyanogen_vibrantmtd-eng
 
-5b.  Create a new file at vendor/cyanogen/products/cyanogen_topaz.mk as follows:
+2b.  Create a new file at vendor/cyanogen/products/cyanogen_topaz.mk as follows:
 
 ------cut------
 
@@ -149,9 +139,9 @@ PRODUCT_COPY_FILES +=  \
 ------cut------
 
 
-6.  Set up vendor tree.  Either:
+3.  Set up vendor tree.  Either:
 
-    6a.  Run extract-files in device/hp/topaz to set up the vendor/hp/topaz directory
+    3a.  Run extract-files in device/hp/topaz to set up the vendor/hp/topaz directory
 
     Then, two files needed to be added (such as from the android dump):
 
@@ -159,12 +149,13 @@ PRODUCT_COPY_FILES +=  \
          libaudioalsa.so
          libcamera.so
 
-    6b.  Use the vendor repo.
+    3b.  Use the vendor repo.
 
 
-7.  build and cross your fingers.
+4.  reposync, build and cross your fingers.
 
     croot
+    repo sync -j16
     make clobber
     brunch topaz
 
