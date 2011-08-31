@@ -166,6 +166,120 @@ But the sweet, sweet files should be inside.
 
 
 
+
 WHAT TO DO IF THE BUILD BREAKS
 
 Fix it.
+
+
+
+QUICK MANUAL REPARTITION FOR CM7
+
+[semi-untested.  Please enhance this section then remove this notice.]
+
+** WARNING!  DO NOT ATTEMPT THESE INSTRUCTIONS UNLESS YOU KNOW WHAT YOU ARE DOING.  THE POTENTIAL FOR HARM
+TO YOUR DEVICE IS HIGH WHEN YOU ATTEMPT TO REPARTITION ANYTHING.  ANY ATTEMPT TO DO SO IS ENTIRELY AT YOUR
+OWN RISK.  YOU MAY BRICK!  THESE INSTRUCTIONS ARE UNTESTED, UNVERIFIED, AND PURE EVIL ***
+
+Still here?  Okay...  So boot webos, and in novaterm, first shrink /dev/store/media to make room for the
+new partitions.
+
+(replace [NEWSIZE] with a number, such as 15.1).  the sizes can end in M or G.  For example, I took 2GB off
+for use with CM7.
+
+# pkill -SIGUSR1 cryptofs
+# umount /media/internal
+# fsck.vfat /dev/mapper/store-media
+# resize fat -p /dev/mapper/store-media [NEWSIZE]G
+# lvreduce -L [NEWSIZE]G /dev/mapper/store-media
+
+Check to make sure the vfat file system is still okay:
+
+# fsck.vfat /dev/mapper/store-media
+
+Now create the three new logical volumes:
+
+# lvcreate -L 1.5G --name cm-data store
+# lvcreate -L 300M --name cm-system store
+# lvcreate -L 200M --name cm-cache store
+
+(may also want to create /cm-boot and cm-recovery, but for now don't worry about it)
+
+And create the file systems
+
+# mkfs.ext3 /data/store/cm-system
+# mkfs.ext4 /data/store/cm-cache
+# mkfs.ext4 /data/store/cm-data
+
+The reason cm-system is ext3 is that you can't mount it as ext4 from the current webos kernel, which is needed
+to put android on there initially (but not after that, as you will have adb)
+
+You can now remount and restart cryptofs and stuff:
+
+# mount -t vfat /dev/mapper/store-media /media/internal
+# pkill -SIGUSR2 crpytofs
+
+
+
+COPYING FILES INTO CM-SYSTEM (FIRST TIME ONLY)
+
+/media/ram is a nice place on your tp that you can use as a scratch.  To copy files there,
+
+$ cat myfile|novacom put file:///media/ram/myfile
+
+You can then:
+
+$ mkdir media/ram/system
+$ mount /dev/store/cm-system /media/ram/system
+
+copy your files to /media/ram/system and *verify exec permissions in bin and xbin*
+
+
+
+COPYING FILES INTO CM (SUBSEQUENT BUILDS)
+
+Once you have CM7 booting, there's no need for copying files manually.
+
+After completing a build on your linux box, simply type:
+
+$ adb sync system
+
+And everything will be synced properly from $OUT/system -> your tp.
+
+(ProTip:  you may want to add an "$ adb shell sync" when you're done)
+
+You can also change your ext3 cm-system partition to ext4 if you like.
+
+
+HOW TO BOOT
+
+You will need the "uMulti" kernel+ramdisk.
+
+So reboot the tp with the usb plugged in while holding volume up.
+
+At the white USB logo...
+
+$ novacom boot mem:// < uMulti
+
+And away you go!
+
+
+
+SPECIAL COMMANDS
+
+Once in the shell, you can simulate keypresses using the following chart:
+
+http://groups.google.com/group/android-developers/browse_thread/thread/a4705c3f62414f90
+
+Example:
+
+# input keyevent 82
+
+will turn off the lockscreen
+
+
+
+WANT SCREENSHOTS?
+
+Use the android debugger -> ddms.
+
