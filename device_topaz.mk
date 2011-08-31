@@ -58,14 +58,12 @@ PRODUCT_PACKAGES += \
     copybit.msm8660 \
     overlay.default \
     liboverlay \
-    com.android.future.usb.accessory 
+    com.android.future.usb.accessory \
+    libOmxCore \
+    libOmxVenc \
+    libOmxVdec
 
-#    libaudio \
-#    libOmxCore \
-#    libOmxVenc \
-#    libOmxVdec
-
-
+#  libaudio
 
 PRODUCT_PACKAGES += \
     libreference-ril
