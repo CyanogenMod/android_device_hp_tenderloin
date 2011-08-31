@@ -1,4 +1,3 @@
-ifeq ($(TARGET_BOOTLOADER_BOARD_NAME),topaz)
-include $(call first-makefiles-under,$(call my-dir))
+ifneq ($(filter topaz,$(TARGET_DEVICE)),)
+    include $(all-subdir-makefiles)
 endif
-

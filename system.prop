@@ -5,10 +5,37 @@ wifi.interface=eth0
 wifi.supplicant_scan_interval=15
 dalvik.vm.heapsize=32m
 
+ro.sf.hwrotation=270
+
 ro.additionalmounts=/mnt/emmc;/mnt/usbdisk
 ro.vold.switchablepair=/mnt/sdcard,/mnt/emmc
 
 rild.libpath=/system/lib/libreference-ril.so
 rild.libargs=-d /dev/ttyS0
+ro.telephony.default_network=0
 
 # ro.cwm.forbid_format=/boot
+
+debug.fb.rgb565 = 0
+debug.sf.hw = 0
+
+
+
+#c2d
+debug.composition.type=c2d
+
+# The OpenGL ES API level that is natively supported by this device.
+# This is a 16.16 fixed point number
+ro.opengles.version = 131072
+
+# For the default value of agps
+ro.ril.def.agps.mode = 2
+
+# For emmc phone storage
+ro.phone_storage = 1
+
+# Make rmt_storage start at init
+ro.emmc = 1
+
+ro.additionalmounts=/mnt/emmc
+

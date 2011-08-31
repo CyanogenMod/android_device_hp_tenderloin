@@ -4,6 +4,5 @@
 /boot		vfat		/dev/store/cm-boot
 /cache          ext4            /dev/store/cm-cache
 /data           ext4            /dev/store/cm-data
-/sd-ext         ext4            /dev/store/cm-sd-ext
-/sdcard		vfat		/dev/store/cm-sdcard	/dev/store/cm-sdcard2
 /system         ext4            /dev/store/cm-system
+/emmc           vfat        	/dev/store/media

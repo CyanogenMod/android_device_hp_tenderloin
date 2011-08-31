@@ -51,20 +51,21 @@ PRODUCT_COPY_FILES += \
     frameworks/base/data/etc/android.hardware.touchscreen.multitouch.distinct.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.distinct.xml \
     frameworks/base/data/etc/android.hardware.usb.accessory.xml:system/etc/permissions/android.hardware.usb.accessory.xml \
     frameworks/base/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml
-
+ 
 PRODUCT_PACKAGES += \
     librs_jni \
-    libaudio \
     gralloc.msm8660 \
-    overlay.default \
     copybit.msm8660 \
-    com.android.future.usb.accessory
+    overlay.default \
+    liboverlay \
+    com.android.future.usb.accessory 
+
+#    libaudio \
 #    libOmxCore \
 #    libOmxVenc \
 #    libOmxVdec
 
 
-#  from encore... just delete
 
 PRODUCT_PACKAGES += \
     libreference-ril

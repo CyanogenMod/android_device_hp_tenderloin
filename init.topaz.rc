@@ -16,8 +16,10 @@ symlink /mnt/lib /lib
 # Also stupid lvm binary expects block devices to live in /dev,
 # not /dev/block
 symlink /dev/block/mmcblk0p14 /dev/mmcblk0p14
-exec /mnt/bin/sh -c "LVM_SYSTEM_DIR=/mnt/etc/lvm /mnt/usr/sbin/lvm.static vgchange -ay
-    
+exec /mnt/bin/sh -c "LVM_SYSTEM_DIR=/mnt/etc/lvm /mnt/usr/sbin/lvm.static vgchange -ay"
+
+# regular mounts
+
     mount ext4 /dev/store/cm-system /system wait ro barrier=1
     mount ext4 /dev/store/cm-data /data wait noatime nosuid nodev barrier=1 noauto_da_alloc
     mount ext4 /dev/store/cm-cache /cache wait noatime nosuid nodev barrier=1
@@ -71,6 +73,12 @@ on init
     chown system system /dev/mpu
     chown system system /dev/mpuirq
     chown system system /dev/timerirq
+
+#  for emmc  (shared with webos at /dev/share/media)
+
+    export PHONE_STORAGE /mnt/emmc
+    mkdir /mnt/emmc 0000 system system
+    symlink /mnt/emmc /emmc
 
 on boot
 # + SSD_RIL: Otis: from Qualcomm QMI and Netmgrd
@@ -257,18 +265,18 @@ on property:ro.build.tags=test-keys
 #    start rmt_storage
     
 # for modem link
-service modem /system/xbin/wireless_modem
-    user system
-    group system radio
-    disabled
+#service modem /system/xbin/wireless_modem
+#    user system
+#    group system radio
+#    disabled
 
 # for modem link
-on property:service.modem.enable=1
-    start modem
+#on property:service.modem.enable=1
+#    start modem
 
 # for modem link
-on property:service.modem.enable=0
-    stop modem
+#on property:service.modem.enable=0
+#    stop modem
     
 # + SSD_RIL: Otis: from Qualcomm QMI and Netmgrd
 service qmuxd /system/bin/qmuxd
