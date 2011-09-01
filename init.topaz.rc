@@ -29,7 +29,7 @@ exec /mnt/bin/sh -c "LVM_SYSTEM_DIR=/mnt/etc/lvm /mnt/usr/sbin/lvm.static vgchan
     
 #    device /dev/block/mmcblk0p16 0460 radio diag
 
-on fs
+#on fs
 
 #    no radio on topaz
 
