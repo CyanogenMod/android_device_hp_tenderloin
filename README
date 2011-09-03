@@ -207,9 +207,9 @@ Now create the three new logical volumes:
 
 And create the file systems
 
-# mkfs.ext3 /data/store/cm-system
-# mkfs.ext4 /data/store/cm-cache
-# mkfs.ext4 /data/store/cm-data
+# mkfs.ext3 /dev/store/cm-system
+# mkfs.ext4 /dev/store/cm-cache
+# mkfs.ext4 /dev/store/cm-data
 
 The reason cm-system is ext3 is that you can't mount it as ext4 from the current webos kernel, which is needed
 to put android on there initially (but not after that, as you will have adb)
