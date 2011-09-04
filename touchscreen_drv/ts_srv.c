@@ -1,0 +1,423 @@
+#include "/home/green/touchpad/hp_topaz_kernel/include/linux/input.h"
+#include "/home/green/touchpad/hp_topaz_kernel/include/linux/uinput.h"
+#include <linux/hsuart.h>
+#include <linux/i2c.h>
+#include <linux/i2c-dev.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <sys/time.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/select.h>
+
+#define RECV_BUF_SIZE 1540
+#define LIFTOFF_TIMEOUT 20000 /* 20ms */
+
+unsigned char cline[64];
+unsigned int cidx=0;
+unsigned char matrix[30][40]; 
+int uinput_fd;
+
+int send_uevent(int fd, __u16 type, __u16 code, __s32 value)
+{
+    struct input_event event;
+
+    memset(&event, 0, sizeof(event));
+    event.type = type;
+    event.code = code;
+    event.value = value;
+    gettimeofday(&event.time, NULL);
+
+    if (write(fd, &event, sizeof(event)) != sizeof(event)) {
+        fprintf(stderr, "Error on send_event %d", sizeof(event));
+        return -1;
+    }
+
+    return 0;
+}
+
+
+void calc_point()
+{
+	int i,j;
+	int tweight=0;
+	int xsum=0, ysum=0;
+	double avgx, avgy;
+
+	for(i=0; i < 30; i++)
+	{
+		for(j=0; j < 40; j++)
+		{
+			if(matrix[i][j] < 3)
+				matrix[i][j] = 0;
+			//printf("%2.2X ", matrix[i][j]);
+			tweight += matrix[i][j];
+			xsum += matrix[i][j] * i;
+			ysum += matrix[i][j] * j;
+		}
+		//printf("\n");
+	}
+	avgx = xsum / (double)tweight;
+	avgy = ysum / (double)tweight;
+
+	printf("Coords %lf, %lf, %d\n", avgx,avgy, tweight);
+
+	/* Single touch signals */
+#if 1
+	send_uevent(uinput_fd, EV_ABS, ABS_X, avgx*768/29);
+	send_uevent(uinput_fd, EV_ABS, ABS_Y, 1024-avgy*1024/39);
+	send_uevent(uinput_fd, EV_ABS, ABS_PRESSURE, 1);
+	send_uevent(uinput_fd, EV_ABS, ABS_TOOL_WIDTH, 10);
+	send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 1);
+#endif
+
+	/* Multi toch signals */
+#if 0
+	send_uevent(uinput_fd, EV_ABS, ABS_MT_TRACKING_ID, 1);
+	send_uevent(uinput_fd, EV_ABS, ABS_MT_TOUCH_MAJOR, 1);
+	send_uevent(uinput_fd, EV_ABS, ABS_MT_WIDTH_MAJOR, 10);
+	send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, avgx*1024/40);
+	send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, avgy*768/40);
+	send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
+#endif
+
+	send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
+	
+}
+
+void put_byte(unsigned char byte)
+{
+//	printf("Putc %d %d\n", cidx, byte);
+	if(cidx==0 && byte != 0xFF)
+		return;
+
+	//Sometimes a send is aborted by the touch screen. all we get is an out of place 0xFF
+	if(byte == 0xFF && !cline_valid(1))
+		cidx = 0;
+	cline[cidx++] = byte;
+}
+
+int cline_valid(int extras)
+{
+	if(cline[0] == 0xff && cline[1] == 0x43 && cidx == 44-extras)
+	{
+//		printf("cidx %d\n", cline[cidx-1]);
+		return 1;
+	}
+	if(cline[0] == 0xff && cline[1] == 0x47 && cidx > 4 && cidx == (cline[2]+4-extras))
+	{
+//		printf("cidx %d\n", cline[cidx-1]);
+		return 1;
+	}
+	return 0;
+}
+
+void consume_line()
+{
+	int i,j;
+
+	if(cline[1] == 0x47)
+	{
+		//calculate the data points. all transfers complete
+		calc_point();
+	}
+
+	if(cline[1] == 0x43)
+	{
+		//This is a start event. clear the matrix
+		if(cline[2] & 0x80)
+		{
+			for(i=0; i < 30; i++)
+				for(j=0; j < 40; j++)
+					matrix[i][j] = 0;
+		}
+
+		//Write the line into the matrix
+		for(i=0; i < 40; i++)
+			matrix[cline[2] & 0x1F][i] = cline[i+3];
+	}
+
+//	printf("Received %d bytes\n", cidx-1);
+		
+/*		for(i=0; i < cidx; i++)
+			printf("%2.2X ",cline[i]);
+		printf("\n");	*/
+	cidx = 0;
+}
+
+void snarf2(unsigned char* bytes, int size)
+{
+	int i=0;
+	while(i < size)
+	{
+		while(i < size)
+		{
+			put_byte(bytes[i]);
+			i++;
+			if(cline_valid(0))
+			{
+//				printf("was valid\n");
+				break;
+			}
+		}
+
+		if(i >= size)
+			break;
+
+//		printf("Cline went valid\n");
+		consume_line();
+	}
+
+	if(cline_valid(0))
+	{
+		consume_line();
+//		printf("was valid2\n");
+	}
+}
+
+void open_uinput()
+{
+    struct uinput_user_dev device;
+    struct input_event myevent;
+    int i,ret = 0;
+
+    memset(&device, 0, sizeof device);
+
+    uinput_fd=open("/dev/uinput",O_WRONLY);
+    strcpy(device.name,"HPTouchpad");
+
+    device.id.bustype=BUS_USB;
+    device.id.vendor=1;
+    device.id.product=1;
+    device.id.version=1;
+
+    for (i=0; i < ABS_MAX; i++) {
+        device.absmax[i] = -1;
+        device.absmin[i] = -1;
+        device.absfuzz[i] = -1;
+        device.absflat[i] = -1;
+    }
+
+    device.absmin[ABS_X]=0;
+    device.absmax[ABS_X]=768;
+    device.absfuzz[ABS_X]=2;
+    device.absflat[ABS_X]=0;
+    device.absmin[ABS_Y]=0;
+    device.absmax[ABS_Y]=1024;
+    device.absfuzz[ABS_Y]=1;
+    device.absflat[ABS_Y]=0;
+    device.absmin[ABS_PRESSURE]=0;
+    device.absmax[ABS_PRESSURE]=1;
+    device.absfuzz[ABS_PRESSURE]=0;
+    device.absflat[ABS_PRESSURE]=0;
+    device.absmin[ABS_MT_POSITION_X]=0;
+    device.absmax[ABS_MT_POSITION_X]=768;
+    device.absfuzz[ABS_MT_POSITION_X]=2;
+    device.absflat[ABS_MT_POSITION_X]=0;
+    device.absmin[ABS_MT_POSITION_Y]=0;
+    device.absmax[ABS_MT_POSITION_Y]=1024;
+    device.absfuzz[ABS_MT_POSITION_Y]=1;
+    device.absflat[ABS_MT_POSITION_Y]=0;
+    device.absmax[ABS_MT_TOUCH_MAJOR]=1;
+    device.absmax[ABS_MT_WIDTH_MAJOR]=10;
+
+
+    if (write(uinput_fd,&device,sizeof(device)) != sizeof(device))
+    {
+        fprintf(stderr, "error setup\n");
+    }
+
+#if 1
+    if (ioctl(uinput_fd,UI_SET_EVBIT,EV_KEY) < 0)
+        fprintf(stderr, "error evbit key\n");
+#endif
+
+    if (ioctl(uinput_fd,UI_SET_EVBIT, EV_SYN) < 0)
+        fprintf(stderr, "error evbit key\n");
+
+    if (ioctl(uinput_fd,UI_SET_EVBIT,EV_ABS) < 0)
+            fprintf(stderr, "error evbit rel\n");
+
+#if 1
+    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_X) < 0)
+            fprintf(stderr, "error x rel\n");
+
+    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_Y) < 0)
+            fprintf(stderr, "error y rel\n");
+
+    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_PRESSURE) < 0)
+            fprintf(stderr, "error pressure rel\n");
+
+    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_TOOL_WIDTH) < 0)
+            fprintf(stderr, "error tool rel\n");
+#endif
+
+//    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_TRACKING_ID) < 0)
+//            fprintf(stderr, "error trkid rel\n");
+
+#if 0
+    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_TOUCH_MAJOR) < 0)
+            fprintf(stderr, "error tool rel\n");
+
+    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_WIDTH_MAJOR) < 0)
+            fprintf(stderr, "error tool rel\n");
+
+    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_POSITION_X) < 0)
+            fprintf(stderr, "error tool rel\n");
+
+    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_POSITION_Y) < 0)
+            fprintf(stderr, "error tool rel\n");
+#endif
+
+#if 1
+    if (ioctl(uinput_fd,UI_SET_KEYBIT,BTN_TOUCH) < 0)
+            fprintf(stderr, "error evbit rel\n");
+#endif
+
+    if (ioctl(uinput_fd,UI_DEV_CREATE) < 0)
+    {
+        fprintf(stderr, "error create\n");
+    }
+
+}
+
+int main(int argc, char** argv)
+{
+	struct hsuart_mode uart_mode;
+	struct i2c_rdwr_ioctl_data i2c_ioctl_data;
+	struct i2c_msg i2c_msg;
+	int uart_fd, vdd_fd, xres_fd, wake_fd, i2c_fd, nbytes, i; 
+	char recv_buf[RECV_BUF_SIZE];
+	char i2c_buf[16];
+	fd_set fdset;
+	struct timeval seltmout;
+
+	uart_fd = open("/dev/ctp_uart", O_RDONLY|O_NONBLOCK);
+	if(uart_fd<=0)
+	{
+		printf("Could not open uart\n");
+		return 0;
+	}
+
+	open_uinput();
+
+	ioctl(uart_fd,HSUART_IOCTL_GET_UARTMODE,&uart_mode);
+	uart_mode.speed = 0x3D0900;
+	ioctl(uart_fd, HSUART_IOCTL_SET_UARTMODE,&uart_mode);
+
+	vdd_fd = open("/sys/devices/platform/cy8ctma395/vdd", O_WRONLY);
+	xres_fd = open("/sys/devices/platform/cy8ctma395/xres", O_WRONLY);
+	wake_fd = open("/sys/user_hw/pins/ctp/wake/level", O_WRONLY);
+	i2c_fd = open("/dev/i2c-5", O_RDWR);
+
+	lseek(vdd_fd, 0, SEEK_SET);
+	write(vdd_fd, "1", 1);
+
+	lseek(wake_fd, 0, SEEK_SET);
+	write(wake_fd, "1", 1);
+
+	lseek(xres_fd, 0, SEEK_SET);
+	write(xres_fd, "1", 1);
+
+	lseek(xres_fd, 0, SEEK_SET);
+	write(xres_fd, "0", 1);
+
+	usleep(50000);
+
+	ioctl(uart_fd, HSUART_IOCTL_FLUSH, 0x9);
+
+	lseek(wake_fd, 0, SEEK_SET);
+	write(wake_fd, "0", 1);
+
+	usleep(50000);
+
+	i2c_ioctl_data.nmsgs = 1;
+	i2c_ioctl_data.msgs = &i2c_msg;
+
+	i2c_msg.addr = 0x67;
+	i2c_msg.flags = 0;
+	i2c_msg.buf = i2c_buf;
+	
+	i2c_msg.len = 2;
+	i2c_buf[0] = 0x08; i2c_buf[1] = 0;
+	ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+	i2c_msg.len = 6;
+	i2c_buf[0] = 0x31; i2c_buf[1] = 0x01; i2c_buf[2] = 0x08;
+	i2c_buf[3] = 0x0C; i2c_buf[4] = 0x0D; i2c_buf[5] = 0x0A; 
+	ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+	i2c_msg.len = 2;
+	i2c_buf[0] = 0x30; i2c_buf[1] = 0x0F;
+	ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+	i2c_buf[0] = 0x40; i2c_buf[1] = 0x02;
+	ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+	i2c_buf[0] = 0x41; i2c_buf[1] = 0x10;
+	ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+	i2c_buf[0] = 0x0A; i2c_buf[1] = 0x04;
+	ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+	i2c_buf[0] = 0x08; i2c_buf[1] = 0x03;
+	ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);	
+
+	lseek(wake_fd, 0, SEEK_SET);
+	write(wake_fd, "1", 1);
+
+	while(1)
+	{
+	//	usleep(50000);
+		FD_ZERO(&fdset);
+		FD_SET(uart_fd, &fdset);
+		seltmout.tv_sec = 0;
+		/* 2x tmout */
+		seltmout.tv_usec = LIFTOFF_TIMEOUT;
+
+		if (0 == select(uart_fd+1, &fdset, NULL, NULL, &seltmout)) {
+			/* Timeout means liftoff, send event */
+printf("timeout! sending liftoff\n");
+#if 1
+			send_uevent(uinput_fd, EV_ABS, ABS_PRESSURE, 0);
+//			send_uevent(uinput_fd, EV_ABS, BTN_2, 0);
+			send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 0);
+#endif
+
+#if 0
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_TRACKING_ID, 1);
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_TOUCH_MAJOR, 0);
+			send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
+#endif
+
+			send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
+
+			FD_ZERO(&fdset);
+			FD_SET(uart_fd, &fdset);
+			/* Now enter indefinite sleep iuntil input appears */
+			select(uart_fd+1, &fdset, NULL, NULL, NULL);
+			/* In case we were wrongly woken up check the event
+			 * count again */
+			continue;
+		}
+			
+		nbytes = read(uart_fd, recv_buf, RECV_BUF_SIZE);
+		
+		if(nbytes < 0)
+			continue;
+
+
+	/*	printf("Received %d bytes\n", nbytes);
+		
+		for(i=0; i < nbytes; i++)
+			printf("%2.2X ",recv_buf[i]);
+		printf("\n");	*/	
+
+		snarf2(recv_buf,nbytes);
+
+	}
+
+	return 0;
+}
