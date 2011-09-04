@@ -13,6 +13,23 @@
 #include <math.h>
 #include <sys/select.h>
 
+#if 1
+// This is for Andrioid
+#define UINPUT_LOCATION "/dev/uinput"
+#else
+// This is for webos and possibly other Linuxes
+#define UINPUT_LOCATION "/dev/input/uinput"
+#endif
+
+/* Set to 1 to print coordinates to stdout. */
+#define DEBUG 0
+
+/* Set to 1 to see raw data from the driver */
+#define RAW_DATA_DEBUG 0
+
+#define WANT_MULTITOUCH 0
+#define WANT_SINGLETOUCH 1
+
 #define RECV_BUF_SIZE 1540
 #define LIFTOFF_TIMEOUT 20000 /* 20ms */
 
@@ -54,22 +71,28 @@ void calc_point()
 		{
 			if(matrix[i][j] < 3)
 				matrix[i][j] = 0;
-			//printf("%2.2X ", matrix[i][j]);
+#if RAW_DATA_DEBUG
+			printf("%2.2X ", matrix[i][j]);
+#endif
 
 			powered = pow(matrix[i][j],1.5);
 			tweight += powered;
 			ysum += powered * j;
 			xsum += powered * i;
 		}
-		//printf("\n");
+#if RAW_DATA_DEBUG
+		printf("\n");
+#endif
 	}
 	avgx = xsum / (double)tweight;
 	avgy = ysum / (double)tweight;
 
+#if DEBUG
 	printf("Coords %lf, %lf, %d\n", avgx,avgy, tweight);
+#endif
 
 	/* Single touch signals */
-#if 1
+#if WANT_SINGLETOUCH
 	send_uevent(uinput_fd, EV_ABS, ABS_X, avgx*768/29);
 	send_uevent(uinput_fd, EV_ABS, ABS_Y, 1024-avgy*1024/39);
 	send_uevent(uinput_fd, EV_ABS, ABS_PRESSURE, 1);
@@ -78,7 +101,7 @@ void calc_point()
 #endif
 
 	/* Multi toch signals */
-#if 0
+#if WANT_MULTITOUCH
 	send_uevent(uinput_fd, EV_ABS, ABS_MT_TRACKING_ID, 1);
 	send_uevent(uinput_fd, EV_ABS, ABS_MT_TOUCH_MAJOR, 1);
 	send_uevent(uinput_fd, EV_ABS, ABS_MT_WIDTH_MAJOR, 10);
@@ -189,7 +212,7 @@ void open_uinput()
 
     memset(&device, 0, sizeof device);
 
-    uinput_fd=open("/dev/uinput",O_WRONLY);
+    uinput_fd=open(UINPUT_LOCATION,O_WRONLY);
     strcpy(device.name,"HPTouchpad");
 
     device.id.bustype=BUS_USB;
@@ -216,6 +239,7 @@ void open_uinput()
     device.absmax[ABS_PRESSURE]=1;
     device.absfuzz[ABS_PRESSURE]=0;
     device.absflat[ABS_PRESSURE]=0;
+#if WANT_MULTITOUCH
     device.absmin[ABS_MT_POSITION_X]=0;
     device.absmax[ABS_MT_POSITION_X]=768;
     device.absfuzz[ABS_MT_POSITION_X]=2;
@@ -226,6 +250,7 @@ void open_uinput()
     device.absflat[ABS_MT_POSITION_Y]=0;
     device.absmax[ABS_MT_TOUCH_MAJOR]=1;
     device.absmax[ABS_MT_WIDTH_MAJOR]=10;
+#endif
 
 
     if (write(uinput_fd,&device,sizeof(device)) != sizeof(device))
@@ -233,10 +258,8 @@ void open_uinput()
         fprintf(stderr, "error setup\n");
     }
 
-#if 1
     if (ioctl(uinput_fd,UI_SET_EVBIT,EV_KEY) < 0)
         fprintf(stderr, "error evbit key\n");
-#endif
 
     if (ioctl(uinput_fd,UI_SET_EVBIT, EV_SYN) < 0)
         fprintf(stderr, "error evbit key\n");
@@ -261,7 +284,7 @@ void open_uinput()
 //    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_TRACKING_ID) < 0)
 //            fprintf(stderr, "error trkid rel\n");
 
-#if 0
+#if WANT_MULTITOUCH
     if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_TOUCH_MAJOR) < 0)
             fprintf(stderr, "error tool rel\n");
 
@@ -383,14 +406,16 @@ int main(int argc, char** argv)
 
 		if (0 == select(uart_fd+1, &fdset, NULL, NULL, &seltmout)) {
 			/* Timeout means liftoff, send event */
-printf("timeout! sending liftoff\n");
+#if DEBUG
+			printf("timeout! sending liftoff\n");
+#endif
 #if 1
 			send_uevent(uinput_fd, EV_ABS, ABS_PRESSURE, 0);
 //			send_uevent(uinput_fd, EV_ABS, BTN_2, 0);
 			send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 0);
 #endif
 
-#if 0
+#if WANT_MULTITOUCH
 			send_uevent(uinput_fd, EV_ABS, ABS_MT_TRACKING_ID, 1);
 			send_uevent(uinput_fd, EV_ABS, ABS_MT_TOUCH_MAJOR, 0);
 			send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
@@ -409,7 +434,7 @@ printf("timeout! sending liftoff\n");
 			
 		nbytes = read(uart_fd, recv_buf, RECV_BUF_SIZE);
 		
-		if(nbytes < 0)
+		if(nbytes <= 0)
 			continue;
 
 
