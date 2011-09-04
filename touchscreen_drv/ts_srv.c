@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include <sys/select.h>
 
 #define RECV_BUF_SIZE 1540
@@ -43,8 +44,9 @@ void calc_point()
 {
 	int i,j;
 	int tweight=0;
-	int xsum=0, ysum=0;
+	double xsum=0, ysum=0;
 	double avgx, avgy;
+	double powered;
 
 	for(i=0; i < 30; i++)
 	{
@@ -53,9 +55,11 @@ void calc_point()
 			if(matrix[i][j] < 3)
 				matrix[i][j] = 0;
 			//printf("%2.2X ", matrix[i][j]);
-			tweight += matrix[i][j];
-			xsum += matrix[i][j] * i;
-			ysum += matrix[i][j] * j;
+
+			powered = pow(matrix[i][j],1.5);
+			tweight += powered;
+			ysum += powered * j;
+			xsum += powered * i;
 		}
 		//printf("\n");
 	}
