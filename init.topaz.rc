@@ -285,6 +285,9 @@ service qmuxd /system/bin/qmuxd
 
 service netmgrd /system/bin/netmgrd
 
+service tsdriver /system/bin/ts_srv
+    critical
+
 on property:ro.use_data_netmgrd=false
     # netmgr not supported on specific target
     stop netmgrd
