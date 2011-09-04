@@ -1,3 +1,16 @@
+/*
+ * This is a userspace touchscreen driver for cypress ctma395 as used
+ * in HP Touchpad configured for WebOS.
+ *
+ * The code was written from scrath, the hard math and understanding the
+ * device output by jonpry @ gmail
+ * uinput bits and the rest by Oleg Drokin green@linuxhacker.ru
+ *
+ * License - TBD (c) 2011
+ * For now if you are not part of CM7 team assume you don't have any rights!
+ *
+ */
+
 #include "/home/green/touchpad/hp_topaz_kernel/include/linux/input.h"
 #include "/home/green/touchpad/hp_topaz_kernel/include/linux/uinput.h"
 #include <linux/hsuart.h>
