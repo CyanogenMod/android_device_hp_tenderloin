@@ -20,7 +20,7 @@
 
 ## (1) First, the most specific values, i.e. the aspects that are specific to GSM
 PRODUCT_PROPERTY_OVERRIDES += \
-    ro.sf.lcd_density=131 \
+    ro.sf.lcd_density=161 \
     ro.com.google.clientidbase=android-hp \
     ro.com.google.locationfeatures=1 \
     ro.com.google.networklocation=1 \
@@ -126,7 +126,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_TAGS += dalvik.gc.type-precise
 
 # device uses high-density artwork where available
-PRODUCT_LOCALES += hdpi
+PRODUCT_LOCALES += mdpi
 
 PRODUCT_COPY_FILES += \
     device/hp/topaz/vold.fstab:system/etc/vold.fstab
