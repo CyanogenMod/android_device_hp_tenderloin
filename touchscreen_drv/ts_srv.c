@@ -11,8 +11,8 @@
  *
  */
 
-#include "/home/green/touchpad/hp_topaz_kernel/include/linux/input.h"
-#include "/home/green/touchpad/hp_topaz_kernel/include/linux/uinput.h"
+#include <linux/input.h>
+#include <linux/uinput.h>
 #include <linux/hsuart.h>
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
