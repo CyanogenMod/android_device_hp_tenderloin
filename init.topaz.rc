@@ -93,6 +93,14 @@ on boot
     mkdir /data/d 0777 system system
     mount debugfs /data/d /data/d
 
+#  permissions for kgsl
+    chmod 0660 /dev/kgsl-2d0
+    chmod 0660 /dev/kgsl-2d1
+    chmod 0660 /dev/kgsl-3d0
+    chown system graphics /dev/kgsl-2d0
+    chown system graphics /dev/kgsl-2d1
+    chown system graphics /dev/kgsl-3d0
+
     # bluetooth power up/down interface
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
