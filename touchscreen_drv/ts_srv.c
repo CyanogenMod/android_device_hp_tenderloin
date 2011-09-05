@@ -2,12 +2,25 @@
  * This is a userspace touchscreen driver for cypress ctma395 as used
  * in HP Touchpad configured for WebOS.
  *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA.
+ *
  * The code was written from scrath, the hard math and understanding the
  * device output by jonpry @ gmail
  * uinput bits and the rest by Oleg Drokin green@linuxhacker.ru
  *
- * License - TBD (c) 2011
- * For now if you are not part of CM7 team assume you don't have any rights!
+ * Copyright (c) 2011 CyanogenMon Touchpad Project.
  *
  */
 
