@@ -17,7 +17,7 @@ ro.telephony.default_network=0
 # ro.cwm.forbid_format=/boot
 
 debug.sf.hw = 1
-
+wifi.interface=wlan0 
 
 
 #c2d

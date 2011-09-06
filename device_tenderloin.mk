@@ -30,7 +30,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 PRODUCT_COPY_FILES += \
     device/hp/tenderloin/init.tenderloin.rc:root/init.tenderloin.rc \
-    device/hp/tenderloin/init.rc:root/init.rc \
     device/hp/tenderloin/ueventd.tenderloin.rc:root/ueventd.tenderloin.rc
 
 ## (2) Also get non-open-source GSM-specific aspects if available
@@ -58,6 +57,7 @@ PRODUCT_PACKAGES += \
     copybit.msm8660 \
     overlay.default \
     liboverlay \
+    wpa_supplicant.conf \
     com.android.future.usb.accessory \
     libOmxCore \
     libOmxVenc \
@@ -120,7 +120,7 @@ PRODUCT_COPY_FILES += \
 
 # Wifi Module
 PRODUCT_COPY_FILES += \
-    device/hp/tenderloin/modules/ar6000.ko:system/lib/modules/ar6000.ko
+    device/hp/tenderloin/prebuilt/wifi/ar6000.ko:system/lib/modules/ar6000.ko
 
 # we have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise
