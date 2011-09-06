@@ -25,7 +25,7 @@ INSTRUCTIONS:
     <project path="device/htc/pyramid"
       name="CyanogenMod/android_device_htc_pyramid"
       remote="privategh"
-      revision="master"/>
+      revision="gingerbread"/>
 
     <remove-project path="hardware/msm7k"
       name="CyanogenMod/android_hardware_msm7k"/>
