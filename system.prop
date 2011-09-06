@@ -16,8 +16,7 @@ ro.telephony.default_network=0
 
 # ro.cwm.forbid_format=/boot
 
-debug.fb.rgb565 = 0
-debug.sf.hw = 0
+debug.sf.hw = 1
 
 
 
