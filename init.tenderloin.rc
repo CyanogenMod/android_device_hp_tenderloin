@@ -187,15 +187,6 @@ service btwlancoex /system/bin/sh /system/etc/init.qcom.coex.sh
     disabled
     oneshot
 
-
-# for Invense MPU3050
-    chmod 0664 /dev/mpu
-    chmod 0664 /dev/mpuirq
-    chmod 0664 /dev/timerirq
-    chown system system /dev/mpu
-    chown system system /dev/mpuirq
-    chown system system /dev/timerirq
-
 # bugreport is triggered by the KEY_BACK and KEY_MENU keycodes
 service bugreport /system/bin/dumpstate -d -v -o /sdcard/bugreports/bugreport
     disabled
@@ -298,15 +289,23 @@ on property:ro.use_data_netmgrd=false
     stop netmgrd
 # - SSD_RIL: Otis: from Qualcomm QMI and Netmgrd
 
-service dcvs0 /system/bin/dcvs --cpu=0 --slacktime=16
+service dcvsd0 /system/bin/dcvsd -c 0 -f /data/misc/dcvsd/dcvsd0.conf
     user root
     disabled
 
-service dcvs1 /system/bin/dcvs --cpu=1 --slacktime=16
+service dcvsd1 /system/bin/dcvsd -c 1 -f /data/misc/dcvsd/dcvsd1.conf
     user root
     disabled
 
-service mpdecision /system/bin/mpdecision --no_sleep --avg_comp
+service dcvs0 /system/bin/dcvs --cpu=0 --slacktime=64
+    user root
+    disabled
+
+service dcvs1 /system/bin/dcvs --cpu=1 --slacktime=64
+    user root
+    disabled
+
+service mpdecision /system/bin/mpdecision --Nw=2.1 --Tw=100 --Ns=1.1 --Ts=70
     user root
     disabled
 
