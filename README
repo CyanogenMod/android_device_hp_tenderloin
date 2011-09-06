@@ -1,4 +1,4 @@
-CM7 TOPAZ BUILD INSTRUCTIONS
+CM7 TENDERLOIN BUILD INSTRUCTIONS
 8/31/11
 
 
@@ -17,8 +17,8 @@ INSTRUCTIONS:
   <remote  name = "privategh"
            fetch="git@github.com:" />
 
-    <project path="device/hp/topaz"
-      name="CyanogenMod/android_device_hp_topaz"
+    <project path="device/hp/tenderloin"
+      name="CyanogenMod/android_device_hp_tenderloin"
       remote="privategh"
       revision="gingerbread"/>
 
@@ -62,7 +62,7 @@ INSTRUCTIONS:
 ----cut----
 
 
-2.  Add topaz to cyanogenmod's vendor tree
+2.  Add tenderloin to cyanogenmod's vendor tree
 
     croot
     cd vendor/cyanogenmod
@@ -76,7 +76,7 @@ index 3a927db..08015af 100644
      $(LOCAL_DIR)/cyanogen_smb_b9701.mk \
      $(LOCAL_DIR)/cyanogen_speedy.mk \
      $(LOCAL_DIR)/cyanogen_supersonic.mk \
-+    $(LOCAL_DIR)/cyanogen_topaz.mk \
++    $(LOCAL_DIR)/cyanogen_tenderloin.mk \
      $(LOCAL_DIR)/cyanogen_u8220.mk \
      $(LOCAL_DIR)/cyanogen_vega.mk \
      $(LOCAL_DIR)/cyanogen_vibrantmtd.mk \
@@ -88,17 +88,17 @@ index cc7ea64..18f5810 100644
  add_lunch_combo cyanogen_smb_b9701-eng
  add_lunch_combo cyanogen_speedy-eng
  add_lunch_combo cyanogen_supersonic-eng
-+add_lunch_combo cyanogen_topaz-eng
++add_lunch_combo cyanogen_tenderloin-eng
  add_lunch_combo cyanogen_u8220-eng
  add_lunch_combo cyanogen_vega-eng
  add_lunch_combo cyanogen_vibrantmtd-eng
 
-2b.  Create a new file at vendor/cyanogen/products/cyanogen_topaz.mk as follows:
+2b.  Create a new file at vendor/cyanogen/products/cyanogen_tenderloin.mk as follows:
 
 ------cut------
 
-# Inherit AOSP device configuration for topaz.
-$(call inherit-product, device/hp/topaz/device_topaz.mk)
+# Inherit AOSP device configuration for tenderloin.
+$(call inherit-product, device/hp/tenderloin/device_tenderloin.mk)
 
 # Inherit some common cyanogenmod stuff.
 $(call inherit-product, vendor/cyanogen/products/common_full.mk)
@@ -106,30 +106,30 @@ $(call inherit-product, vendor/cyanogen/products/common_full.mk)
 #
 # Setup device specific product configuration.
 #
-PRODUCT_NAME := cyanogen_topaz
+PRODUCT_NAME := cyanogen_tenderloin
 PRODUCT_BRAND := hp
-PRODUCT_DEVICE := topaz
+PRODUCT_DEVICE := tenderloin
 PRODUCT_MODEL := HP Touchpad
 PRODUCT_MANUFACTURER := hp
-PRODUCT_BUILD_PROP_OVERRIDES += PRODUCT_NAME=topaz BUILD_ID=GRJ22 BUILD_DISPLAY_ID=GRJ90 BUILD_FINGERPRINT=google/passion/passion:2.3.4/GRJ22/121341:user/release-keys PRIVATE_BUILD_DESC="passion-user 2.3.4 GRJ22 121341 release-keys"
+PRODUCT_BUILD_PROP_OVERRIDES += PRODUCT_NAME=tenderloin BUILD_ID=GRJ22 BUILD_DISPLAY_ID=GRJ90 BUILD_FINGERPRINT=google/passion/passion:2.3.4/GRJ22/121341:user/release-keys PRIVATE_BUILD_DESC="passion-user 2.3.4 GRJ22 121341 release-keys"
 
 PRODUCT_PACKAGE_OVERLAYS += \
     vendor/cyanogen/overlay/tablet \
-    vendor/cyanogen/overlay/topaz
+    vendor/cyanogen/overlay/tenderloin
 
 #
 # Set ro.modversion
 #
 ifdef CYANOGEN_NIGHTLY
     PRODUCT_PROPERTY_OVERRIDES += \
-        ro.modversion=CyanogenMod-7-$(shell date +%m%d%Y)-NIGHTLY-topaz
+        ro.modversion=CyanogenMod-7-$(shell date +%m%d%Y)-NIGHTLY-tenderloin
 else
     ifdef CYANOGEN_RELEASE
         PRODUCT_PROPERTY_OVERRIDES += \
-            ro.modversion=CyanogenMod-7.1.0-RC1-topaz
+            ro.modversion=CyanogenMod-7.1.0-RC1-tenderloin
     else
         PRODUCT_PROPERTY_OVERRIDES += \
-            ro.modversion=CyanogenMod-7.1.0-RC1-topaz-KANG
+            ro.modversion=CyanogenMod-7.1.0-RC1-tenderloin-KANG
     endif
 endif
 
@@ -141,11 +141,11 @@ PRODUCT_COPY_FILES +=  \
 
 3.  Set up vendor tree.  Either:
 
-    3a.  Run extract-files in device/hp/topaz to set up the vendor/hp/topaz directory
+    3a.  Run extract-files in device/hp/tenderloin to set up the vendor/hp/tenderloin directory
 
     Then, two files needed to be added (such as from the android dump):
 
-    Into vendor/hp/topaz/proprietary:
+    Into vendor/hp/tenderloin/proprietary:
          libaudioalsa.so
          libcamera.so
 
@@ -157,7 +157,7 @@ PRODUCT_COPY_FILES +=  \
     croot
     repo sync -j16
     make clobber
-    brunch topaz
+    brunch tenderloin
 
     ...and see what happens.
 

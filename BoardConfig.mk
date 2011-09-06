@@ -1,8 +1,8 @@
 
 # inherit from the proprietary version
--include vendor/hp/topaz/BoardConfigVendor.mk
+-include vendor/hp/tenderloin/BoardConfigVendor.mk
 
-TARGET_SPECIFIC_HEADER_PATH := device/hp/topaz/include 
+TARGET_SPECIFIC_HEADER_PATH := device/hp/tenderloin/include 
 
 TARGET_NO_BOOTLOADER := true
 TARGET_NO_KERNEL := false
@@ -16,7 +16,7 @@ TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_CPU_SMP := true
 ARCH_ARM_HAVE_TLS_REGISTER := true
 
-TARGET_BOOTLOADER_BOARD_NAME := topaz
+TARGET_BOOTLOADER_BOARD_NAME := tenderloin
 TARGET_HAVE_HDMI_OUT := false
 TARGET_USES_OVERLAY := true
 TARGET_NO_RADIOIMAGE := true
@@ -45,7 +45,7 @@ BOARD_HAVE_BLUETOOTH := true
 BOARD_HAVE_BLUETOOTH_BCM := true
 
 # Define egl.cfg location
-BOARD_EGL_CFG := device/hp/topaz/egl.cfg
+BOARD_EGL_CFG := device/hp/tenderloin/egl.cfg
 
 BOARD_USES_QCOM_LIBS := true
 BOARD_USES_QCOM_LIBRPC := true
@@ -61,19 +61,19 @@ BOARD_USES_ADRENO_200 := true
 #BOARD_HAVE_FM_RADIO := true
 #BOARD_GLOBAL_CFLAGS += -DHAVE_FM_RADIO
 
-TARGET_BOOTLOADER_BOARD_NAME := topaz
+TARGET_BOOTLOADER_BOARD_NAME := tenderloin
 
 #BOARD_USE_NEW_LIBRIL_HTC := true
-#TARGET_PROVIDES_LIBRIL := vendor/hp/topaz/proprietary/libril.so
+#TARGET_PROVIDES_LIBRIL := vendor/hp/tenderloin/proprietary/libril.so
 
-# topaz- these kernel settings are temporary to complete build
+# tenderloin- these kernel settings are temporary to complete build
 BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.hardware=qcom
 BOARD_KERNEL_BASE := 0x40200000
 BOARD_PAGE_SIZE := 2048
 
 TARGET_USE_SCORPION_BIONIC_OPTIMIZATION := true
 
-BOARD_VENDOR_QCOM_GPS_LOC_API_HARDWARE := topaz
+BOARD_VENDOR_QCOM_GPS_LOC_API_HARDWARE := tenderloin
 BOARD_VENDOR_QCOM_GPS_LOC_API_AMSS_VERSION := 50000
 
 TARGET_USES_C2D_COMPOSITION := true
@@ -81,9 +81,9 @@ TARGET_HAVE_HDMI_OUT := false
 #TARGET_HARDWARE_3D := true
 
 # Define Prebuilt kernel locations
-TARGET_PREBUILT_KERNEL := device/hp/topaz/kernel
+TARGET_PREBUILT_KERNEL := device/hp/tenderloin/kernel
 
-# topaz - these partition sizes are temporary to complete build
+# tenderloin - these partition sizes are temporary to complete build
 TARGET_USERIMAGES_USE_EXT4 := true
 BOARD_BOOTIMAGE_PARTITION_SIZE := 16777216
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 16776192
@@ -100,5 +100,5 @@ BOARD_HAS_SDCARD_INTERNAL := false
 BOARD_USES_MMCUTILS := true
 BOARD_HAS_NO_MISC_PARTITION := true
 BOARD_HAS_NO_SELECT_BUTTON := true
-BOARD_CUSTOM_GRAPHICS:= ../../../device/hp/topaz/graphics.c
+BOARD_CUSTOM_GRAPHICS:= ../../../device/hp/tenderloin/graphics.c
 BOARD_USES_RECOVERY_CHARGEMODE := true

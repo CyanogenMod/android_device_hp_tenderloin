@@ -33,7 +33,7 @@ on early-fs
 
 #on fs
 
-#    no radio on topaz
+#    no radio on tenderloin
 
 #    devwait /dev/block/mmcblk0p17
 #    rm /vendor
@@ -183,7 +183,7 @@ service dhcpcd /system/bin/dhcpcd -BKL wlan0
     disabled
     oneshot
 
-# from topaz
+# from tenderloin
 
 service btwlancoex /system/bin/sh /system/etc/init.qcom.coex.sh
     group bluetooth net_bt_admin

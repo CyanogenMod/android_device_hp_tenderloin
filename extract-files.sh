@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-DEVICE=topaz
+DEVICE=tenderloin
 
 mkdir -p ../../../vendor/hp/$DEVICE/proprietary
 
@@ -42,7 +42,7 @@ PRODUCT_COPY_FILES += \\
 
 #    vendor/hp/__DEVICE__/proprietary/libril.so:obj/lib/libril.so
 
-# All the blobs necessary for topaz
+# All the blobs necessary for tenderloin
 PRODUCT_COPY_FILES += \\
         vendor/hp/__DEVICE__/proprietary/libaudioalsa.so:/system/lib/libaudioalsa.so \\
         vendor/hp/__DEVICE__/proprietary/libcamera.so:/system/lib/libcamera.so
@@ -144,9 +144,9 @@ PRODUCT_COPY_FILES += \\
 #    vendor/hp/__DEVICE__/proprietary/libqmi.so:/system/lib/libqmi.so \\
 #    vendor/hp/__DEVICE__/proprietary/libqmiservices.so:/system/lib/libqmiservices.so \\
 #    vendor/hp/__DEVICE__/proprietary/vpimg:/system/etc/vpimg \\
-#    vendor/hp/__DEVICE__/proprietary/gps.topaz.so:/system/lib/hw/gps.topaz.so \\
+#    vendor/hp/__DEVICE__/proprietary/gps.tenderloin.so:/system/lib/hw/gps.tenderloin.so \\
 #    vendor/hp/__DEVICE__/proprietary/lights.msm8660.so:/system/lib/hw/lights.msm8660.so \\
-#    vendor/hp/__DEVICE__/proprietary/sensors.topaz.so:/system/lib/hw/sensors.topaz.so
+#    vendor/hp/__DEVICE__/proprietary/sensors.tenderloin.so:/system/lib/hw/sensors.tenderloin.so
 EOF
 
 ./setup-makefiles.sh

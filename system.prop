@@ -1,5 +1,5 @@
 #
-# system.prop for topaz
+# system.prop for tenderloin
 #
 wifi.interface=eth0
 wifi.supplicant_scan_interval=15

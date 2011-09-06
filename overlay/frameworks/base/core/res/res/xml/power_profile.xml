@@ -59,7 +59,7 @@
   <!-- Power consumption when CPU is idle -->
   <item name="cpu.idle">4</item>
   <!-- Power consumption at different speeds -->
-  <!-- topaz:  THIS IS ALL A TOTAL BLIND GUESS.  SHOULD BE UPDATED -->
+  <!-- tenderloin:  THIS IS ALL A TOTAL BLIND GUESS.  SHOULD BE UPDATED -->
   <array name="cpu.active">
       <value>160</value>
       <value>200</value>
