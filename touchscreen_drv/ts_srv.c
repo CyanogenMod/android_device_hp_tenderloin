@@ -22,6 +22,8 @@
  *
  * Copyright (c) 2011 CyanogenMon Touchpad Project.
  *
+ * Multitouch detection by deeper-blue Rafael Brune (mail@rbrune.de))on Sep 6th.
+ *
  */
 
 #include <linux/input.h>
@@ -35,6 +37,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include <sys/select.h>
@@ -53,11 +56,13 @@
 /* Set to 1 to see raw data from the driver */
 #define RAW_DATA_DEBUG 0
 
-#define WANT_MULTITOUCH 0
-#define WANT_SINGLETOUCH 1
+#define WANT_MULTITOUCH 1
+#define WANT_SINGLETOUCH 0
 
 #define RECV_BUF_SIZE 1540
 #define LIFTOFF_TIMEOUT 20000 /* 20ms */
+
+#define MAX_CLIST 75
 
 unsigned char cline[64];
 unsigned int cidx=0;
@@ -83,6 +88,119 @@ int send_uevent(int fd, __u16 type, __u16 code, __s32 value)
 }
 
 
+struct candidate {
+	int pw;
+	int i;
+	int j;
+};
+
+struct touchpoint {
+	int pw;
+	double i;
+	double j;
+};
+
+int tpcmp(const void *v1, const void *v2)
+{
+    return ((*(struct candidate *)v2).pw - (*(struct candidate *)v1).pw);
+}
+
+#define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
+#define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
+
+#if WANT_MULTITOUCH
+void calc_point()
+{
+	int i,j;
+	int tweight=0;
+	double isum=0, jsum=0;
+	double avgi, avgj;
+	double powered;
+	
+	int tpc=0;
+	struct touchpoint tpoint[10];
+
+	int clc=0;
+	struct candidate clist[MAX_CLIST];
+	
+	// generate list of high values
+	for(i=0; i < 30; i++) {
+		for(j=0; j < 40; j++) {
+			if(matrix[i][j] > 48 && clc < MAX_CLIST) {
+				clist[clc].pw = matrix[i][j];
+				clist[clc].i = i;
+				clist[clc].j = j;
+				clc++;
+			}
+		}
+	}
+#if DEBUG
+	printf("%d clc\n", clc);
+#endif
+
+	// sort candidate list by strength
+	qsort(clist, clc, sizeof(clist[0]), tpcmp);
+
+#if DEBUG
+	printf("%d %d %d \n", clist[0].pw, clist[1].pw, clist[2].pw);
+#endif
+
+	int k, l;
+	for(k=0; k < clc; k++) {
+		int newtp=1;
+		
+		int rad=4; // radius around candidate to use for calculation
+		int mini = clist[k].i - rad+1;
+		int maxi = clist[k].i + rad;
+		int minj = clist[k].j - rad+1;
+		int maxj = clist[k].j + rad;
+		
+		// discard points close to already detected touches
+		for(l=0; l<tpc; l++) {
+			if(tpoint[l].i > mini && tpoint[l].i < maxi && tpoint[l].j > minj && tpoint[l].j < maxj) newtp=0;
+		}
+		
+		// calculate new touch near the found candidate
+		if(newtp && tpc < 10) {
+			tweight=0;
+			isum=0;
+			jsum=0;
+			for(i=MAX(0, mini); i < MIN(30, maxi); i++) {
+				for(j=MAX(0, minj); j < MIN(40, maxj); j++) {
+					powered = pow(matrix[i][j], 1.5);
+					tweight += powered;
+					isum += powered * i;
+					jsum += powered * j;
+				}
+			}
+			avgi = isum / (double)tweight;
+			avgj = jsum / (double)tweight;
+			tpoint[tpc].pw = tweight;
+			tpoint[tpc].i = avgi;
+			tpoint[tpc].j = avgj;
+			tpc++;
+#if DEBUG
+			printf("Coords %d %lf, %lf, %d\n", tpc, avgi, avgj, tweight);
+#endif
+#if 0
+	send_uevent(uinput_fd, EV_ABS, ABS_MT_TRACKING_ID, tpc);
+#endif
+	send_uevent(uinput_fd, EV_ABS, ABS_MT_TOUCH_MAJOR, 1);
+	send_uevent(uinput_fd, EV_ABS, ABS_MT_WIDTH_MAJOR, 10);
+	send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, avgi*768/29);
+	send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, 1024-avgj*1024/39);
+	send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
+
+
+		}
+	}
+
+	send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
+}
+#endif
+
+
+#if WANT_SINGLETOUCH
 void calc_point()
 {
 	int i,j;
@@ -139,6 +257,7 @@ void calc_point()
 	send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
 	
 }
+#endif
 
 void put_byte(unsigned char byte)
 {
@@ -442,7 +561,7 @@ int main(int argc, char** argv)
 #endif
 
 #if WANT_MULTITOUCH
-			send_uevent(uinput_fd, EV_ABS, ABS_MT_TRACKING_ID, 1);
+//			send_uevent(uinput_fd, EV_ABS, ABS_MT_TRACKING_ID, 1);
 			send_uevent(uinput_fd, EV_ABS, ABS_MT_TOUCH_MAJOR, 0);
 			send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
 #endif
