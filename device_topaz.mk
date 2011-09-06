@@ -69,7 +69,7 @@ PRODUCT_PACKAGES += \
     libreference-ril
 
 # Keylayouts
-#PRODUCT_COPY_FILES += \
+PRODUCT_COPY_FILES += \
     device/hp/topaz/prebuilt/usr/keychars/qwerty2.kcm.bin:system/usr/keychars/qwerty2.kcm.bin \
     device/hp/topaz/prebuilt/usr/keychars/qwerty.kcm.bin:system/usr/keychars/qwerty.kcm.bin \
     device/hp/topaz/prebuilt/usr/keychars/ffa-keypad_numeric.kcm.bin:system/usr/keychars/ffa-keypad_numeric.kcm.bin \

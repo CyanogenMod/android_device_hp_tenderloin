@@ -23,7 +23,7 @@ key 228   POUND
 key 227   STAR
 key 231   CALL              WAKE_DROPPED
 key 61    CALL              WAKE_DROPPED
-key 232   DPAD_CENTER       WAKE_DROPPED
+key 232   HOME       WAKE
 key 108   DPAD_DOWN         WAKE_DROPPED
 key 103   DPAD_UP           WAKE_DROPPED
 key 102   HOME              WAKE
