@@ -170,12 +170,9 @@ on boot
 #    oneshot
 
 service wpa_supplicant /system/bin/logwrapper /system/bin/wpa_supplicant \
-    -Dwext -iwlan0 -c/data/misc/wifi/wpa_supplicant.conf -dd
-#   we will start as root and wpa_supplicant will switch to user wifi
-#   after setting up the capabilities required for WEXT
-#   user wifi
-#   group wifi inet keystore
-#    socket wpa_eth0 dgram 660 wifi wifi
+    -Dawext -iwlan0 -W -c/data/misc/wifi/wpa_supplicant.conf -dd
+    group wifi inet
+    socket wpa_wlan0 dgram 660 wifi wifi
     disabled
     oneshot
 
