@@ -31,10 +31,10 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_COPY_FILES += \
     device/hp/tenderloin/init.tenderloin.rc:root/init.tenderloin.rc \
     device/hp/tenderloin/ueventd.tenderloin.rc:root/ueventd.tenderloin.rc
+    device/hp/tenderloin/prebuilt/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf
 
 ## (2) Also get non-open-source GSM-specific aspects if available
 $(call inherit-product-if-exists, vendor/hp/tenderloin/tenderloin-vendor.mk)
-
 ## (3)  Finally, the least specific parts, i.e. the non-GSM-specific aspects
 
 DEVICE_PACKAGE_OVERLAYS += device/hp/tenderloin/overlay
@@ -50,7 +50,7 @@ PRODUCT_COPY_FILES += \
     frameworks/base/data/etc/android.hardware.touchscreen.multitouch.distinct.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.distinct.xml \
     frameworks/base/data/etc/android.hardware.usb.accessory.xml:system/etc/permissions/android.hardware.usb.accessory.xml \
     frameworks/base/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml
- 
+
 PRODUCT_PACKAGES += \
     librs_jni \
     gralloc.msm8660 \
