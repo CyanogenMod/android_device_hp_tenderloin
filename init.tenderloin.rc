@@ -76,6 +76,37 @@ on init
     chown system system /dev/mpuirq
     chown system system /dev/timerirq
 
+    chown system system /dev/compasssensor
+    chmod 0666 /dev/compasssensor
+    chown system system /dev/lightsensor
+    chmod 0666 /dev/lightsensor
+    chown system system /dev/gsensor
+    chmod 0666 /dev/gsensor
+    chown system system /dev/magsensor
+    chmod 0666 /dev/magsensor
+    chown system system /dev/gyrosensor
+    chmod 0666 /dev/gyrosensor
+    chown system system /dev/psensor
+    chmod 0666 /dev/psensor
+    chmod 0666 /sys/bus/platform/devices/max8903-charger/CEN_N_pin/value
+    chmod 0666 /sys/bus/platform/devices/max8903-charger/DCM_pin/value
+    chmod 0666 /sys/bus/platform/devices/max8903-charger/USUS_pin/value
+    chmod 0666 /sys/bus/platform/devices/max8903-charger/IUSB_pin/value
+    chmod 0666 /sys/bus/platform/devices/max8903-charger/CHG_D_ISET1_GPIO/value
+    chmod 0666 /sys/bus/platform/devices/max8903-charger/CHG_D_ISET2_GPIO/value
+    chmod 0666 /sys/class/leds/button-backlight/brightness
+
+# Wade Wang: Add sensor service for eCompass and Gyro sensor
+service sensor-daemon /system/bin/sensord
+    user compass
+    group system misc input
+
+#new daemon from InvenSense, these 2 daemon will be merged together later
+service mpld /system/bin/mpld
+    user system
+    group system misc input
+# Wade; end;
+
 #  for emmc  (shared with webos at /dev/share/media)
 
     export PHONE_STORAGE /mnt/emmc
@@ -94,9 +125,9 @@ on boot
     mount debugfs /data/d /data/d
 
 #  permissions for kgsl
-    chmod 0660 /dev/kgsl-2d0
-    chmod 0660 /dev/kgsl-2d1
-    chmod 0660 /dev/kgsl-3d0
+    chmod 0666 /dev/kgsl-2d0
+    chmod 0666 /dev/kgsl-2d1
+    chmod 0666 /dev/kgsl-3d0
     chown system graphics /dev/kgsl-2d0
     chown system graphics /dev/kgsl-2d1
     chown system graphics /dev/kgsl-3d0
