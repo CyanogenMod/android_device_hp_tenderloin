@@ -40,7 +40,7 @@ lib/egl
 "
 
 for DIR in $DIRS; do
-	mkdir -p $PATHTOVENDOR/proprietary/$DIR
+	mkdir -p ../../../vendor/$MANUFACTURER/$DEVICE/proprietary/$DIR
 done
 
 #SHARED OBJECT LIBRARIES
