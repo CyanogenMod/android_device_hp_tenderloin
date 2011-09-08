@@ -183,13 +183,16 @@ void calc_point()
 			printf("Coords %d %lf, %lf, %d\n", tpc, avgi, avgj, tweight);
 #endif
 #if 0
-	send_uevent(uinput_fd, EV_ABS, ABS_MT_TRACKING_ID, tpc);
+			/* Android does not need this an it simplifies stuff
+			 * for us as we don't need to track individual touches
+			 */
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_TRACKING_ID, tpc);
 #endif
-	send_uevent(uinput_fd, EV_ABS, ABS_MT_TOUCH_MAJOR, 1);
-	send_uevent(uinput_fd, EV_ABS, ABS_MT_WIDTH_MAJOR, 10);
-	send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, avgi*768/29);
-	send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, 1024-avgj*1024/39);
-	send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_TOUCH_MAJOR, 1);
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_WIDTH_MAJOR, 10);
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, avgi*768/29);
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, 1024-avgj*1024/39);
+			send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
 
 
 		}
@@ -236,23 +239,11 @@ void calc_point()
 #endif
 
 	/* Single touch signals */
-#if WANT_SINGLETOUCH
 	send_uevent(uinput_fd, EV_ABS, ABS_X, avgx*768/29);
 	send_uevent(uinput_fd, EV_ABS, ABS_Y, 1024-avgy*1024/39);
 	send_uevent(uinput_fd, EV_ABS, ABS_PRESSURE, 1);
 	send_uevent(uinput_fd, EV_ABS, ABS_TOOL_WIDTH, 10);
 	send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 1);
-#endif
-
-	/* Multi toch signals */
-#if WANT_MULTITOUCH
-	send_uevent(uinput_fd, EV_ABS, ABS_MT_TRACKING_ID, 1);
-	send_uevent(uinput_fd, EV_ABS, ABS_MT_TOUCH_MAJOR, 1);
-	send_uevent(uinput_fd, EV_ABS, ABS_MT_WIDTH_MAJOR, 10);
-	send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, avgx*1024/40);
-	send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, avgy*768/40);
-	send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
-#endif
 
 	send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
 	
@@ -394,7 +385,7 @@ void open_uinput()
     device.absfuzz[ABS_MT_POSITION_Y]=1;
     device.absflat[ABS_MT_POSITION_Y]=0;
     device.absmax[ABS_MT_TOUCH_MAJOR]=1;
-    device.absmax[ABS_MT_WIDTH_MAJOR]=10;
+    device.absmax[ABS_MT_WIDTH_MAJOR]=100;
 #endif
 
 
