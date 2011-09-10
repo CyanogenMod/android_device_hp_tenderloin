@@ -38,15 +38,17 @@
 void gaussian_fit(double *p, double *x, int m, int n, void *data)
 {
 int j, k;
-int t[3];
-t[0] = -1;
-t[1] = 0;
-t[2] = 1;
+int t[5];
+t[0] = -2;
+t[1] = -1;
+t[2] = 0;
+t[3] = 1;
+t[4] = 2;
 //printf("Parameters are: %.7g %.7g %.7g %.7g\n", p[0], p[1], p[2], p[3]);
 //printf("Fitted values: ");
-	for(j=0; j<3; ++j)
-		for(k=0; k<3; ++k) {
-			x[j*3+k]=p[0]*exp(-((t[j]-p[1])*(t[j]-p[1]) + (t[k]-p[2])*(t[k]-p[2]))/(2*SD*SD));
+	for(j=0; j<5; ++j)
+		for(k=0; k<5; ++k) {
+			x[j*5+k]=p[0]*exp(-((t[j]-p[1])*(t[j]-p[1]) + (t[k]-p[2])*(t[k]-p[2]))/(2*SD*SD));
 			//printf("%.7g,",x[j*3+k]);
 			}
 //printf("\n");
@@ -56,15 +58,16 @@ void jac_gaussian_fit(double *p, double *jac, int m, int n, void *data)
 {
 int l;
 int j, k;
-int t[3];
-t[0] = -1;
-t[1] = 0;
-t[2] = 1;
-l=0;
+int t[5];
+t[0] = -2;
+t[1] = -1;
+t[2] = 0;
+t[3] = 1;
+t[4] = 2;
 //printf("Parameters are: %.7g %.7g %.7g %.7g\n", p[0], p[1], p[2], p[3]);
 //printf("Fitted values: ");
-	for(j=0; j<3; ++j)
-		for(k=0; k<3; ++k) {
+	for(j=0; j<5; ++j)
+		for(k=0; k<5; ++k) {
 			jac[l++]=exp(-((t[j]-p[1])*(t[j]-p[1]) + (t[k]-p[2])*(t[k]-p[2]))/(2*SD*SD));
 			jac[l++]=p[0]*exp(-((t[j]-p[1])*(t[j]-p[1]) + (t[k]-p[2])*(t[k]-p[2]))/(2*SD*SD))*2*(t[j]-p[1])/(2*SD*SD);
 			jac[l++]=p[0]*exp(-((t[j]-p[1])*(t[j]-p[1]) + (t[k]-p[2])*(t[k]-p[2]))/(2*SD*SD))*2*(t[k]-p[2])/(2*SD*SD);
@@ -145,7 +148,7 @@ double opts[LM_OPTS_SZ], info[LM_INFO_SZ];
   opts[4]= LM_DIFF_DELTA; // relevant only if the Jacobian is approximated using finite differences; specifies forward differencing 
   //opts[4]=-LM_DIFF_DELTA; // specifies central differencing to approximate Jacobian; more accurate but more expensive to compute!
 
-    m=3; n=9;
+    m=3; n=25;
 
  //   printf("About to call dlevmar_dif:\n"); 	
 //    ret=dlevmar_dif(gaussian_fit, p, x, m, n, 500, opts, info, NULL, NULL, NULL); // no Jacobian, caller allocates work memory, covariance estimated

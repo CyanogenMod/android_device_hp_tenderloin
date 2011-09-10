@@ -118,23 +118,23 @@ void process_submatrix(int locx, int locy, double* results)
 {
 	int i,j,k,l, tval, peak=0;
 	int total=0, xtotal=0,ytotal=0;
-	double submatrix[9];
+	double submatrix[25];
 	double guess[5];
 
 	i=locx; j=locy;
 
-	if(i>1) i--;
-	if(j>1) j--;
-	if(i==28)i--;
-	if(j==38)j--;
+	i=MAX(0,i-2);
+	j=MAX(0,j-2);
+	i=MIN(i,25);
+	j=MIN(j,35);
 
 	printf("Sub Matrix: \n");
-	for(k=0; k < 3; k++)
+	for(k=0; k < 5; k++)
 	{
-		for(l=0; l < 3; l++)
+		for(l=0; l < 5; l++)
 		{
 			tval = matrix[i+k][j+l];
-			submatrix[k*3+l] = tval;
+			submatrix[k*5+l] = tval;
 			printf("%2.2X ", tval);
 
 			if(tval > peak) peak = tval;
@@ -152,8 +152,8 @@ void process_submatrix(int locx, int locy, double* results)
 
 	runlm(guess,submatrix,results);
 
-	results[0] += i+1;
-	results[1] += j+1;
+	results[0] += i+2;
+	results[1] += j+2;
 	printf("Coords: %d, %d, %d, %d, %g, %g\n", locx, locy, i, j, results[0], results[1]);
 }	
 
