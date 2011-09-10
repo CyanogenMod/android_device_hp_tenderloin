@@ -36,3 +36,6 @@ ro.emmc = 1
 
 ro.additionalmounts=/mnt/emmc
 
+# bluetooth
+net.bt.name=Android
+

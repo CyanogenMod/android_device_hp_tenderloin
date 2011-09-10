@@ -225,16 +225,6 @@ service hciattach /system/bin/sh /system/etc/init.qcom.bt.sh
     disabled
     oneshot
 
-# Make sure we startup btld before hcid
-# Set target address to emulator host loopback IF
-# Limit baudrate to 460800 to ensure reliable uart operation
-#service btld /system/bin/logwrapper /system/bin/btld -hwtun 10.0.2.2 -hb 460800 3000000 -lpm 1
-service btld /system/bin/logwrapper /system/bin/btld -hb 3000000
-    user root
-    group bluetooth net_bt_admin
-    disabled
-    oneshot
-
 service udhcpd /system/bin/udhcpd
     disabled
     oneshot
