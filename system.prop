@@ -1,8 +1,6 @@
 #
 # system.prop for tenderloin
 #
-wifi.interface=eth0
-wifi.supplicant_scan_interval=15
 dalvik.vm.heapsize=32m
 
 ro.sf.hwrotation=270
@@ -16,6 +14,7 @@ ro.telephony.default_network=0
 
 # ro.cwm.forbid_format=/boot
 
+wifi.supplicant_scan_interval=15
 wifi.interface=wlan0 
 
 

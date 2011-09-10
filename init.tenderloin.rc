@@ -213,21 +213,15 @@ service dhcpcd /system/bin/dhcpcd -BKL wlan0
 
 # from tenderloin
 
-service btwlancoex /system/bin/sh /system/etc/init.qcom.coex.sh
-    group bluetooth net_bt_admin
-    disabled
-    oneshot
-
 # bugreport is triggered by the KEY_BACK and KEY_MENU keycodes
 service bugreport /system/bin/dumpstate -d -v -o /sdcard/bugreports/bugreport
     disabled
     oneshot
     keycodes 158 139
 
-#service hciattach /system/bin/logwrapper /system/bin/brcm_patchram_plus --enable_hci --baudrate 3000000 --patchram /etc/firmware/BCM4329B1_002.002.023.0589.0632.hcd /dev/ttyHS0
-service hciattach /system/bin/logwrapper /system/bin/hciattach -n /dev/ttyHS0 bcsp 3000000 flow
+service hciattach /system/bin/sh /system/etc/init.qcom.bt.sh
     user bluetooth
-    group qcom_oncrpc bluetooth net_bt_admin
+    group qcom_oncrpc bluetooth net_bt_admin system
     disabled
     oneshot
 
