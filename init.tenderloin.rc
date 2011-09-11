@@ -117,8 +117,8 @@ on boot
 # + SSD_RIL: Otis: from Qualcomm QMI and Netmgrd
 #    mkdir /data/radio 0770 radio radio
 # - SSD_RIL: Otis: from Qualcomm QMI and Netmgrd
-    mkdir /data/misc/wifi 0770 wifi wifi
-    mkdir /data/misc/wifi/sockets 0770 wifi wifi
+    mkdir /data/misc/wifi 0770 system wifi
+    mkdir /data/misc/wifi/sockets 0770 system wifi
     mkdir /data/misc/dhcp 0770 dhcp dhcp
     chown dhcp dhcp /data/misc/dhcp
     mkdir /data/d 0777 system system
@@ -211,7 +211,7 @@ insmod /system/lib/modules/cfg80211.ko
 
 service wpa_supplicant /system/bin/logwrapper /system/bin/wpa_supplicant \
     -Dwext -iwlan0 -W -c/data/misc/wifi/wpa_supplicant.conf -dd
-#    group wifi inet
+    group wifi inet net_raw
     socket wpa_wlan0 dgram 660 wifi wifi
     disabled
     oneshot
