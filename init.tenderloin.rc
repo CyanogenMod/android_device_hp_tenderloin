@@ -207,7 +207,11 @@ service wpa_supplicant /system/bin/logwrapper /system/bin/wpa_supplicant \
     disabled
     oneshot
 
-service dhcpcd /system/bin/dhcpcd -BKL wlan0
+service dhcpcd_wlan0 /system/bin/dhcpcd -ABKL wlan0
+    disabled
+    oneshot
+
+service iprenew_wlan0 /system/bin/dhcpcd -n
     disabled
     oneshot
 
