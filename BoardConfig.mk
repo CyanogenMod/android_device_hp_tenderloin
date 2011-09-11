@@ -45,7 +45,7 @@ BOARD_PREBUILT_LIBAUDIO := true
 
 #Bluetooth
 BOARD_HAVE_BLUETOOTH := true
-BOARD_HAVE_BLUETOOTH_BCM := true
+#BOARD_HAVE_BLUETOOTH_BCM := true
 
 # Define egl.cfg location
 BOARD_EGL_CFG := device/hp/tenderloin/egl.cfg
@@ -85,6 +85,11 @@ TARGET_HAVE_HDMI_OUT := false
 
 # Define Prebuilt kernel locations
 TARGET_PREBUILT_KERNEL := device/hp/tenderloin/kernel
+
+# clockworkmod
+#BOARD_CUSTOM_RECOVERY_KEYMAPPING:= ../../device/hp/tenderloin/recovery_ui.c
+#TARGET_RECOVERY_PRE_COMMAND := "mkdir -p /mnt; mount -r -t ext3 /dev/block/mmcblk0p13 /mnt; ln -s /mnt/lib /lib; ln -s /dev/block/mmcblk0p14 /dev/mmcblk0p14; /mnt/bin/sh -c \"LVM_SYSTEM_DIR=/mnt/etc/lvm /mnt/usr/sbin/lvm.static vgchange -ay\";"
+# rm -rf /dev/mmcblk0p14 ; rm -rf /lib; umount /mnt;"
 
 # tenderloin - these partition sizes are temporary to complete build
 TARGET_USERIMAGES_USE_EXT4 := true

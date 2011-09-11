@@ -32,6 +32,7 @@ PRODUCT_COPY_FILES += \
     device/hp/tenderloin/init.tenderloin.rc:root/init.tenderloin.rc \
     device/hp/tenderloin/ueventd.tenderloin.rc:root/ueventd.tenderloin.rc
     device/hp/tenderloin/prebuilt/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf
+    device/hp/tenderloin/init.qcom.bt.sh:system/etc/init.qcom.bt.sh
 
 ## (2) Also get non-open-source GSM-specific aspects if available
 $(call inherit-product-if-exists, vendor/hp/tenderloin/tenderloin-vendor.mk)
