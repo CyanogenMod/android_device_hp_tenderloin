@@ -30,12 +30,9 @@ TARGET_GLOBAL_CPPFLAGS += -mfpu=neon -mfloat-abi=softfp
 # Wifi related defines
 BOARD_WPA_SUPPLICANT_DRIVER := WEXT
 WPA_SUPPLICANT_VERSION      := VER_0_6_X
-BOARD_WLAN_DEVICE           := ar6000
-WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/ar6000.ko"
-#WIFI_DRIVER_FW_STA_PATH     := "/system/etc/firmware/fw_bcm4329.bin"
-#WIFI_DRIVER_FW_AP_PATH      := "/system/etc/firmware/fw_bcm4329_apsta.bin"
-#WIFI_DRIVER_MODULE_ARG      := "firmware_path=/system/etc/firmware/fw_bcm4329.bin nvram_path=/proc/calibration"
-WIFI_DRIVER_MODULE_NAME     := "ar6000"
+BOARD_WLAN_DEVICE           := ath6kl
+WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/ath6kl.ko"
+WIFI_DRIVER_MODULE_NAME     := "ath6kl"
 
 # Audio 
 BOARD_USES_GENERIC_AUDIO := false
