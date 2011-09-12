@@ -186,9 +186,6 @@ on boot
 #    write /sys/block/mmcblk0/bdi/read_ahead_kb 1024
 #    write /sys/block/mmcblk1/bdi/read_ahead_kb 1024
 
-# Load kineto_gan.ko while booting
-#    insmod /system/lib/modules/kineto_gan.ko
-
 # Enable low memory killer to check file pages
     write /sys/module/lowmemorykiller/parameters/minfile 0,0,0,5120,5632,6144
     write /sys/module/lowmemorykiller/parameters/check_filepages 1
@@ -208,6 +205,7 @@ insmod /system/lib/modules/lib80211_crypt_wep.ko
 insmod /system/lib/modules/lib80211_crypt_tkip.ko
 insmod /system/lib/modules/compat.ko
 insmod /system/lib/modules/cfg80211.ko
+insmod /system/lib/modules/librasdioif.ko
 
 service wpa_supplicant /system/bin/logwrapper /system/bin/wpa_supplicant \
     -Dwext -iwlan0 -W -c/data/misc/wifi/wpa_supplicant.conf -dd
