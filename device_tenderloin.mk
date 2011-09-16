@@ -154,7 +154,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_TAGS += dalvik.gc.type-precise
 
 # device uses high-density artwork where available
-PRODUCT_LOCALES += mdpi
+PRODUCT_LOCALES += en_US mdpi
 
 PRODUCT_COPY_FILES += \
     device/hp/tenderloin/vold.fstab:system/etc/vold.fstab
