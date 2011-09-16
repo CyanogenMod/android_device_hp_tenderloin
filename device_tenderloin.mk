@@ -62,7 +62,8 @@ PRODUCT_PACKAGES += \
     com.android.future.usb.accessory \
     libOmxCore \
     libOmxVenc \
-    libOmxVdec
+    libOmxVdec \
+    sensors.tenderloin
 
 #  libaudio
 
