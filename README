@@ -1,5 +1,5 @@
 CM7 TENDERLOIN BUILD INSTRUCTIONS
-8/31/11
+9/16/11
 
 
 INSTRUCTIONS:
@@ -253,9 +253,26 @@ You can also change your ext3 cm-system partition to ext4 if you like.
 
 HOW TO BOOT
 
-You will need the "uMulti" kernel+ramdisk.
+You will need the "uMulti" kernel+ramdisk.  You can make it with the following script:
 
-So reboot the tp with the usb plugged in while holding volume up.
+(you will need mkimage-- available in ubuntu or build your own.  Then adjust OUT, MKIMAGE, and KERNEL)
+
+---snip---
+
+#!/bin/bash
+
+OUT=~/android/system/out/target/product/tenderloin/
+MKIMAGE=mkimage
+KERNEL=~/gh/CyanogenMod/hp-kernel-tenderloin/
+
+cd $OUT/root
+find . |cpio -R 0:0 -H newc -o --quiet |gzip -9c > /tmp/andr-init.img
+$MKIMAGE -A ARM -T RAMDisk -C none -n Image -d /tmp/andr-init.img /tmp/uRamdisk
+$MKIMAGE -A arm -T multi -C none -n 'test-multi-image' -d $KERNEL/arch/arm/boot/uImage:/tmp/uRamdisk /tmp/uMulti
+
+---snip---
+
+Done?  So reboot the tp with the usb plugged in while holding volume up.
 
 At the white USB logo...
 
