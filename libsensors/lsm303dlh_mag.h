@@ -27,7 +27,7 @@
 #include "SensorBase.h"
 #include "InputEventReader.h"
 
-#define LSM303DLH_MAG_ENABLE_FILE "/sys/bus/i2c/drivers/lsm303dlh_mag_sysfs/0-001e/enable_device"
+#define LSM303DLH_MAG_ENABLE_FILE "/sys/bus/i2c/drivers/lsm303dlh_mag_sysfs/0-001e/enable"
 #define LSM303DLH_MAG_DELAY_FILE  "/sys/bus/i2c/drivers/lsm303dlh_mag_sysfs/0-001e/pollrate_ms"
 
 /*****************************************************************************/
