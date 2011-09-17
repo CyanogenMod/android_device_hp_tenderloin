@@ -183,8 +183,7 @@ on boot
 #    chmod 0660 /dev/radio_feedback
 
     # Increase readahead buffers on MMC devices
-#    write /sys/block/mmcblk0/bdi/read_ahead_kb 1024
-#    write /sys/block/mmcblk1/bdi/read_ahead_kb 1024
+    write /sys/block/mmcblk0/bdi/read_ahead_kb 1024
 
 # Enable low memory killer to check file pages
     write /sys/module/lowmemorykiller/parameters/minfile 0,0,0,5120,5632,6144
