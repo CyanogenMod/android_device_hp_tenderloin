@@ -49,9 +49,9 @@ unzip -j -o $ZIPFILE -d ../../../vendor/$MANUFACTURER/proprietary/lib \
     system/lib/libaudioalsa.so \
     system/lib/libaudcal.so \
     system/lib/libdiag.so \
-    system/lib/libgemeni.so \
     system/lib/libgsl.so \
-    system/lib/libmmpi.so \
+    system/lib/libmmipl.so \
+    system/lib/libmmjpeg.so \
     system/lib/libOpenVG.so \
     system/lib/libqdp.so \
     system/lib/libqmi.so \
