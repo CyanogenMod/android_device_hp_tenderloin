@@ -46,9 +46,8 @@ PRODUCT_COPY_FILES += \\
     vendor/hp/__DEVICE__/proprietary/lib/libaudioalsa.so:system/lib/libaudioalsa.so \\
     vendor/hp/__DEVICE__/proprietary/lib/libaudcal.so:system/lib/libaudcal.so \\
     vendor/hp/__DEVICE__/proprietary/lib/libdiag.so:system/lib/libdiag.so \\
-    vendor/hp/__DEVICE__/proprietary/lib/libgemeni.so:system/lib/libgemeni.so \\
     vendor/hp/__DEVICE__/proprietary/lib/libgsl.so:system/lib/libgsl.so \\
-    vendor/hp/__DEVICE__/proprietary/lib/libmmpi.so:system/lib/libmmpi.so \\
+    vendor/hp/__DEVICE__/proprietary/lib/libmmipl.so:system/lib/libmmipl.so \\
     vendor/hp/__DEVICE__/proprietary/lib/libmmjpeg.so:system/lib/libmmjpeg.so \\
     vendor/hp/__DEVICE__/proprietary/lib/libOpenVG.so:system/lib/libOpenVG.so \\
     vendor/hp/__DEVICE__/proprietary/lib/libqdp.so:system/lib/libqdp.so \\
@@ -76,12 +75,12 @@ PRODUCT_COPY_FILES += \\
     vendor/hp/__DEVICE__/proprietary/bin/sensord:system/bin/sensord \\
     vendor/hp/__DEVICE__/proprietary/bin/thermald:system/bin/thermald \\
     vendor/hp/__DEVICE__/proprietary/bin/usbhub:system/bin/usbhub \\
-    vendor/hp/__DEVICE__/propreitary/bin/usbhub_init:system/bin/usbhub_init 
+    vendor/hp/__DEVICE__/proprietary/bin/usbhub_init:system/bin/usbhub_init 
 
 #Firmware
 PRODUCT_COPY_FILES += \\
 	vendor/hp/__DEVICE__/proprietary/etc/firmware/leia_pfp_470.fw:/system/etc/firmware/leia_pfp_470.fw \\
-	vendor/hp/__DEVICE__/proprierary/etc/firmware/leia_pm4_470.fw:/system/etc/firmware/leia_pm4_470.fw \\
+	vendor/hp/__DEVICE__/proprietary/etc/firmware/leia_pm4_470.fw:/system/etc/firmware/leia_pm4_470.fw \\
 	vendor/hp/__DEVICE__/proprietary/etc/firmware/vidc_1080p.fw:/system/etc/firmware/vidc_1080p.fw \\
 	vendor/hp/__DEVICE__/proprietary/etc/firmware/yamato_pfp.fw:/system/etc/firmware/yamato_pfp.fw \\
 	vendor/hp/__DEVICE__/proprietary/etc/firmware/yamato_pm4.fw:/system/etc/firmware/yamato_pm4.fw 

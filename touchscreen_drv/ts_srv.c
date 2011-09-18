@@ -60,7 +60,7 @@
 #define WANT_SINGLETOUCH 0
 
 #define RECV_BUF_SIZE 1540
-#define LIFTOFF_TIMEOUT 20000 /* 20ms */
+#define LIFTOFF_TIMEOUT 40000 /* 20ms */
 
 #define MAX_CLIST 75
 
@@ -96,8 +96,8 @@ struct candidate {
 
 struct touchpoint {
 	int pw;
-	double i;
-	double j;
+	float i;
+	float j;
 };
 
 int tpcmp(const void *v1, const void *v2)
@@ -113,9 +113,9 @@ void calc_point()
 {
 	int i,j;
 	int tweight=0;
-	double isum=0, jsum=0;
-	double avgi, avgj;
-	double powered;
+	float isum=0, jsum=0;
+	float avgi, avgj;
+	float powered;
 	
 	int tpc=0;
 	struct touchpoint tpoint[10];
@@ -148,8 +148,8 @@ void calc_point()
 	int k, l;
 	for(k=0; k < clc; k++) {
 		int newtp=1;
-		
-		int rad=4; // radius around candidate to use for calculation
+
+		int rad=3; // radius around candidate to use for calculation
 		int mini = clist[k].i - rad+1;
 		int maxi = clist[k].i + rad;
 		int minj = clist[k].j - rad+1;
@@ -173,8 +173,8 @@ void calc_point()
 					jsum += powered * j;
 				}
 			}
-			avgi = isum / (double)tweight;
-			avgj = jsum / (double)tweight;
+			avgi = isum / (float)tweight;
+			avgj = jsum / (float)tweight;
 			tpoint[tpc].pw = tweight;
 			tpoint[tpc].i = avgi;
 			tpoint[tpc].j = avgj;
@@ -208,9 +208,9 @@ void calc_point()
 {
 	int i,j;
 	int tweight=0;
-	double xsum=0, ysum=0;
-	double avgx, avgy;
-	double powered;
+	float xsum=0, ysum=0;
+	float avgx, avgy;
+	float powered;
 
 	for(i=0; i < 30; i++)
 	{
@@ -231,8 +231,8 @@ void calc_point()
 		printf("\n");
 #endif
 	}
-	avgx = xsum / (double)tweight;
-	avgy = ysum / (double)tweight;
+	avgx = xsum / (float)tweight;
+	avgy = ysum / (float)tweight;
 
 #if DEBUG
 	printf("Coords %lf, %lf, %d\n", avgx,avgy, tweight);

@@ -24,18 +24,16 @@ TARGET_HAVE_HDMI_OUT := false
 TARGET_USES_OVERLAY := true
 TARGET_NO_RADIOIMAGE := true
 TARGET_HAVE_TSLIB := false
-TARGET_GLOBAL_CFLAGS += -mfpu=neon -mfloat-abi=softfp
-TARGET_GLOBAL_CPPFLAGS += -mfpu=neon -mfloat-abi=softfp
+TARGET_GLOBAL_CFLAGS += -mtune=cortex-a9 -mfpu=neon -mfloat-abi=softfp 
+TARGET_GLOBAL_CPPFLAGS += -mtune=cortex-a9 -mfpu=neon -mfloat-abi=softfp 
+
 
 # Wifi related defines
 BOARD_WPA_SUPPLICANT_DRIVER := WEXT
 WPA_SUPPLICANT_VERSION      := VER_0_6_X
-BOARD_WLAN_DEVICE           := ar6000
-WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/ar6000.ko"
-#WIFI_DRIVER_FW_STA_PATH     := "/system/etc/firmware/fw_bcm4329.bin"
-#WIFI_DRIVER_FW_AP_PATH      := "/system/etc/firmware/fw_bcm4329_apsta.bin"
-#WIFI_DRIVER_MODULE_ARG      := "firmware_path=/system/etc/firmware/fw_bcm4329.bin nvram_path=/proc/calibration"
-WIFI_DRIVER_MODULE_NAME     := "ar6000"
+BOARD_WLAN_DEVICE           := ath6kl
+WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/ath6kl.ko"
+WIFI_DRIVER_MODULE_NAME     := "ath6kl"
 
 # Audio 
 BOARD_USES_GENERIC_AUDIO := false
@@ -45,7 +43,8 @@ BOARD_PREBUILT_LIBAUDIO := true
 
 #Bluetooth
 BOARD_HAVE_BLUETOOTH := true
-BOARD_HAVE_BLUETOOTH_BCM := true
+BOARD_HAVE_BLUETOOTH_CSR := true
+#BOARD_HAVE_BLUETOOTH_BCM := true
 
 # Define egl.cfg location
 BOARD_EGL_CFG := device/hp/tenderloin/egl.cfg
@@ -85,6 +84,11 @@ TARGET_HAVE_HDMI_OUT := false
 
 # Define Prebuilt kernel locations
 TARGET_PREBUILT_KERNEL := device/hp/tenderloin/kernel
+
+# clockworkmod
+#BOARD_CUSTOM_RECOVERY_KEYMAPPING:= ../../device/hp/tenderloin/recovery_ui.c
+#TARGET_RECOVERY_PRE_COMMAND := "mkdir -p /mnt; mount -r -t ext3 /dev/block/mmcblk0p13 /mnt; ln -s /mnt/lib /lib; ln -s /dev/block/mmcblk0p14 /dev/mmcblk0p14; /mnt/bin/sh -c \"LVM_SYSTEM_DIR=/mnt/etc/lvm /mnt/usr/sbin/lvm.static vgchange -ay\";"
+# rm -rf /dev/mmcblk0p14 ; rm -rf /lib; umount /mnt;"
 
 # tenderloin - these partition sizes are temporary to complete build
 TARGET_USERIMAGES_USE_EXT4 := true
