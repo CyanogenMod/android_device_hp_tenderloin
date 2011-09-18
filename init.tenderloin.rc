@@ -97,9 +97,9 @@ on init
     chmod 0666 /sys/class/leds/button-backlight/brightness
 
 # Wade Wang: Add sensor service for eCompass and Gyro sensor
-service sensor-daemon /system/bin/sensord
-    user compass
-    group system misc input
+#service sensor-daemon /system/bin/sensord
+#    user compass
+#    group system misc input
 
 #new daemon from InvenSense, these 2 daemon will be merged together later
 service mpld /system/bin/mpld
@@ -205,6 +205,9 @@ insmod /system/lib/modules/lib80211_crypt_tkip.ko
 insmod /system/lib/modules/compat.ko
 insmod /system/lib/modules/cfg80211.ko
 insmod /system/lib/modules/librasdioif.ko
+
+    # Setup Alsa
+    exec /system/bin/alsatool
 
 service wpa_supplicant /system/bin/logwrapper /system/bin/wpa_supplicant \
     -Dwext -iwlan0 -W -c/data/misc/wifi/wpa_supplicant.conf
@@ -334,9 +337,9 @@ service mpdecision /system/bin/mpdecision --Nw=2.1 --Tw=100 --Ns=1.1 --Ts=70
     user root
     disabled
 
-service thermald /system/bin/thermald
-    user root
-    disabled
+#service thermald /system/bin/thermald
+#    user root
+#    disabled
     
 on property:init.svc.bootanim=stopped
     start thermald

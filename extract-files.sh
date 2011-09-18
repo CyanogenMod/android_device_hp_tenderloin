@@ -37,14 +37,11 @@ mkdir -p ../../../vendor/hp/$DEVICE/proprietary
 
 # Prelink
 PRODUCT_COPY_FILES += \\
-    vendor/hp/__DEVICE__/proprietary/lib/libcamera.so:obj/lib/libcamera.so \\
-    vendor/hp/__DEVICE__/proprietary/lib/libaudioalsa.so:obj/lib/libaudioalsa.so
+    vendor/hp/__DEVICE__/proprietary/lib/libcamera.so:obj/lib/libcamera.so
 
 # Shared Object Libraries
 PRODUCT_COPY_FILES += \\
     vendor/hp/__DEVICE__/proprietary/lib/libcamera.so:system/lib/libcamera.so \\
-    vendor/hp/__DEVICE__/proprietary/lib/libaudioalsa.so:system/lib/libaudioalsa.so \\
-    vendor/hp/__DEVICE__/proprietary/lib/libaudcal.so:system/lib/libaudcal.so \\
     vendor/hp/__DEVICE__/proprietary/lib/libdiag.so:system/lib/libdiag.so \\
     vendor/hp/__DEVICE__/proprietary/lib/libgsl.so:system/lib/libgsl.so \\
     vendor/hp/__DEVICE__/proprietary/lib/libmmipl.so:system/lib/libmmipl.so \\

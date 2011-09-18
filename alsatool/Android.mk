@@ -9,7 +9,7 @@ include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES:= \
 	main.c
-LOCAL_CFLAGS:= -g -c -W -Wall -O2 -mtune=cortex-a9 -mfpu=neon -mfloat-abi=softfp -funsafe-math-optimizations -D_POSIX_SOURCE -I/home/green/touchpad/hp_tenderloin_kernel/include
+LOCAL_CFLAGS:= -g -c -W -Wall -D_POSIX_SOURCE -I../include
 LOCAL_MODULE:=alsatool
 LOCAL_MODULE_TAGS:= eng
 

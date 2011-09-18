@@ -63,7 +63,8 @@ PRODUCT_PACKAGES += \
     libOmxCore \
     libOmxVenc \
     libOmxVdec \
-    sensors.tenderloin
+    sensors.tenderloin \
+    alsa.tenderloin
 
 #  libaudio
 
