@@ -24,8 +24,9 @@ TARGET_HAVE_HDMI_OUT := false
 TARGET_USES_OVERLAY := true
 TARGET_NO_RADIOIMAGE := true
 TARGET_HAVE_TSLIB := false
-TARGET_GLOBAL_CFLAGS += -mfpu=neon -mfloat-abi=softfp
-TARGET_GLOBAL_CPPFLAGS += -mfpu=neon -mfloat-abi=softfp
+TARGET_GLOBAL_CFLAGS += -mtune=cortex-a9 -mfpu=neon -mfloat-abi=softfp 
+TARGET_GLOBAL_CPPFLAGS += -mtune=cortex-a9 -mfpu=neon -mfloat-abi=softfp 
+
 
 # Wifi related defines
 BOARD_WPA_SUPPLICANT_DRIVER := WEXT
@@ -42,6 +43,7 @@ BOARD_PREBUILT_LIBAUDIO := true
 
 #Bluetooth
 BOARD_HAVE_BLUETOOTH := true
+BOARD_HAVE_BLUETOOTH_CSR := true
 #BOARD_HAVE_BLUETOOTH_BCM := true
 
 # Define egl.cfg location
