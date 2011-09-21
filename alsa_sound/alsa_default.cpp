@@ -510,7 +510,8 @@ static status_t s_standby(alsa_handle_t *handle)
     //hw specific modules may choose to implement
     //this differently to gain a power savings during
     //standby
-    snd_pcm_drain (handle->handle);
+    s_close(handle);
+    handle->handle = 0;
     return NO_ERROR;
 
 }
