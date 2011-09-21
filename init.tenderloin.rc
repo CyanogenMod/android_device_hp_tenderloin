@@ -94,7 +94,11 @@ on init
     chmod 0666 /sys/bus/platform/devices/max8903-charger/IUSB_pin/value
     chmod 0666 /sys/bus/platform/devices/max8903-charger/CHG_D_ISET1_GPIO/value
     chmod 0666 /sys/bus/platform/devices/max8903-charger/CHG_D_ISET2_GPIO/value
-    chmod 0666 /sys/class/leds/button-backlight/brightness
+    chmod 0664 /sys/class/leds/button-backlight/brightness
+    chmod 0664 /sys/class/leds/core_navi_left/brightness
+    chmod 0664 /sys/class/leds/core_navi_right/brightness
+    chown system system /sys/class/leds/core_navi_left/brightness
+    chown system system /sys/class/leds/core_navi_right/brightness
 
 # Wade Wang: Add sensor service for eCompass and Gyro sensor
 #service sensor-daemon /system/bin/sensord
