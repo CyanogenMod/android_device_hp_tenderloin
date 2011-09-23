@@ -81,9 +81,10 @@ my @warn_args = (
 my @compile_args = (
     "-march=armv7-a",
     "-mtune=cortex-a8",
-    "-mfpu=vfp",
+    "-mfpu=neon",
     "-mthumb-interwork",
     "-mfloat-abi=softfp",
+    "-ffast-math", 
     "-ftree-vectorize",
     "-fpic",
     "-fno-exceptions",

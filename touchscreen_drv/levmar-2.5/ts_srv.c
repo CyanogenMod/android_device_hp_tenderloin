@@ -113,36 +113,57 @@ int tpcmp(const void *v1, const void *v2)
 #if WANT_MULTITOUCH
 
 #define SD 0.66
-void runlm(double*, double*, double*);
-void process_submatrix(int locx, int locy, double* results)
+void runlm(int, double*, double*, double*);
+
+void generate_submatrix(int radius, int locx, int locy, int* ofstx, int* ofsty, double* submatrix)
 {
-	int i,j,k,l, tval, peak=0;
-	int total=0, xtotal=0,ytotal=0;
-	double submatrix[25];
+	int i,j,k,l,stride;
 	double guess[5];
 
+	stride = radius*2+1;
 	i=locx; j=locy;
 
-	i=MAX(0,i-2);
-	j=MAX(0,j-2);
-	i=MIN(i,25);
-	j=MIN(j,35);
+	i=MAX(0,i-radius);
+	j=MAX(0,j-radius);
+	i=MIN(i,29-radius*2);
+	j=MIN(j,39-radius*2);
 
-	printf("Sub Matrix: \n");
-	for(k=0; k < 5; k++)
+	for(k=0; k < stride; k++)
 	{
-		for(l=0; l < 5; l++)
-		{
-			tval = matrix[i+k][j+l];
-			submatrix[k*5+l] = tval;
-			printf("%2.2X ", tval);
+		for(l=0; l < stride; l++)
+			submatrix[k*stride+l] = matrix[i+k][j+l];
+	}
 
+	*ofstx = i;
+	*ofsty = j;
+}
+
+void process_submatrix_levmar(int locx, int locy, int radius, double* submatrix, double* results)
+{
+	int i,j, tval, peak=0;
+	int total=0, xtotal=0,ytotal=0;
+	double guess[5];
+	int stride = 1+2*radius;
+
+#if DEBUG
+	printf("Sub Matrix: \n");
+#endif
+	for(i=0; i < stride; i++)
+	{
+		for(j=0; j < stride; j++)
+		{
+			tval = submatrix[i*stride+j];
+#if DEBUG
+			printf("%2.2X ", tval);
+#endif
 			if(tval > peak) peak = tval;
 			total+=tval;
-			xtotal += tval*k;
-			ytotal += tval*l;
+			xtotal += tval*i;
+			ytotal += tval*j;
 		}
+#if DEBUG
 		printf("\n");
+#endif
 	}
 
 	guess[0] = peak;   //Peak by factor
@@ -150,23 +171,70 @@ void process_submatrix(int locx, int locy, double* results)
 	guess[2] = 0; //Guess that y is zero
 	guess[3] = SD;
 
-	runlm(guess,submatrix,results);
+	runlm(radius,guess,submatrix,results);
 
-	results[0] += i+2;
-	results[1] += j+2;
+	results[0] += locx+radius;
+	results[1] += locy+radius;
+//#if DEBUG
 	printf("Coords: %d, %d, %d, %d, %g, %g\n", locx, locy, i, j, results[0], results[1]);
+//#endif
 }	
 
+void process_submatrix_avg(int locx, int locy, int radius, double* submatrix, double* results)
+{
+	int i,j,tweight;
+	double isum,jsum;
+	double avgi,avgj;
+	double powered;
+	int stride = radius*2+1;
+
+	tweight=0;
+	isum=0;
+	jsum=0;
+	for(i=0; i < stride; i++) {
+		for(j=0; j < stride; j++) {
+			powered = pow(submatrix[i*stride+j], 1.5);
+			tweight += powered;
+			isum += powered * i;
+			jsum += powered * j;
+		}
+	}
+	avgi = isum / (double)tweight;
+	avgj = jsum / (double)tweight;
+	results[0] = avgi + locx;
+	results[1] = avgj + locy;
+}
+
+int is_peak(int i, int j)
+{
+	int mini,maxi,minj,maxj;
+	int tvalue = matrix[i][j];
+
+//	printf("Detect: %d, %d\n", i,j);
+	mini = i-1; maxi=i+2;
+	minj = j-1; maxj=j+2;
+	for(i=MAX(0, mini); i < MIN(30, maxi); i++) {
+		for(j=MAX(0, minj); j < MIN(40, maxj); j++) {
+//			printf("Matrix: %d, %d: %d - %d\n", i,j,matrix[i][j],tvalue);
+			if(matrix[i][j] > tvalue)
+			{
+//				printf("Not a peak\n");
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
 
 void calc_point()
 {
-	int i,j;
-	int tweight=0;
-	double isum=0, jsum=0;
+	int i,j, dx, dy, d2;
 	double avgi, avgj;
-	double powered;
 	double levmar_results[2];
-	
+	double avg_results[2];
+	double submatrix[81];
+	int ofstx, ofsty;	
+
 	int tpc=0;
 	struct touchpoint tpoint[10];
 
@@ -176,7 +244,8 @@ void calc_point()
 	// generate list of high values
 	for(i=0; i < 30; i++) {
 		for(j=0; j < 40; j++) {
-			if(matrix[i][j] > 20 && clc < MAX_CLIST) {
+			if(matrix[i][j] > 10 && clc < MAX_CLIST && is_peak(i,j)) {
+//				printf("Peak: %d, %d\n", i, j);
 				clist[clc].pw = matrix[i][j];
 				clist[clc].i = i;
 				clist[clc].j = j;
@@ -199,7 +268,7 @@ void calc_point()
 	for(k=0; k < clc; k++) {
 		int newtp=1;
 		
-		int rad=4; // radius around candidate to use for calculation
+		int rad=2; // radius around candidate to use for discounting others
 		int mini = clist[k].i - rad+1;
 		int maxi = clist[k].i + rad;
 		int minj = clist[k].j - rad+1;
@@ -212,34 +281,39 @@ void calc_point()
 		
 		// calculate new touch near the found candidate
 		if(newtp && tpc < 10) {
-			process_submatrix(clist[k].i,clist[k].j,levmar_results);
-
-			
-			//Let it do whatever it normally does
-			tweight=0;
-			isum=0;
-			jsum=0;
-			for(i=MAX(0, mini); i < MIN(30, maxi); i++) {
-				for(j=MAX(0, minj); j < MIN(40, maxj); j++) {
-					powered = pow(matrix[i][j], 1.5);
-					tweight += powered;
-					isum += powered * i;
-					jsum += powered * j;
-				}
+			d2 = 1000;
+			for(l=0; l<clc; l++) {
+				if(l==k)
+					continue;
+				dx = tpoint[k].i - tpoint[l].i;
+				dy = tpoint[k].j - tpoint[l].j;
+				int td2 = dx*dx+dy*dy;
+				if(td2 < d2) d2 = td2;
 			}
-			avgi = isum / (double)tweight;
-			avgj = jsum / (double)tweight;
-			tpoint[tpc].pw = tweight;
-			tpoint[tpc].i = avgi;
-			tpoint[tpc].j = avgj;
-			tpc++;
-//#if DEBUG
-			printf("Coords %d %lf, %lf, %d\n", tpc, avgi, avgj, tweight);
-//#endif
+
+			generate_submatrix(4,clist[k].i,clist[k].j,&ofstx,&ofsty,submatrix);
+			process_submatrix_avg(ofstx,ofsty,4,submatrix,avg_results);
+			avgi = avg_results[0];
+			avgj = avg_results[1];
+
+
 #ifdef USE_LEVMAR
-			avgi = levmar_results[0];
-			avgj = levmar_results[1];
+			if(clist[k].i < 4 || clist[k].j < 4 || clist[k].i > 26 || clist[k].j > 36 || d2 < 16)
+			{
+				generate_submatrix(2,clist[k].i,clist[k].j,&ofstx,&ofsty,submatrix);
+
+				process_submatrix_levmar(ofstx,ofsty,2,submatrix,levmar_results);
+
+				avgi = levmar_results[0];
+				avgj = levmar_results[1];
+			}
 #endif
+
+			tpc++;
+
+//#if DEBUG
+			printf("Coords %d %lf, %lf\n", tpc, avgi, avgj);
+//#endif
 
 #if 0
 			/* Android does not need this an it simplifies stuff

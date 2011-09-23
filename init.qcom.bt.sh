@@ -28,7 +28,7 @@
 
 start_hciattach ()
 {
-  /system/bin/hciattach -n /dev/ttyHS0 bcsp &
+  /system/bin/hciattach_awesome -n /dev/ttyHS0 bcsp &
   hciattach_pid=$!
   logi "start_hciattach: pid = $hciattach_pid"
 }
