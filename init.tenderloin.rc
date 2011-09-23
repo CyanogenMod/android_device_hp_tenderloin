@@ -2,7 +2,6 @@ on early-fs
     mkdir /system
     mkdir /data 0771 system system
     mkdir /cache 0770 system cache
-#    mkdir /devlog 0700 root root
 
     # Enable LVM
 
@@ -18,8 +17,7 @@ on early-fs
     symlink /dev/block/mmcblk0p14 /dev/mmcblk0p14
     exec /mnt/bin/sh -c "LVM_SYSTEM_DIR=/mnt/etc/lvm /mnt/usr/sbin/lvm.static vgchange -ay"
 
-# regular mounts
-
+    # regular mounts
     mount ext4 /dev/store/cm-system /system wait ro barrier=1
     mount ext4 /dev/store/cm-data /data wait noatime nosuid nodev barrier=1 noauto_da_alloc
     mount ext4 /dev/store/cm-cache /cache wait noatime nosuid nodev barrier=1
@@ -27,47 +25,8 @@ on early-fs
 
     exec /system/xbin/rm -rf /dev/mmcblk0p14 /lib
     umount /mnt
- 
-
-#    device /dev/block/mmcblk0p16 0460 radio diag
-
-#on fs
-
-#    no radio on tenderloin
-
-#    devwait /dev/block/mmcblk0p17
-#    rm /vendor
-#    #8x60: mount radio partition and create links for modem/q6 firmwares
-#    mkdir /vendor 0771 system system
-#    mkdir /vendor/firmware 0771 system system
-#    mkdir /vendor/firmware/misc 0771 system system
-#    mount vfat /dev/block/mmcblk0p17 /vendor/firmware/misc ro shortname=lower
-#    symlink /vendor/firmware/misc/q6.b07 /vendor/firmware/q6.b07
-#    symlink /vendor/firmware/misc/q6.b06 /vendor/firmware/q6.b06
-#    symlink /vendor/firmware/misc/q6.b05 /vendor/firmware/q6.b05
-#    symlink /vendor/firmware/misc/q6.b04 /vendor/firmware/q6.b04
-#    symlink /vendor/firmware/misc/q6.b03 /vendor/firmware/q6.b03
-#    symlink /vendor/firmware/misc/q6.b02 /vendor/firmware/q6.b02
-#    symlink /vendor/firmware/misc/q6.b01 /vendor/firmware/q6.b01
-#    symlink /vendor/firmware/misc/q6.b00 /vendor/firmware/q6.b00
-#    symlink /vendor/firmware/misc/q6.mdt /vendor/firmware/q6.mdt
-#    symlink /vendor/firmware/misc/modem.b09 /vendor/firmware/modem.b09
-#    symlink /vendor/firmware/misc/modem.b08 /vendor/firmware/modem.b08
-#    symlink /vendor/firmware/misc/modem.b07 /vendor/firmware/modem.b07
-#    symlink /vendor/firmware/misc/modem.b06 /vendor/firmware/modem.b06
-#    symlink /vendor/firmware/misc/modem.b05 /vendor/firmware/modem.b05
-#    symlink /vendor/firmware/misc/modem.b04 /vendor/firmware/modem.b04
-#    symlink /vendor/firmware/misc/modem.b03 /vendor/firmware/modem.b03
-#    symlink /vendor/firmware/misc/modem.b02 /vendor/firmware/modem.b02
-#    symlink /vendor/firmware/misc/modem.b01 /vendor/firmware/modem.b01
-#    symlink /vendor/firmware/misc/modem.b00 /vendor/firmware/modem.b00
-#    symlink /vendor/firmware/misc/modem.mdt /vendor/firmware/modem.mdt
 
 on init
-    # double check the perms and set owner
-#    chown root root /devlog
-#    chmod 0700 /devlog
-
     # for Invense MPU3050
     chmod 0664 /dev/mpu
     chmod 0664 /dev/mpuirq
@@ -100,35 +59,20 @@ on init
     chown system system /sys/class/leds/core_navi_left/brightness
     chown system system /sys/class/leds/core_navi_right/brightness
 
-# Wade Wang: Add sensor service for eCompass and Gyro sensor
-#service sensor-daemon /system/bin/sensord
-#    user compass
-#    group system misc input
-
-#new daemon from InvenSense, these 2 daemon will be merged together later
-service mpld /system/bin/mpld
-    user system
-    group system misc input
-# Wade; end;
-
-#  for emmc  (shared with webos at /dev/share/media)
+    #  for emmc  (shared with webos at /dev/share/media)
 
     export PHONE_STORAGE /mnt/emmc
     mkdir /mnt/emmc 0000 system system
     symlink /mnt/emmc /emmc
 
 on boot
-# + SSD_RIL: Otis: from Qualcomm QMI and Netmgrd
-#    mkdir /data/radio 0770 radio radio
-# - SSD_RIL: Otis: from Qualcomm QMI and Netmgrd
     mkdir /data/misc/wifi 0770 system wifi
     mkdir /data/misc/wifi/sockets 0770 system wifi
     mkdir /data/misc/dhcp 0770 dhcp dhcp
     chown dhcp dhcp /data/misc/dhcp
-    mkdir /data/d 0777 system system
-    mount debugfs /data/d /data/d
+    mount debugfs /sys/kernel/debug /sys/kernel/debug
 
-#  permissions for kgsl
+    #  permissions for kgsl
     chmod 0666 /dev/kgsl-2d0
     chmod 0666 /dev/kgsl-2d1
     chmod 0666 /dev/kgsl-3d0
@@ -141,25 +85,6 @@ on boot
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
     chmod 0660                /sys/class/rfkill/rfkill0/state
 
-    # for modem link
-#    chown system system /sys/module/serial/parameters/modem_enabled
-#    chown system system /dev/ttyHSUSB0
-#    chown system system /dev/ttySA0
-#    chown system system /dev/smd9
-
-    # for Flip to speaker
-    chown radio radio /sys/class/hp_accelerometer/accelerometer/PhoneOnOffFlag
-    chown radio radio /sys/class/hp_ecompass/ecompass/PhoneOnOffFlag
-
-    # for Optical sensors
-    chown system system /sys/class/optical_sensors/lightsensor/ls_adc
-    chown system system /sys/class/optical_sensors/lightsensor/ls_auto
-    chown system system /sys/class/optical_sensors/lightsensor/ls_kadc
-    chown system radio /sys/class/optical_sensors/proximity/ps_adc
-    chown system system /sys/class/optical_sensors/proximity/ps_kadc
-    chown system system /sys/class/optical_sensors/proximity/ps_led
-    chown system system /sys/class/optical_sensors/proximity/ps_test_mode
-
     # fmtx
     chown bluetooth bluetooth /sys/class/rfkill/rfkill1/type
     chown bluetooth bluetooth /sys/class/rfkill/rfkill1/state
@@ -171,44 +96,26 @@ on boot
     # bluetooth MAC address programming
     chown bluetooth bluetooth /sys/module/hp_bdaddress/parameters/bdaddress
     setprop ro.bt.bdaddr_path /sys/module/hp_bdaddress/parameters/bdaddress
-    # bluetooth car dock pin
-    #chown system system /sys/class/switch/dock/bt_pin
     
-    # for charging function
-#    chown radio radio /sys/module/hp_battery_8x60/parameters/phone_call
-#    chmod 0660 /sys/module/hp_battery_8x60/parameters/phone_call
-
-    # flashlight
-#    chown system camera /sys/class/leds/flashlight/brightness
-#    chmod 0660          /sys/class/leds/flashlight/brightness
-
-    #set radio_feedback permissions
-#    chown radio radio /dev/radio_feedback
-#    chmod 0660 /dev/radio_feedback
-
     # Increase readahead buffers on MMC devices
     write /sys/block/mmcblk0/bdi/read_ahead_kb 1024
 
-# Enable low memory killer to check file pages
+    # Enable low memory killer to check file pages
     write /sys/module/lowmemorykiller/parameters/minfile 0,0,0,5120,5632,6144
     write /sys/module/lowmemorykiller/parameters/check_filepages 1
 
     write /sys/devices/system/cpu/cpufreq/ondemand/up_threshold 90
     write /sys/devices/system/cpu/cpufreq/ondemand/sampling_rate 50000
 
-# Force loading of modem and Q6 images
-#service load-modem /system/bin/load-modem.sh
-#    oneshot
+    # wifi modules
 
-# wifi modules
-
-insmod /system/lib/modules/lib80211.ko
-insmod /system/lib/modules/lib80211_crypt_ccmp.ko
-insmod /system/lib/modules/lib80211_crypt_wep.ko
-insmod /system/lib/modules/lib80211_crypt_tkip.ko
-insmod /system/lib/modules/compat.ko
-insmod /system/lib/modules/cfg80211.ko
-insmod /system/lib/modules/librasdioif.ko
+    insmod /system/lib/modules/lib80211.ko
+    insmod /system/lib/modules/lib80211_crypt_ccmp.ko
+    insmod /system/lib/modules/lib80211_crypt_wep.ko
+    insmod /system/lib/modules/lib80211_crypt_tkip.ko
+    insmod /system/lib/modules/compat.ko
+    insmod /system/lib/modules/cfg80211.ko
+    insmod /system/lib/modules/librasdioif.ko
 
     # Setup Alsa
     exec /system/bin/alsatool
@@ -242,92 +149,8 @@ service hciattach /system/bin/sh /system/etc/init.qcom.bt.sh
     disabled
     oneshot
 
-service udhcpd /system/bin/udhcpd
-    disabled
-    oneshot
-
-#service srv_ser2net /system/bin/ser2net -n
-#    disabled
-
-#on property:service.ser2net.enable=1
-#   start srv_ser2net
-
-#on property:service.ser2net.enable=0
-#    stop srv_ser2net
-
-#service rmt_storage /system/bin/rmt_storage /dev/block/mmcblk0p25 /dev/block/mmcblk0p26 /dev/block/mmcblk0p18
-#    user root
-#    disabled
-
-
-#service hp_ebdlogd /system/bin/hp_ebdlogd -s -k -P 7
-#    user root
-#    disabled
-#    oneshot
-
-#service hp_ebdlogd_rel /system/bin/hp_ebdlogd -s -k
-#    user root
-#    disabled
-#    oneshot
-    
-on property:ro.build.tags=test-keys
-    start hp_ebdlogd
-
-#service usbnet /system/bin/usbnet on
-#    disabled
-#    oneshot
-
-#service hdmid /system/bin/hdmid
-#    socket displayd stream 0660 root system graphics
-#    disable
-#    start hdmid
-
-#service hpbatt /system/bin/hpbatt
-#    user root
-
-#on property:ro.build.tags=test-keys
-#    start hp_ebdlogd
-
-#on property:ro.build.tags=release-keys
-#    start hp_ebdlogd_rel
-
-#on property:ro.emmc=1
-#    start rmt_storage
-    
-# for modem link
-#service modem /system/xbin/wireless_modem
-#    user system
-#    group system radio
-#    disabled
-
-# for modem link
-#on property:service.modem.enable=1
-#    start modem
-
-# for modem link
-#on property:service.modem.enable=0
-#    stop modem
-    
-# + SSD_RIL: Otis: from Qualcomm QMI and Netmgrd
-service qmuxd /system/bin/qmuxd
-
-service netmgrd /system/bin/netmgrd
-
 service tsdriver /system/bin/ts_srv
     critical
-
-on property:ro.use_data_netmgrd=false
-    # netmgr not supported on specific target
-    stop netmgrd
-# - SSD_RIL: Otis: from Qualcomm QMI and Netmgrd
-
-service dcvsd0 /system/bin/dcvsd -c 0 -f /data/misc/dcvsd/dcvsd0.conf
-    user root
-    disabled
-
-service dcvsd1 /system/bin/dcvsd -c 1 -f /data/misc/dcvsd/dcvsd1.conf
-    user root
-    disabled
 
 service dcvs0 /system/bin/dcvs --cpu=0 --slacktime=64
     user root
@@ -337,14 +160,14 @@ service dcvs1 /system/bin/dcvs --cpu=1 --slacktime=64
     user root
     disabled
 
-service mpdecision /system/bin/mpdecision --Nw=2.1 --Tw=100 --Ns=1.1 --Ts=70
+service mpdecision /system/bin/mpdecision --no_sleep --avg_comp
     user root
     disabled
 
-#service thermald /system/bin/thermald
-#    user root
-#    disabled
-    
+service thermald /system/bin/thermald
+    user root
+    disabled
+
 on property:init.svc.bootanim=stopped
     start thermald
     start mpdecision
