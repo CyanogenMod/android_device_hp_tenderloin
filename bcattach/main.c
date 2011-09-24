@@ -106,6 +106,13 @@ int main(int argc, char** argv)
 		printf("Could not open reset\n");
 		exit(-1);
 	}
+
+	irq_fd = open("/sys/user_hw/pins/bt/host_wake/level", O_WRONLY);
+	if(reset_fd <=0)
+	{
+		printf("Could not open host_wake\n");
+		exit(-1);
+	}
 #if 0
 	rts_fd = open("/sys/board_properties/rts_deassert", O_WRONLY);
 	if(reset_fd <=0)
@@ -144,6 +151,10 @@ int main(int argc, char** argv)
 	write(power_fd, "1", 1);
 	usleep(100000);
 #endif
+	//Set the wake
+	lseek(irq_fd, 0, SEEK_SET);
+	write(irq_fd, "1", 1);
+
 	//Set the reset
 	lseek(reset_fd, 0, SEEK_SET);
 	write(reset_fd, "0", 1);
