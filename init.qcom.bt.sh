@@ -41,7 +41,7 @@ kill_hciattach ()
   # this shell doesn't exit now -- wait returns for normal exit
 }
 
-/system/bin/qcattach
+/system/bin/bcattach
 
 # init does SIGTERM on ctl.stop for service
 trap "kill_hciattach" TERM INT
