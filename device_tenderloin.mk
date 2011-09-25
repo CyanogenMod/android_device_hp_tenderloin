@@ -20,7 +20,7 @@
 
 ## (1) First, the most specific values, i.e. the aspects that are specific to GSM
 PRODUCT_PROPERTY_OVERRIDES += \
-    ro.sf.lcd_density=161 \
+    ro.sf.lcd_density=160 \
     ro.com.google.clientidbase=android-hp \
     ro.com.google.locationfeatures=1 \
     ro.com.google.networklocation=1 \
