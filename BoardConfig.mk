@@ -86,7 +86,7 @@ TARGET_HAVE_HDMI_OUT := false
 #TARGET_HARDWARE_3D := true
 
 # Define Prebuilt kernel locations
-TARGET_PREBUILT_KERNEL := device/hp/tenderloin/kernel
+TARGET_PREBUILT_KERNEL := device/hp/tenderloin/prebuilt/boot/kernel
 
 # clockworkmod
 #BOARD_CUSTOM_RECOVERY_KEYMAPPING:= ../../device/hp/tenderloin/recovery_ui.c

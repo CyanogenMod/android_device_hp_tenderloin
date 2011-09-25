@@ -176,7 +176,7 @@ DEVICE_PACKAGE_OVERLAYS += device/hp/tenderloin/overlay
 
 
 ifeq ($(TARGET_PREBUILT_KERNEL),)
-	LOCAL_KERNEL := device/hp/tenderloin/kernel
+	LOCAL_KERNEL := device/hp/tenderloin/prebuilt/boot/kernel
 else
 	LOCAL_KERNEL := $(TARGET_PREBUILT_KERNEL)
 endif
