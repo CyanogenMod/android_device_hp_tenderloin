@@ -87,11 +87,31 @@
     <bool name="cm_default_show_soft_search">true</bool>
     <bool name="cm_default_show_soft_quick_na">true</bool>
 
+    <!-- disables display of lockscreen both on boot as on
+    power button press to wake devices. usful for devices you
+    dont carry in pockets -->
+    <bool name="cm_default_disable_lockscreen">true</bool>
+    <!--  option only available for devices with soft buttons.
+    when enabled, fullscreen apps show the status bar. status
+    bar then gets an adition hide button to switch to real
+    fullscreen  -->
+    <bool name="cm_default_disable_fullscreen">true</bool>
+
     <!-- when enabled, the power menu (shown when long-pressing
     power... includes reboot and power off) is extended by
     some more options which reflect the soft keys. ignored if soft
     keys are disabled -->
     <bool name="cm_default_extend_power_menu">true</bool>
+
+    <!--  toggles which buttons to show on extended power menu.
+    ignored if power menu disabled -->
+    <bool name="cm_default_power_menu_home">true</bool>
+    <bool name="cm_default_power_menu_menu">true</bool>
+    <bool name="cm_default_power_menu_back">true</bool>
+
+    <!-- If this value is true, The mms content-disposition field is supported correctly.
+         If false, Content-disposition fragments are ignored -->
+    <bool name="config_mms_content_disposition_support">false</bool>
 
     <!-- If this value is true, the carrier supports sms delivery reports.
          If false, sms delivery reports are not supported and the preference
