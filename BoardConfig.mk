@@ -85,6 +85,17 @@ TARGET_USES_C2D_COMPOSITION := true
 TARGET_HAVE_HDMI_OUT := false
 #TARGET_HARDWARE_3D := true
 
+##FIXME# Use our own releasetools
+#TARGET_PROVIDES_RELEASETOOLS := true
+#TARGET_RELEASETOOL_OTA_FROM_TARGET_SCRIPT := device/hp/tenderloin/releasetools/tenderloin_ota_from_target_files
+#TARGET_RELEASETOOL_IMG_FROM_TARGET_SCRIPT := device/hp/tenderloin/releasetools/tenderloin_img_from_target_files
+
+# Use our own boot image creation for uMulti
+BOARD_CUSTOM_BOOTIMG_MK := device/hp/tenderloin/custombootimg.mk
+
+# We need mkimage in $OUT
+BOARD_USES_MKIMAGE := true
+
 # Define Prebuilt kernel locations
 TARGET_PREBUILT_KERNEL := device/hp/tenderloin/prebuilt/boot/kernel
 
