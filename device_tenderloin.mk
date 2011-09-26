@@ -169,12 +169,6 @@ PRODUCT_LOCALES += en_US mdpi
 PRODUCT_COPY_FILES += \
     device/hp/tenderloin/vold.fstab:system/etc/vold.fstab
 
-# The gps config appropriate for this device
-#$(call inherit-product, device/common/gps/gps_eu_supl.mk)
-
-DEVICE_PACKAGE_OVERLAYS += device/hp/tenderloin/overlay
-
-
 ifeq ($(TARGET_PREBUILT_KERNEL),)
 	LOCAL_KERNEL := device/hp/tenderloin/prebuilt/boot/kernel
 else
