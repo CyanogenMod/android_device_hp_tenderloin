@@ -1,10 +1,4 @@
 # mount point	fstype		device			[device2]
-
-# these two are bogus, but until we have safe update.zips, let's keep boot's location a secret
-/boot		vfat		/dev/store/cm-boot
-/recovery	vfat		/dev/store/cm-recovery
-
-
 /cache          ext4            /dev/store/cm-cache
 /data           ext4            /dev/store/cm-data
 /system         ext4            /dev/store/cm-system
@@ -13,4 +7,3 @@
 # so that cwm can backup to internal.  needs "/sdcard"
 
 /sdcard		vfat		/dev/store/media
-

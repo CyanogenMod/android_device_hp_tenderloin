@@ -102,6 +102,7 @@ TARGET_PREBUILT_KERNEL := device/hp/tenderloin/prebuilt/boot/kernel
 # clockworkmod
 BOARD_CUSTOM_RECOVERY_KEYMAPPING:= ../../device/hp/tenderloin/recovery_ui.c
 TARGET_RECOVERY_INITRC := device/hp/tenderloin/init.recovery.rc
+BOARD_RECOVERY_IGNORE_BOOTABLES := true
 
 # tenderloin - these partition sizes are temporary to complete build
 TARGET_USERIMAGES_USE_EXT4 := true
