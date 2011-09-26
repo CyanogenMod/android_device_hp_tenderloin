@@ -89,7 +89,7 @@ TARGET_HAVE_HDMI_OUT := false
 TARGET_PREBUILT_KERNEL := device/hp/tenderloin/prebuilt/boot/kernel
 
 # clockworkmod
-#BOARD_CUSTOM_RECOVERY_KEYMAPPING:= ../../device/hp/tenderloin/recovery_ui.c
+BOARD_CUSTOM_RECOVERY_KEYMAPPING:= ../../device/hp/tenderloin/recovery_ui.c
 #TARGET_RECOVERY_PRE_COMMAND := "mkdir -p /mnt; mount -r -t ext3 /dev/block/mmcblk0p13 /mnt; ln -s /mnt/lib /lib; ln -s /dev/block/mmcblk0p14 /dev/mmcblk0p14; /mnt/bin/sh -c \"LVM_SYSTEM_DIR=/mnt/etc/lvm /mnt/usr/sbin/lvm.static vgchange -ay\";"
 # rm -rf /dev/mmcblk0p14 ; rm -rf /lib; umount /mnt;"
 
