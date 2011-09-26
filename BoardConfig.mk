@@ -94,7 +94,7 @@ TARGET_HAVE_HDMI_OUT := false
 BOARD_CUSTOM_BOOTIMG_MK := device/hp/tenderloin/custombootimg.mk
 
 # We need mkimage in $OUT
-BOARD_USES_MKIMAGE := true
+BOARD_USES_UBOOT := true
 
 # Define Prebuilt kernel locations
 TARGET_PREBUILT_KERNEL := device/hp/tenderloin/prebuilt/boot/kernel
