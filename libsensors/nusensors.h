@@ -39,6 +39,7 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
 
 #define ID_A  (0)
 #define ID_M  (1)
+#define ID_L  (3)
 
 /*****************************************************************************/
 
@@ -59,6 +60,8 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
 #define EVENT_TYPE_MAGV_X           ABS_HAT0X
 #define EVENT_TYPE_MAGV_Y           ABS_HAT0Y
 #define EVENT_TYPE_MAGV_Z           ABS_BRAKE
+
+#define EVENT_TYPE_LIGHT            ABS_MISC
 
 // 1000 LSG = 1G
 #define LSG                         (1000.0f)

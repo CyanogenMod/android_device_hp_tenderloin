@@ -39,6 +39,10 @@ static const struct sensor_t sSensorList[] = {
                 "ST Microelectronics",
                 1, SENSORS_HANDLE_BASE+ID_M,
                 SENSOR_TYPE_MAGNETIC_FIELD, 1.0f, 1.0f, 0.5f, 10000000/*10ms*/, { } },
+        { "ISL29023 Light sensor",
+          "Intersil",
+          1, SENSORS_HANDLE_BASE+ID_L,
+          SENSOR_TYPE_LIGHT, 3000.0f, 1.0f, 0.75f, 0, { } },
 
 };
 

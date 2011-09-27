@@ -34,7 +34,8 @@ LOCAL_SRC_FILES := \
 	InputEventReader.cpp \
 	SensorBase.cpp \
 	lsm303dlh_acc.cpp \
-	lsm303dlh_mag.cpp
+	lsm303dlh_mag.cpp \
+	LightSensor.cpp
 				
 LOCAL_SHARED_LIBRARIES := liblog libcutils
 LOCAL_PRELINK_MODULE := false

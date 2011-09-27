@@ -31,6 +31,7 @@
 #include "nusensors.h"
 #include "lsm303dlh_acc.h"
 #include "lsm303dlh_mag.h"
+#include "LightSensor.h"
 /*****************************************************************************/
 
 struct sensors_poll_context_t {
@@ -46,6 +47,7 @@ private:
     enum {
         lsm303dlh_acc           = 0,
         lsm303dlh_mag           = 1,
+        isl29023_als            = 2,
         numSensorDrivers,
         numFds,
     };
@@ -62,6 +64,8 @@ private:
             	return lsm303dlh_acc;
             case ID_M:
                 return lsm303dlh_acc;
+            case ID_L:
+                return isl29023_als;
         }
         return -EINVAL;
     }
@@ -80,6 +84,13 @@ sensors_poll_context_t::sensors_poll_context_t()
     mPollFds[lsm303dlh_mag].fd = mSensors[lsm303dlh_mag]->getFd();
     mPollFds[lsm303dlh_mag].events = POLLIN;
     mPollFds[lsm303dlh_mag].revents = 0;
+
+    mSensors[isl29023_als] = new LightSensor();
+    mPollFds[isl29023_als].fd = mSensors[isl29023_als]->getFd();
+    mPollFds[isl29023_als].events = POLLIN;
+    mPollFds[isl29023_als].revents = 0;
+
+
 
     int wakeFds[2];
     int result = pipe(wakeFds);
