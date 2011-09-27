@@ -4,6 +4,12 @@
 /system         ext4            /dev/store/cm-system
 /emmc           vfat        	/dev/store/media
 
-# so that cwm can backup to internal.  needs "/sdcard"
+# so cwm can backup to internal
 
 /sdcard		vfat		/dev/store/media
+
+
+# these values are bogus values for the build to complete.  Will need to change /boot later.
+
+/boot           ext2            /dev/store/cm-boot
+/recovery       ext2            /dev/store/cm-recove
