@@ -400,14 +400,14 @@ def WriteFullOTAPackage(input_zip, output_zip):
   recovery_img = common.File("recovery.img", common.BuildBootableImage(
       os.path.join(OPTIONS.input_tmp, "RECOVERY")))
 
-  MakeRecoveryPatch(output_zip, recovery_img, boot_img)
+#  MakeRecoveryPatch(output_zip, recovery_img, boot_img)
 
   Item.GetMetadata(input_zip)
   Item.Get("system").SetPermissions(script)
 
-  common.CheckSize(boot_img.data, "boot.img", OPTIONS.info_dict)
-  common.ZipWriteStr(output_zip, "boot.img", boot_img.data)
-  script.ShowProgress(0.2, 0)
+#  common.CheckSize(boot_img.data, "boot.img", OPTIONS.info_dict)
+#  common.ZipWriteStr(output_zip, "boot.img", boot_img.data)
+#  script.ShowProgress(0.2, 0)
 
   uMulti = open(OPTIONS.device_out + "/cm-uMulti", "r")
   common.ZipWriteStr(output_zip, "uMulti", uMulti.read())
@@ -421,8 +421,8 @@ def WriteFullOTAPackage(input_zip, output_zip):
 
   script.RunVerifyCachePartitionSize()
 
-  script.ShowProgress(0.2, 10)
-  script.WriteRawImage("/boot", "boot.img")
+#  script.ShowProgress(0.2, 10)
+#  script.WriteRawImage("/boot", "boot.img")
 
   script.ShowProgress(0.1, 0)
   device_specific.FullOTA_InstallEnd()
