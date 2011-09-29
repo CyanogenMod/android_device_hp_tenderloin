@@ -33,7 +33,7 @@
    and turned back on in the dark.
    To avoid this we ignore the first 4 events received after enabling the sensor.
  */
-#define FIRST_GOOD_EVENT    5
+#define FIRST_GOOD_EVENT    1
 
 LightSensor::LightSensor()
     : SensorBase(NULL, "isl29023 light sensor"),

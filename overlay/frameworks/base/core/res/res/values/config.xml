@@ -64,10 +64,12 @@
          Must be overridden in platform specific overlays -->
     <integer-array name="config_autoBrightnessLevels">
          <item>80</item>
-         <item>100</item>
+         <item>125</item>
          <item>175</item>
-         <item>250</item>
+         <item>225</item>
+         <item>300</item>
          <item>400</item>
+         <item>500</item>
     </integer-array>
 
     <!-- Array of output values for LCD backlight corresponding to the
@@ -77,11 +79,49 @@
     <integer-array name="config_autoBrightnessLcdBacklightValues">
         <item>21</item>
         <item>41</item>
+        <item>75</item>
         <item>100</item>
         <item>150</item>
         <item>200</item>
+        <item>225</item>
         <item>255</item>
     </integer-array>
+
+    <!-- Array of output values for button backlight corresponding to the LUX values
+         in the config_autoBrightnessLevels array.  This array should have size one greater
+         than the size of the config_autoBrightnessLevels array.
+         This must be overridden in platform specific overlays -->
+    <integer-array name="config_autoBrightnessButtonBacklightValues">
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+    </integer-array>
+
+    <!-- Array of output values for keyboard backlight corresponding to the LUX values
+         in the config_autoBrightnessLevels array.  This array should have size one greater
+         than the size of the config_autoBrightnessLevels array.
+         This must be overridden in platform specific overlays -->
+    <integer-array name="config_autoBrightnessKeyboardBacklightValues">
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+    </integer-array>
+
+    <!-- Component name of the service providing network location support. -->
+    <string name="config_networkLocationProvider">com.google.android.location.NetworkLocationProvider</string>
+
+    <!-- Component name of the service providing geocoder API support. -->
+    <string name="config_geocodeProvider">com.google.android.location.GeocodeProvider</string>
 
     <!-- ************************************************
          *                                              *
