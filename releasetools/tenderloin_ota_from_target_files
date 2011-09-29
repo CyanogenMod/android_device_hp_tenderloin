@@ -399,6 +399,7 @@ def WriteFullOTAPackage(input_zip, output_zip):
       os.path.join(OPTIONS.input_tmp, "BOOT")))
   recovery_img = common.File("recovery.img", common.BuildBootableImage(
       os.path.join(OPTIONS.input_tmp, "RECOVERY")))
+
   MakeRecoveryPatch(output_zip, recovery_img, boot_img)
 
   Item.GetMetadata(input_zip)
@@ -407,6 +408,10 @@ def WriteFullOTAPackage(input_zip, output_zip):
   common.CheckSize(boot_img.data, "boot.img", OPTIONS.info_dict)
   common.ZipWriteStr(output_zip, "boot.img", boot_img.data)
   script.ShowProgress(0.2, 0)
+
+  uMulti = open(OPTIONS.device_out + "/cm-uMulti", "r")
+  common.ZipWriteStr(output_zip, "uMulti", uMulti.read())
+  uMulti.close()
 
   if OPTIONS.backuptool:
     script.ShowProgress(0.2, 10)
@@ -766,6 +771,7 @@ def main(argv):
   OPTIONS.target_tmp = OPTIONS.input_tmp
   input_zip = zipfile.ZipFile(args[0], "r")
   OPTIONS.info_dict = common.LoadInfoDict(input_zip)
+  OPTIONS.device_out = os.path.dirname(args[1])
   if OPTIONS.verbose:
     print "--- target info ---"
     common.DumpInfoDict(OPTIONS.info_dict)
