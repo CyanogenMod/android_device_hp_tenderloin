@@ -28,7 +28,7 @@
 
 #include "lsm303dlh_mag.h"
 
-#define POLL_RATE 200000000
+#define POLL_RATE 200000000 //200ms
 
 Lsm303dlhMagSensor::Lsm303dlhMagSensor()
 : SensorBase(LSM303DLH_MAG_DEVICE_NAME, "lsm303dlh_mag_sysfs"),
@@ -74,7 +74,7 @@ int Lsm303dlhMagSensor::enable(int32_t handle, int en)
 
     if (!err) {
         mEnabled = newState;
-        setDelay(0, POLL_RATE); // 100ms poll rate
+        setDelay(0, POLL_RATE); 
     }
 
     return err;
@@ -88,7 +88,7 @@ int Lsm303dlhMagSensor::setDelay(int32_t handle, int64_t ns)
         if (ns < 0)
             return -EINVAL;
 
-        unsigned long delay = ns / POLL_RATE;
+        unsigned long delay = ns / 1000000; //nano to mili
 
         // ok we need to set our enabled state
         int fd = open(LSM303DLH_MAG_DELAY_FILE, O_WRONLY);

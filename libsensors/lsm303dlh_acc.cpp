@@ -73,7 +73,7 @@ int Lsm303dlhGSensor::enable(int32_t handle, int en)
 
     if (!err) {
         mEnabled = newState;
-        setDelay(0, POLL_RATE); // 100ms poll rate
+        setDelay(0, POLL_RATE);
     }
 
     return err;
@@ -87,7 +87,7 @@ int Lsm303dlhGSensor::setDelay(int32_t handle, int64_t ns)
         if (ns < 0)
             return -EINVAL;
 
-        unsigned long delay = ns / POLL_RATE;
+        unsigned long delay = ns / 1000000; //nano to mili
 
         // ok we need to set our enabled state
         int fd = open(LSM303DLH_ACC_DELAY_FILE, O_WRONLY);

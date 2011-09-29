@@ -63,7 +63,7 @@ private:
             case ID_A:
             	return lsm303dlh_acc;
             case ID_M:
-                return lsm303dlh_acc;
+                return lsm303dlh_mag;
             case ID_L:
                 return isl29023_als;
         }
