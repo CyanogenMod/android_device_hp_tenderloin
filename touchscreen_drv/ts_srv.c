@@ -19,10 +19,10 @@
  * The code was written from scrath, the hard math and understanding the
  * device output by jonpry @ gmail
  * uinput bits and the rest by Oleg Drokin green@linuxhacker.ru
+ * Multitouch detection by Rafael Brune mail@rbrune.de
  *
  * Copyright (c) 2011 CyanogenMon Touchpad Project.
  *
- * Multitouch detection by deeper-blue Rafael Brune (mail@rbrune.de))on Sep 6th.
  *
  */
 
@@ -108,6 +108,11 @@ int tpcmp(const void *v1, const void *v2)
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 #define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
 
+int dist(int x1, int y1, int x2, int y2)  {
+       return pow(x1 - x2, 2)+pow(y1 - y2, 2);
+}
+
+
 #if WANT_MULTITOUCH
 void calc_point()
 {
@@ -126,27 +131,39 @@ void calc_point()
 	// generate list of high values
 	for(i=0; i < 30; i++) {
 		for(j=0; j < 40; j++) {
-			if(matrix[i][j] > 48 && clc < MAX_CLIST) {
+#if RAW_DATA_DEBUG
+			printf("%2.2X ", matrix[i][j]);
+#endif
+			if(matrix[i][j] > 32 && clc < MAX_CLIST) {
+				int cvalid=1;
 				clist[clc].pw = matrix[i][j];
 				clist[clc].i = i;
 				clist[clc].j = j;
-				clc++;
+				//check if local maxima
+				if(i>0  && matrix[i-1][j] > matrix[i][j]) cvalid = 0;
+				if(i<29 && matrix[i+1][j] > matrix[i][j]) cvalid = 0;
+				if(j>0  && matrix[i][j-1] > matrix[i][j]) cvalid = 0;
+				if(j<39 && matrix[i][j+1] > matrix[i][j]) cvalid = 0; 
+				if(cvalid) clc++;
 			}
 		}
+#if RAW_DATA_DEBUG
+		printf("\n");
+#endif
 	}
 #if DEBUG
 	printf("%d clc\n", clc);
 #endif
 
 	// sort candidate list by strength
-	qsort(clist, clc, sizeof(clist[0]), tpcmp);
+	//qsort(clist, clc, sizeof(clist[0]), tpcmp);
 
 #if DEBUG
 	printf("%d %d %d \n", clist[0].pw, clist[1].pw, clist[2].pw);
 #endif
 
 	int k, l;
-	for(k=0; k < clc; k++) {
+	for(k=0; k < MIN(clc, 20); k++) {
 		int newtp=1;
 
 		int rad=3; // radius around candidate to use for calculation
@@ -157,7 +174,8 @@ void calc_point()
 		
 		// discard points close to already detected touches
 		for(l=0; l<tpc; l++) {
-			if(tpoint[l].i > mini && tpoint[l].i < maxi && tpoint[l].j > minj && tpoint[l].j < maxj) newtp=0;
+			//if(tpoint[l].i >= mini && tpoint[l].i < maxi && tpoint[l].j >= minj && tpoint[l].j < maxj) newtp=0;
+			if(tpoint[l].i >= mini+1 && tpoint[l].i < maxi-1 && tpoint[l].j >= minj+1 && tpoint[l].j < maxj-1) newtp=0;		
 		}
 		
 		// calculate new touch near the found candidate
@@ -167,10 +185,21 @@ void calc_point()
 			jsum=0;
 			for(i=MAX(0, mini); i < MIN(30, maxi); i++) {
 				for(j=MAX(0, minj); j < MIN(40, maxj); j++) {
-					powered = pow(matrix[i][j], 1.5);
-					tweight += powered;
-					isum += powered * i;
-					jsum += powered * j;
+                                       //powered = pow(matrix[i][j], 1.5);
+                                       //printf("d= %d\n", dist(i,j,clist[k].i,clist[k].j));
+                                       int dd = dist(i,j,clist[k].i,clist[k].j);
+                                       powered = matrix[i][j];
+                                       //if(dd <= 1) powered = matrix[i][j];
+                                       if(dd == 2 && 0.65f * matrix[clist[k].i][clist[k].j] < matrix[i][j] ) powered = 0.65f * matrix[clist[k].i][clist[k].j];
+                                       if(dd == 4 && 0.15f * matrix[clist[k].i][clist[k].j] < matrix[i][j] ) powered = 0.15f * matrix[clist[k].i][clist[k].j];
+                                       if(dd == 5 && 0.10f * matrix[clist[k].i][clist[k].j] < matrix[i][j] ) powered = 0.10f * matrix[clist[k].i][clist[k].j];
+                                       if(dd == 8 && 0.05f * matrix[clist[k].i][clist[k].j] < matrix[i][j] ) powered = 0.05f * matrix[clist[k].i][clist[k].j];
+					
+				       powered = pow(powered, 1.5);
+
+                                       tweight += powered;
+                                       isum += powered * i;
+                                       jsum += powered * j;
 				}
 			}
 			avgi = isum / (float)tweight;
