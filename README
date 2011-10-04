@@ -190,7 +190,7 @@ for use with CM7.
 # pkill -SIGUSR1 cryptofs
 # umount /media/internal
 # fsck.vfat /dev/mapper/store-media
-# resize fat -p /dev/mapper/store-media [NEWSIZE]G
+# resizefat /dev/mapper/store-media [NEWSIZE]G
 # lvreduce -L [NEWSIZE]G /dev/mapper/store-media
 
 Check to make sure the vfat file system is still okay:
