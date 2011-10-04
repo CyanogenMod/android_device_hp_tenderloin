@@ -29,8 +29,6 @@
 #include <linux/input.h>
 #include <linux/uinput.h>
 #include <linux/hsuart.h>
-#include <linux/i2c.h>
-#include <linux/i2c-dev.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/time.h>
@@ -478,11 +476,8 @@ void open_uinput()
 int main(int argc, char** argv)
 {
 	struct hsuart_mode uart_mode;
-	struct i2c_rdwr_ioctl_data i2c_ioctl_data;
-	struct i2c_msg i2c_msg;
-	int uart_fd, vdd_fd, xres_fd, wake_fd, i2c_fd, nbytes, i; 
+	int uart_fd, nbytes, i; 
 	char recv_buf[RECV_BUF_SIZE];
-	char i2c_buf[16];
 	fd_set fdset;
 	struct timeval seltmout;
 
@@ -499,66 +494,7 @@ int main(int argc, char** argv)
 	uart_mode.speed = 0x3D0900;
 	ioctl(uart_fd, HSUART_IOCTL_SET_UARTMODE,&uart_mode);
 
-	vdd_fd = open("/sys/devices/platform/cy8ctma395/vdd", O_WRONLY);
-	xres_fd = open("/sys/devices/platform/cy8ctma395/xres", O_WRONLY);
-	wake_fd = open("/sys/user_hw/pins/ctp/wake/level", O_WRONLY);
-	i2c_fd = open("/dev/i2c-5", O_RDWR);
-
-	lseek(vdd_fd, 0, SEEK_SET);
-	write(vdd_fd, "1", 1);
-
-	lseek(wake_fd, 0, SEEK_SET);
-	write(wake_fd, "1", 1);
-
-	lseek(xres_fd, 0, SEEK_SET);
-	write(xres_fd, "1", 1);
-
-	lseek(xres_fd, 0, SEEK_SET);
-	write(xres_fd, "0", 1);
-
-	usleep(50000);
-
 	ioctl(uart_fd, HSUART_IOCTL_FLUSH, 0x9);
-
-	lseek(wake_fd, 0, SEEK_SET);
-	write(wake_fd, "0", 1);
-
-	usleep(50000);
-
-	i2c_ioctl_data.nmsgs = 1;
-	i2c_ioctl_data.msgs = &i2c_msg;
-
-	i2c_msg.addr = 0x67;
-	i2c_msg.flags = 0;
-	i2c_msg.buf = i2c_buf;
-	
-	i2c_msg.len = 2;
-	i2c_buf[0] = 0x08; i2c_buf[1] = 0;
-	ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
-
-	i2c_msg.len = 6;
-	i2c_buf[0] = 0x31; i2c_buf[1] = 0x01; i2c_buf[2] = 0x08;
-	i2c_buf[3] = 0x0C; i2c_buf[4] = 0x0D; i2c_buf[5] = 0x0A; 
-	ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
-
-	i2c_msg.len = 2;
-	i2c_buf[0] = 0x30; i2c_buf[1] = 0x0F;
-	ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
-
-	i2c_buf[0] = 0x40; i2c_buf[1] = 0x02;
-	ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
-
-	i2c_buf[0] = 0x41; i2c_buf[1] = 0x10;
-	ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
-
-	i2c_buf[0] = 0x0A; i2c_buf[1] = 0x04;
-	ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
-
-	i2c_buf[0] = 0x08; i2c_buf[1] = 0x03;
-	ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);	
-
-	lseek(wake_fd, 0, SEEK_SET);
-	write(wake_fd, "1", 1);
 
 	while(1)
 	{
@@ -590,6 +526,10 @@ int main(int argc, char** argv)
 
 			FD_ZERO(&fdset);
 			FD_SET(uart_fd, &fdset);
+
+                        /* Flush uart - for the powermanagement stuff */
+                        ioctl(uart_fd, HSUART_IOCTL_FLUSH, 0x9);
+
 			/* Now enter indefinite sleep iuntil input appears */
 			select(uart_fd+1, &fdset, NULL, NULL, NULL);
 			/* In case we were wrongly woken up check the event

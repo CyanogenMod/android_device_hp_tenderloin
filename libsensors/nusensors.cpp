@@ -28,6 +28,11 @@
 #include <cutils/atomic.h>
 #include <cutils/log.h>
 
+#include <linux/i2c.h>
+#include <linux/i2c-dev.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+
 #include "nusensors.h"
 #include "lsm303dlh_acc.h"
 #include "lsm303dlh_mag.h"
@@ -122,6 +127,11 @@ LOGD("sensor activation called: handle=%d, enabled=%d***************************
         int result = write(mWritePipeFd, &wakeMessage, 1);
         LOGE_IF(result<0, "error sending wake message (%s)", strerror(errno));
     }
+
+    /* TS power magic hack, ts power tracks that of accelerometer */
+    if (handle == ID_A)
+        touchscreen_power(enabled);
+
     return err;
 }
 
@@ -184,6 +194,9 @@ static int poll__close(struct hw_device_t *dev)
     if (ctx) {
         delete ctx;
     }
+
+    touchscreen_power(0);
+
     return 0;
 }
 
@@ -205,6 +218,77 @@ static int poll__poll(struct sensors_poll_device_t *dev,
     return ctx->pollEvents(data, count);
 }
 
+/** TS power stuff */
+static int vdd_fd, xres_fd, wake_fd, i2c_fd;
+
+void touchscreen_power(int enable)
+{
+    struct i2c_rdwr_ioctl_data i2c_ioctl_data;
+    struct i2c_msg i2c_msg;
+    __u8 i2c_buf[16];
+
+    if (enable) {
+        lseek(vdd_fd, 0, SEEK_SET);
+        write(vdd_fd, "1", 1);
+
+        lseek(wake_fd, 0, SEEK_SET);
+        write(wake_fd, "1", 1);
+
+        lseek(xres_fd, 0, SEEK_SET);
+        write(xres_fd, "1", 1);
+
+        lseek(xres_fd, 0, SEEK_SET);
+        write(xres_fd, "0", 1);
+
+        usleep(50000);
+
+        lseek(wake_fd, 0, SEEK_SET);
+        write(wake_fd, "0", 1);
+
+        usleep(50000);
+
+        i2c_ioctl_data.nmsgs = 1;
+        i2c_ioctl_data.msgs = &i2c_msg;
+
+        i2c_msg.addr = 0x67;
+        i2c_msg.flags = 0;
+        i2c_msg.buf = i2c_buf;
+
+        i2c_msg.len = 2;
+        i2c_buf[0] = 0x08; i2c_buf[1] = 0;
+        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+        i2c_msg.len = 6;
+        i2c_buf[0] = 0x31; i2c_buf[1] = 0x01; i2c_buf[2] = 0x08;
+        i2c_buf[3] = 0x0C; i2c_buf[4] = 0x0D; i2c_buf[5] = 0x0A;
+        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+        i2c_msg.len = 2;
+        i2c_buf[0] = 0x30; i2c_buf[1] = 0x0F;
+        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+        i2c_buf[0] = 0x40; i2c_buf[1] = 0x02;
+        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+        i2c_buf[0] = 0x41; i2c_buf[1] = 0x10;
+        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+        i2c_buf[0] = 0x0A; i2c_buf[1] = 0x04;
+        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+        i2c_buf[0] = 0x08; i2c_buf[1] = 0x03;
+        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+        lseek(wake_fd, 0, SEEK_SET);
+        write(wake_fd, "1", 1);
+    } else {
+        lseek(vdd_fd, 0, SEEK_SET);
+        write(vdd_fd, "0", 1);
+        /* XXX, should be correllated with LIFTOFF_TIMEOUT in ts driver */
+        usleep(80000);
+    }
+}
+
 /*****************************************************************************/
 
 int init_nusensors(hw_module_t const* module, hw_device_t** device)
@@ -224,5 +308,15 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device)
 
     *device = &dev->device.common;
     status = 0;
+
+    /* TS file descriptors. Ignore errors. */
+    vdd_fd = open("/sys/devices/platform/cy8ctma395/vdd", O_WRONLY);
+    LOGE_IF(vdd_fd < 0, "TScontrol: Cannot open vdd - %d", errno);
+    xres_fd = open("/sys/devices/platform/cy8ctma395/xres", O_WRONLY);
+    LOGE_IF(xres_fd < 0, "TScontrol: Cannot open xres - %d", errno);
+    wake_fd = open("/sys/user_hw/pins/ctp/wake/level", O_WRONLY);
+    LOGE_IF(wake_fd < 0, "TScontrol: Cannot open wake - %d", errno);
+    i2c_fd = open("/dev/i2c-5", O_RDWR);
+    LOGE_IF(i2c_fd < 0, "TScontrol: Cannot open i2c dev - %d", errno);
     return status;
 }
