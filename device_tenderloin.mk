@@ -167,7 +167,8 @@ PRODUCT_TAGS += dalvik.gc.type-precise
 PRODUCT_LOCALES += en_US mdpi
 
 PRODUCT_COPY_FILES += \
-    device/hp/tenderloin/vold.fstab:system/etc/vold.fstab
+    device/hp/tenderloin/vold.fstab:system/etc/vold.fstab \
+    device/hp/tenderloin/makemulti.sh:makemulti.sh
 
 ifeq ($(TARGET_PREBUILT_KERNEL),)
 	LOCAL_KERNEL := device/hp/tenderloin/prebuilt/boot/kernel
