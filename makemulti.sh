@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-#  This is a manual way to make cm-uMulti and cwm-uMulti for quick testing and whatnot.
+#  This is a manual way to make new uMulti images for quick testing and whatnot.
 #
-#  Default behavior is to create cm-uMulti (from $OUT/root)
+#  Default behavior is to create normal boot.img (from $OUT/root)
 #
-#  use -r to make a clockworkmod recovery (from $OUT/recovery/root)
+#  use -r to make a clockworkmod recovery.img (from $OUT/recovery/root)
 
 if [ -d "$HOME/android/system/out/target/product/tenderloin" ]; then
    OUT=~/android/system/out/target/product/tenderloin
@@ -12,7 +12,7 @@ if [ -d "$HOME/android/system/out/target/product/tenderloin" ]; then
 fi
 
 if [ ! -d "$OUT" ]; then
-   echo -e "\$OUT is unset or set incorrectly.  Re-build CM, or type\nexport OUT=/path/to/out\nQuitting."
+   echo -e "\$OUT is unset or set incorrectly.  Re-build CM or type\nexport OUT=/path/to/out"
    exit 0
 fi
 
@@ -20,22 +20,27 @@ fi
 MKIMAGE=$OUT/../../../host/linux-x86/bin/mkimage
 KERNEL=~/gh/CyanogenMod/hp-kernel-tenderloin/
 ROOT=$OUT/root
-TARGET=cm
+CPIO_TARGET=ramdisk.img
+UBOOTED_RAMDISK=ramdisk.ub
+TARGET=boot.img
 
 if [ "$1" = "-r" ]; then
    ROOT=$OUT/recovery/root
-   TARGET=cwm
+   CPIO_TARGET=ramdisk-recovery.cpio
+   UBOOTED_RAMDISK=ramdisk-recovery.ub
+   TARGET=recovery.img
 fi
 
 if [ ! -d "$ROOT" ]; then
-   echo -e "$ROOT is not an existing folder.  Re-build CM, or type\nexport OUT=/path/to/out\nQuitting."
+   echo -e "$ROOT is not an existing folder.  Re-build CM or type\nexport OUT=/path/to/out"
    exit 0
 fi
 
 cd $ROOT
-echo  "Making /tmp/andr-init.img into /tmp/uRamdisk..."
-find . |cpio -R 0:0 -H newc -o --quiet |gzip -9c > /tmp/andr-init.img
-$MKIMAGE -A ARM -T RAMDisk -C none -n Image -d /tmp/andr-init.img /tmp/uRamdisk
-echo  "Making $OUT/$TARGET-uMulti from $OUT/kernel and /tmp/uRamdisk..."
-$MKIMAGE -A arm -T multi -C none -n 'test-multi-image' -d $OUT/kernel:/tmp/uRamdisk $OUT/$TARGET-uMulti
-echo "Result is $OUT/$TARGET-uMulti."
+echo  "Making $CPIO_TARGET..."
+find . |cpio -R 0:0 -H newc -o --quiet |gzip -9c > $OUT/$CPIO_TARGET
+echo  "Making $UBOOTED_RAMDISK..."
+$MKIMAGE -A ARM -T RAMDisk -C none -n Image -d $OUT/$CPIO_TARGET $OUT/$UBOOTED_RAMDISK
+echo  "Making $TARGET from kernel and $UBOOTED_RAMDISK..."
+$MKIMAGE -A arm -T multi -C none -n 'test-multi-image' -d $OUT/kernel:$OUT/$UBOOTED_RAMDISK $OUT/$TARGET
+echo "Result is $OUT/$TARGET."
