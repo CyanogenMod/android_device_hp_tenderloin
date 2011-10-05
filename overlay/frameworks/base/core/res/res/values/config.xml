@@ -153,7 +153,7 @@
     quickna: opens notification area with the press of one button
     instead of swiping the long way up/down on big tablets -->
     <bool name="cm_default_show_soft_home">true</bool>
-    <bool name="cm_default_show_soft_menu">false</bool>
+    <bool name="cm_default_show_soft_menu">true</bool>
     <bool name="cm_default_show_soft_back">true</bool>
     <bool name="cm_default_show_soft_search">true</bool>
     <bool name="cm_default_show_soft_quick_na">true</bool>
