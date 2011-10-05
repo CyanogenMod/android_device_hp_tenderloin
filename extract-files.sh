@@ -76,6 +76,15 @@ PRODUCT_COPY_FILES += \\
 
 #Firmware
 PRODUCT_COPY_FILES += \\
+	vendor/hp/__DEVICE__/proprietary/etc/firmware/a6.txt:/system/etc/firmware/a6.txt \\
+	vendor/hp/__DEVICE__/proprietary/etc/firmware/a6_1.txt:/system/etc/firmware/a6_1.txt \\
+	vendor/hp/__DEVICE__/proprietary/etc/firmware/q6.b00:/system/etc/firmware/q6.b00 \\
+	vendor/hp/__DEVICE__/proprietary/etc/firmware/q6.b01:/system/etc/firmware/q6.b01 \\
+	vendor/hp/__DEVICE__/proprietary/etc/firmware/q6.b02:/system/etc/firmware/q6.b02 \\
+	vendor/hp/__DEVICE__/proprietary/etc/firmware/q6.b03:/system/etc/firmware/q6.b03 \\
+	vendor/hp/__DEVICE__/proprietary/etc/firmware/q6.b04:/system/etc/firmware/q6.b04 \\
+	vendor/hp/__DEVICE__/proprietary/etc/firmware/q6.b05:/system/etc/firmware/q6.b05 \\
+	vendor/hp/__DEVICE__/proprietary/etc/firmware/q6.mdt:/system/etc/firmware/q6.mdt \\
 	vendor/hp/__DEVICE__/proprietary/etc/firmware/leia_pfp_470.fw:/system/etc/firmware/leia_pfp_470.fw \\
 	vendor/hp/__DEVICE__/proprietary/etc/firmware/leia_pm4_470.fw:/system/etc/firmware/leia_pm4_470.fw \\
 	vendor/hp/__DEVICE__/proprietary/etc/firmware/vidc_1080p.fw:/system/etc/firmware/vidc_1080p.fw \\
