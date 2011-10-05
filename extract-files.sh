@@ -58,10 +58,6 @@ PRODUCT_COPY_FILES += \\
     vendor/hp/__DEVICE__/proprietary/lib/egl/libGLESv2_adreno200.so:system/lib/egl/libGLESv2_adreno200.so \\
     vendor/hp/__DEVICE__/proprietary/lib/egl/libq3dtools_adreno200.so:system/lib/egl/libq3dtools_adreno200.so
 
-#HW
-PRODUCT_COPY_FILES += \\
-    vendor/hp/__DEVICE__/proprietary/lib/hw/lights.msm8660.so:system/lib/hw/lights.msm8660.so 
-
 #BIN
 PRODUCT_COPY_FILES += \\
     vendor/hp/__DEVICE__/proprietary/bin/battery_charging:system/bin/battery_charging \\
@@ -89,8 +85,10 @@ PRODUCT_COPY_FILES += \\
 	vendor/hp/__DEVICE__/proprietary/etc/firmware/leia_pm4_470.fw:/system/etc/firmware/leia_pm4_470.fw \\
 	vendor/hp/__DEVICE__/proprietary/etc/firmware/vidc_1080p.fw:/system/etc/firmware/vidc_1080p.fw \\
 	vendor/hp/__DEVICE__/proprietary/etc/firmware/yamato_pfp.fw:/system/etc/firmware/yamato_pfp.fw \\
-	vendor/hp/__DEVICE__/proprietary/etc/firmware/yamato_pm4.fw:/system/etc/firmware/yamato_pm4.fw 
-
+	vendor/hp/__DEVICE__/proprietary/etc/firmware/yamato_pm4.fw:/system/etc/firmware/yamato_pm4.fw \\
+	vendor/hp/tenderloin/proprietary/etc/firmware/wm8958_enh_eq.wfw:/system/etc/firmware/wm8958_enh_eq.wfw \\
+	vendor/hp/tenderloin/proprietary/etc/firmware/wm8958_mbc.wfw:/system/etc/firmware/wm8958_mbc.wfw \\
+	vendor/hp/tenderloin/proprietary/etc/firmware/wm8958_mbc_vss.wfw:/system/etc/firmware/wm8958_mbc_vss.wfw
 EOF
 
 ./setup-makefiles.sh
