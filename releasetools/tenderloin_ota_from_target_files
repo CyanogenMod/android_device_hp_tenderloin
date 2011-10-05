@@ -16,7 +16,7 @@
 
 import sys
 import os
-import encore_common as common
+import tenderloin_common as common
 
 
 LOCAL_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
@@ -31,7 +31,7 @@ filename = os.path.join(RELEASETOOLS_DIR, "ota_from_target_files")
 ota_from_target_files = common.load_module_from_file('ota_from_target_files', filename)
 
 from ota_from_target_files import *
-import encore_edify_generator as edify_generator
+import tenderloin_edify_generator as edify_generator
 
 __doc__ = ota_from_target_files.__doc__
 
@@ -127,7 +127,7 @@ ota_from_target_files.WriteFullOTAPackage = WriteFullOTAPackage
 
 
 def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
-    print "Incremental OTA Packages are not support on the B&N encore at this time"
+    print "Incremental OTA Packages are not support on the hp tenderloin at this time"
     sys.exit(1)
 ota_from_target_files.WriteIncrementalOTAPackage = WriteIncrementalOTAPackage
 

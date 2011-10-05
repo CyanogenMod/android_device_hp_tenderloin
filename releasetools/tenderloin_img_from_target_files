@@ -16,7 +16,7 @@
 
 import sys
 import os
-import encore_common as common
+import tenderloin_common as common
 
 LOCAL_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 RELEASETOOLS_DIR = os.path.abspath(os.path.join(LOCAL_DIR, '../../../build/tools/releasetools'))
@@ -38,7 +38,7 @@ OPTIONS = common.OPTIONS
 
 #
 # Redfine our main functiont to not build the boot and recovery images as
-# they are just files on the encore platform
+# they are just files on the tenderloin platform
 #
 def main(argv):
 
@@ -80,7 +80,7 @@ def main(argv):
   print "done."
 
 if __name__ == '__main__':
-  print "Info: Using encore specific release tools"
+  print "Info: Using tenderloin specific release tools"
   try:
     main(sys.argv[1:])
   except common.ExternalError, e:
