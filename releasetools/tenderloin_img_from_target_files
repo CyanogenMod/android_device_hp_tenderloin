@@ -65,6 +65,8 @@ def main(argv):
 
   output_zip = zipfile.ZipFile(args[1], "w", compression=zipfile.ZIP_DEFLATED)
 
+  
+
   # -- tenderloin build change starting
   #common.AddBoot(output_zip, OPTIONS.info_dict)
   #common.AddRecovery(output_zip, OPTIONS.info_dict)

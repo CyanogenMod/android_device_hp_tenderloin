@@ -1,15 +1,6 @@
 # mount point	fstype		device			[device2]
+/boot           ext2            /dev/block/mmcblk0p13
 /cache          ext4            /dev/store/cm-cache
 /data           ext4            /dev/store/cm-data
 /system         ext4            /dev/store/cm-system
-/emmc           vfat        	/dev/store/media
-
-# so cwm can backup to internal
-
-/sdcard		vfat		/dev/store/media
-
-
-# these values are bogus values for the build to complete.  Will need to change /boot later.
-
-/boot           ext2            /dev/store/cm-boot
-/recovery       ext2            /dev/store/cm-recove
+/sdcard			vfat			/dev/store/media

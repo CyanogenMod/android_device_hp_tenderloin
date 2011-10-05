@@ -35,9 +35,6 @@ import tenderloin_edify_generator as edify_generator
 
 __doc__ = ota_from_target_files.__doc__
 
-def CopyBootFiles(input_zip, output_zip):
-    output_zip.writestr("boot.img", input_zip.read("BOOT/boot.img"))
-
 def WriteFullOTAPackage(input_zip, output_zip):
   # TODO: how to determine this?  We don't know what version it will
   # be installed on top of.  For now, we expect the API just won't
@@ -107,9 +104,10 @@ def WriteFullOTAPackage(input_zip, output_zip):
   # -- tenderloin build change starting
   #script.WriteRawImage("/boot", "boot.img")
 
-  CopyBootFiles(input_zip, output_zip)
+  boot_img = open(OPTIONS.device_out + "/boot.img", "r")
+  common.ZipWriteStr(output_zip, "boot.img", boot_img.read())
+  boot_img.close()
 
-  # This mimics how the official B&N updates work and seems pretty elegant to me
   script.Mount("/boot")
   script.UnpackPackageFile("boot.img", "/boot/uImage.CyanogenMod")
   # -- tenderloin build change done
@@ -133,6 +131,8 @@ ota_from_target_files.WriteIncrementalOTAPackage = WriteIncrementalOTAPackage
 
 if __name__ == '__main__':
   try:
+    # Ugly hacks are ugly
+    OPTIONS.device_out = os.path.dirname(sys.argv[-1])
     main(sys.argv[1:])
   except common.ExternalError, e:
     print
