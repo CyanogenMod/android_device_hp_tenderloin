@@ -12,11 +12,10 @@ rild.libpath=/system/lib/libreference-ril.so
 rild.libargs=-d /dev/ttyS0
 ro.telephony.default_network=0
 
-# ro.cwm.forbid_format=/boot
+ro.cwm.forbid_format=/boot
 
 wifi.supplicant_scan_interval=15
 wifi.interface=wlan0 
-
 
 #c2d
 debug.composition.type=c2d

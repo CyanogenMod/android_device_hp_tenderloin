@@ -1,0 +1,90 @@
+#!/usr/bin/env python
+#
+# Copyright (C) 2008 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import sys
+import os
+import encore_common as common
+
+LOCAL_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+RELEASETOOLS_DIR = os.path.abspath(os.path.join(LOCAL_DIR, '../../../build/tools/releasetools'))
+
+# Add releasetools directory to python path
+sys.path.append(RELEASETOOLS_DIR)
+
+# Import the existing file so we just have to rewrite the modules we need.
+# This is a nasty hack as the filename doesn't end in .py, but it works
+filename = os.path.join(RELEASETOOLS_DIR, "img_from_target_files")
+img_from_target_files = common.load_module_from_file('img_from_target_files', filename)
+from img_from_target_files import *
+
+__doc__ = img_from_target_files.__doc__
+
+import zipfile
+
+OPTIONS = common.OPTIONS
+
+#
+# Redfine our main functiont to not build the boot and recovery images as
+# they are just files on the encore platform
+#
+def main(argv):
+
+  def option_handler(o, a):
+    if o in ("-b", "--board_config"):
+      pass       # deprecated
+    else:
+      return False
+    return True
+
+  args = common.ParseOptions(argv, __doc__,
+                             extra_opts="b:",
+                             extra_long_opts=["board_config="],
+                             extra_option_handler=option_handler)
+
+  if len(args) != 2:
+    common.Usage(__doc__)
+    sys.exit(1)
+
+  OPTIONS.input_tmp = common.UnzipTemp(args[0])
+
+  input_zip = zipfile.ZipFile(args[0], "r")
+  OPTIONS.info_dict = common.LoadInfoDict(input_zip)
+
+  output_zip = zipfile.ZipFile(args[1], "w", compression=zipfile.ZIP_DEFLATED)
+
+  # -- tenderloin build change starting
+  #common.AddBoot(output_zip, OPTIONS.info_dict)
+  #common.AddRecovery(output_zip, OPTIONS.info_dict)
+  # -- tenderloin build change done
+  AddSystem(output_zip)
+  AddUserdata(output_zip)
+  CopyInfo(output_zip)
+
+  print "cleaning up..."
+  output_zip.close()
+  shutil.rmtree(OPTIONS.input_tmp)
+
+  print "done."
+
+if __name__ == '__main__':
+  print "Info: Using encore specific release tools"
+  try:
+    main(sys.argv[1:])
+  except common.ExternalError, e:
+    print
+    print "   ERROR: %s" % (e,)
+    print
+    sys.exit(1)

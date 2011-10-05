@@ -88,11 +88,8 @@ TARGET_HAVE_HDMI_OUT := false
 # Custom release tools for uMulti inclusion
 TARGET_RELEASETOOL_OTA_FROM_TARGET_SCRIPT := device/hp/tenderloin/releasetools/tenderloin_ota_from_target_files
 
-# Use our own boot image creation for uMulti
-BOARD_CUSTOM_BOOTIMG_MK := device/hp/tenderloin/custombootimg.mk
-
-# We need mkimage in $OUT
 BOARD_USES_UBOOT := true
+BOARD_USES_UBOOT_MULTIIMAGE := true
 
 # Define Prebuilt kernel locations
 TARGET_PREBUILT_KERNEL := device/hp/tenderloin/prebuilt/boot/kernel
