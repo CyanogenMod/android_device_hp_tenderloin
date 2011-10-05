@@ -99,6 +99,9 @@ on boot
     chown bluetooth bluetooth /dev/rfkill
     chmod 0660                /dev/rfkill
 
+    chown bluetooth bluetooth /sys/user_hw/pins/bt/reset/level
+    chown bluetooth bluetooth /sys/user_hw/pins/bt/host_wake/level
+
     # bluetooth MAC address programming
     chown bluetooth bluetooth /sys/module/hp_bdaddress/parameters/bdaddress
     setprop ro.bt.bdaddr_path /sys/module/hp_bdaddress/parameters/bdaddress
