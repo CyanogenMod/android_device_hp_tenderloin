@@ -32,7 +32,6 @@ __BEGIN_DECLS
 /*****************************************************************************/
 
 int init_nusensors(hw_module_t const* module, hw_device_t** device);
-void touchscreen_power(int enable);
 
 /*****************************************************************************/
 

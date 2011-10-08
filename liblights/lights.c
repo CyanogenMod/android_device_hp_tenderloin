@@ -26,6 +26,11 @@
 #include <sys/types.h>
 #include <hardware/lights.h>
 
+#include <linux/i2c.h>
+#include <linux/i2c-dev.h>
+#include <sys/types.h>
+#include <sys/ioctl.h>
+
 static pthread_once_t g_init = PTHREAD_ONCE_INIT;
 static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -34,6 +39,78 @@ char const *const LED_FILE_RIGHT =
                         "/sys/class/leds/core_navi_right/brightness";
 char const *const LED_FILE_LEFT = 
                         "/sys/class/leds/core_navi_left/brightness";
+
+
+/** TS power stuff */
+static int vdd_fd, xres_fd, wake_fd, i2c_fd, ts_state;
+
+void touchscreen_power(int enable)
+{
+    struct i2c_rdwr_ioctl_data i2c_ioctl_data;
+    struct i2c_msg i2c_msg;
+    __u8 i2c_buf[16];
+
+    if (enable) {
+        lseek(vdd_fd, 0, SEEK_SET);
+        write(vdd_fd, "1", 1);
+
+        lseek(wake_fd, 0, SEEK_SET);
+        write(wake_fd, "1", 1);
+
+        lseek(xres_fd, 0, SEEK_SET);
+        write(xres_fd, "1", 1);
+
+        lseek(xres_fd, 0, SEEK_SET);
+        write(xres_fd, "0", 1);
+
+        usleep(50000);
+
+        lseek(wake_fd, 0, SEEK_SET);
+        write(wake_fd, "0", 1);
+
+        usleep(50000);
+
+        i2c_ioctl_data.nmsgs = 1;
+        i2c_ioctl_data.msgs = &i2c_msg;
+
+        i2c_msg.addr = 0x67;
+        i2c_msg.flags = 0;
+        i2c_msg.buf = i2c_buf;
+
+        i2c_msg.len = 2;
+        i2c_buf[0] = 0x08; i2c_buf[1] = 0;
+        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+        i2c_msg.len = 6;
+        i2c_buf[0] = 0x31; i2c_buf[1] = 0x01; i2c_buf[2] = 0x08;
+        i2c_buf[3] = 0x0C; i2c_buf[4] = 0x0D; i2c_buf[5] = 0x0A;
+        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+        i2c_msg.len = 2;
+        i2c_buf[0] = 0x30; i2c_buf[1] = 0x0F;
+        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+        i2c_buf[0] = 0x40; i2c_buf[1] = 0x02;
+        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+        i2c_buf[0] = 0x41; i2c_buf[1] = 0x10;
+        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+        i2c_buf[0] = 0x0A; i2c_buf[1] = 0x04;
+        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+        i2c_buf[0] = 0x08; i2c_buf[1] = 0x03;
+        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+
+        lseek(wake_fd, 0, SEEK_SET);
+        write(wake_fd, "1", 1);
+    } else {
+        lseek(vdd_fd, 0, SEEK_SET);
+        write(vdd_fd, "0", 1);
+        /* XXX, should be correllated with LIFTOFF_TIMEOUT in ts driver */
+        usleep(80000);
+    }
+}
 
 static int write_int(char const *path, int value)
 {
@@ -98,6 +175,17 @@ static int set_light_backlight(struct light_device_t *dev,
 	pthread_mutex_lock(&g_lock);
 	err = write_int(LCD_FILE, brightness);
 
+	/* TS power magic hack */
+	if (brightness > 0 && ts_state == 0) {
+		LOGI("Enabling touch screen");
+		ts_state = 1;
+		touchscreen_power(1);
+	} else if (brightness == 0 && ts_state == 1) {
+		LOGI("Disabling touch screen");
+		ts_state = 0;
+		touchscreen_power(0);
+	}
+
 	pthread_mutex_unlock(&g_lock);
 	return err;
 }
@@ -107,6 +195,8 @@ static int close_lights(struct light_device_t *dev)
 	LOGV("close_light is called");
 	if (dev)
 		free(dev);
+
+    touchscreen_power(0);
 
 	return 0;
 }
@@ -138,6 +228,16 @@ static int open_lights(const struct hw_module_t *module, char const *name,
 	dev->set_light = set_light;
 
 	*device = (struct hw_device_t *)dev;
+
+	/* TS file descriptors. Ignore errors. */
+	vdd_fd = open("/sys/devices/platform/cy8ctma395/vdd", O_WRONLY);
+	LOGE_IF(vdd_fd < 0, "TScontrol: Cannot open vdd - %d", errno);
+	xres_fd = open("/sys/devices/platform/cy8ctma395/xres", O_WRONLY);
+	LOGE_IF(xres_fd < 0, "TScontrol: Cannot open xres - %d", errno);
+	wake_fd = open("/sys/user_hw/pins/ctp/wake/level", O_WRONLY);
+	LOGE_IF(wake_fd < 0, "TScontrol: Cannot open wake - %d", errno);
+	i2c_fd = open("/dev/i2c-5", O_RDWR);
+	LOGE_IF(i2c_fd < 0, "TScontrol: Cannot open i2c dev - %d", errno);
 
 	return 0;
 }
