@@ -35,6 +35,10 @@ PRODUCT_COPY_FILES += \
     device/hp/tenderloin/prebuilt/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
     device/hp/tenderloin/init.qcom.bt.sh:system/etc/init.qcom.bt.sh
 
+# Dualboot Magic
+PRODUCT_COPY_FILES += \
+    device/hp/tenderloin/boot_webos:system/bin/boot_webos
+
 ## (2) Also get non-open-source GSM-specific aspects if available
 $(call inherit-product-if-exists, vendor/hp/tenderloin/tenderloin-vendor.mk)
 ## (3)  Finally, the least specific parts, i.e. the non-GSM-specific aspects

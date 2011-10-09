@@ -119,3 +119,7 @@ BOARD_HAS_NO_MISC_PARTITION := true
 BOARD_HAS_NO_SELECT_BUTTON := true
 BOARD_CUSTOM_GRAPHICS:= ../../../device/hp/tenderloin/graphics.c
 BOARD_USES_RECOVERY_CHARGEMODE := true
+
+# Multiboot stuff
+TARGET_RECOVERY_PRE_COMMAND := "/system/bin/rebootcmd recovery"
+TARGET_ALTOS_PRE_COMMAND := "/system/bin/rebootcmd altos"
