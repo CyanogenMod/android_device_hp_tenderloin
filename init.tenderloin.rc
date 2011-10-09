@@ -73,6 +73,9 @@ on init
     chown system system /sys/user_hw/pins/ctp/wake/level
     chown system system /dev/i2c-5
 
+	# increase per-process file limit to prevent warning
+	setrlimit 7 10000 10000
+
 on boot
     mkdir /data/misc/wifi 0770 system wifi
     mkdir /data/misc/wifi/sockets 0770 system wifi
