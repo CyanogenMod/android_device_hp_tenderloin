@@ -121,7 +121,7 @@ PRODUCT_COPY_FILES += \
 
 # Wifi Modules
 PRODUCT_COPY_FILES += \
-    device/hp/tenderloin/prebuilt/wifi/ath6kl.ko:system/lib/modules/ath6kl.ko \
+    device/hp/tenderloin/prebuilt/wifi/ar6000.ko:system/lib/modules/ar6000.ko \
     device/hp/tenderloin/prebuilt/wifi/compat.ko:system/lib/modules/compat.ko \
     device/hp/tenderloin/prebuilt/wifi/lib80211_crypt_tkip.ko:system/lib/modules/lib80211_crypt_tkip.ko \
     device/hp/tenderloin/prebuilt/wifi/lib80211.ko:system/lib/modules/lib80211.ko \

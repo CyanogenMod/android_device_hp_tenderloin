@@ -30,9 +30,9 @@ TARGET_GLOBAL_CPPFLAGS += -mtune=cortex-a9 -mfpu=neon -mfloat-abi=softfp
 # Wifi related defines
 BOARD_WPA_SUPPLICANT_DRIVER := WEXT
 WPA_SUPPLICANT_VERSION      := VER_0_6_X
-BOARD_WLAN_DEVICE           := ath6kl
-WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/ath6kl.ko"
-WIFI_DRIVER_MODULE_NAME     := "ath6kl"
+BOARD_WLAN_DEVICE           := ar6000
+WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/ar6000.ko"
+WIFI_DRIVER_MODULE_NAME     := "ar6000"
 BOARD_WEXT_NO_COMBO_SCAN	:= true
 
 # Audio 
