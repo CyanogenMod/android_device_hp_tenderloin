@@ -1,4 +1,3 @@
-
 # inherit from the proprietary version
 -include vendor/hp/tenderloin/BoardConfigVendor.mk
 
@@ -57,7 +56,7 @@ BOARD_USE_QCOM_PMEM := true
 BOARD_CAMERA_USE_GETBUFFERINFO := true
 BOARD_USE_FROYO_LIBCAMERA := true
 BOARD_USE_LARGE_CAMHAL := true
-BOARD_HAVE_HTC_FFC := true
+BOARD_FIRST_CAMERA_FRONT_FACING := true
 
 BOARD_OVERLAY_FORMAT_YCbCr_420_SP := true
 BOARD_USES_ADRENO_200 := true
