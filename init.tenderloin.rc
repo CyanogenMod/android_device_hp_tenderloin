@@ -121,12 +121,6 @@ on boot
 
     # wifi modules
 
-    insmod /system/lib/modules/lib80211.ko
-    insmod /system/lib/modules/lib80211_crypt_ccmp.ko
-    insmod /system/lib/modules/lib80211_crypt_wep.ko
-    insmod /system/lib/modules/lib80211_crypt_tkip.ko
-    insmod /system/lib/modules/compat.ko
-    insmod /system/lib/modules/cfg80211.ko
     insmod /system/lib/modules/librasdioif.ko
 
     # Setup Alsa

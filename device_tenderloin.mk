@@ -126,12 +126,6 @@ PRODUCT_COPY_FILES += \
 # Wifi Modules
 PRODUCT_COPY_FILES += \
     device/hp/tenderloin/prebuilt/wifi/ar6000.ko:system/lib/modules/ar6000.ko \
-    device/hp/tenderloin/prebuilt/wifi/compat.ko:system/lib/modules/compat.ko \
-    device/hp/tenderloin/prebuilt/wifi/lib80211_crypt_tkip.ko:system/lib/modules/lib80211_crypt_tkip.ko \
-    device/hp/tenderloin/prebuilt/wifi/lib80211.ko:system/lib/modules/lib80211.ko \
-    device/hp/tenderloin/prebuilt/wifi/cfg80211.ko::system/lib/modules/cfg80211.ko \
-    device/hp/tenderloin/prebuilt/wifi/lib80211_crypt_ccmp.ko:system/lib/modules/lib80211_crypt_ccmp.ko \
-    device/hp/tenderloin/prebuilt/wifi/lib80211_crypt_wep.ko:system/lib/modules/lib80211_crypt_wep.ko \
     device/hp/tenderloin/prebuilt/wifi/librasdioif.ko:system/lib/modules/librasdioif.ko
 
 #Wifi Firmware
