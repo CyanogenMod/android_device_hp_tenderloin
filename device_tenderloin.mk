@@ -76,8 +76,6 @@ PRODUCT_PACKAGES += \
     alsa.tenderloin \
     lights.tenderloin
 
-#  libaudio
-
 PRODUCT_PACKAGES += \
     libreference-ril
 
@@ -93,36 +91,6 @@ PRODUCT_COPY_FILES += \
     device/hp/tenderloin/prebuilt/usr/keylayout/AVRCP.kl:system/usr/keylayout/AVRCP.kl \
     device/hp/tenderloin/prebuilt/bluetooth/hciattach:system/bin/hciattach_awesome 
     
-# Audio DSP Profiles
-#PRODUCT_COPY_FILES += \
-#    device/hp/tenderloin/dsp/AIC3254_REG.csv:system/etc/AIC3254_REG.csv \
-#    device/hp/tenderloin/dsp/AIC3254_REG_DualMic.csv:system/etc/AIC3254_REG_DualMic.csv \
-#    device/hp/tenderloin/dsp/AdieHWCodec.csv:system/etc/AdieHWCodec.csv \
-#    device/hp/tenderloin/dsp/AudioBTID.csv:system/etc/AudioBTID.csv \
-#    device/hp/tenderloin/dsp/CodecDSPID.txt:system/etc/CodecDSPID.txt \
-#    device/hp/tenderloin/dsp/CodecDSPID_WB.txt:system/etc/CodecDSPID_WB.txt \
-#    device/hp/tenderloin/dsp/TPA2051_CFG.csv:system/etc/TPA2051_CFG.csv \
-#    device/hp/tenderloin/dsp/TPA2051_CFG_XC.csv:system/etc/TPA2051_CFG_XC.csv \
-#    device/hp/tenderloin/dsp/soundimage/Sound_Beats.txt:system/etc/soundimage/Sound_Beats.txt \
-#    device/hp/tenderloin/dsp/soundimage/Sound_MFG.txt:system/etc/soundimage/Sound_MFG.txt \
-#    device/hp/tenderloin/dsp/soundimage/Sound_Original_Recording.txt:system/etc/soundimage/Sound_Original_Recording.txt \
-#    device/hp/tenderloin/dsp/soundimage/Sound_Original_SPK.txt:system/etc/soundimage/Sound_Original_SPK.txt \
-#    device/hp/tenderloin/dsp/soundimage/Sound_Original.txt:system/etc/soundimage/Sound_Original.txt \
-#    device/hp/tenderloin/dsp/soundimage/Sound_Phone_Original_HP_WB.txt:system/etc/soundimage/Sound_Phone_Original_HP_WB.txt \
-#    device/hp/tenderloin/dsp/soundimage/Sound_Phone_Original_HP.txt:system/etc/soundimage/Sound_Phone_Original_HP.txt \
-#    device/hp/tenderloin/dsp/soundimage/Sound_Phone_Original_REC_WB.txt:system/etc/soundimage/Sound_Phone_Original_REC_WB.txt \
-#    device/hp/tenderloin/dsp/soundimage/Sound_Phone_Original_REC.txt:system/etc/soundimage/Sound_Phone_Original_REC.txt \
-#    device/hp/tenderloin/dsp/soundimage/Sound_Phone_Original_SPK_WB.txt:system/etc/soundimage/Sound_Phone_Original_SPK_WB.txt \
-#    device/hp/tenderloin/dsp/soundimage/Sound_Phone_Original_SPK.txt:system/etc/soundimage/Sound_Phone_Original_SPK.txt \
-#    device/hp/tenderloin/dsp/soundimage/Sound_Rec_Landscape.txt:system/etc/soundimage/Sound_Rec_Landscape.txt \
-#    device/hp/tenderloin/dsp/soundimage/Sound_Rec_Portrait.txt:system/etc/soundimage/Sound_Rec_Portrait.txt \
-#    device/hp/tenderloin/dsp/soundimage/Sound_Recording.txt:system/etc/soundimage/Sound_Recording.txt \
-#    device/hp/tenderloin/dsp/soundimage/srs_geq10.cfg:system/etc/soundimage/srs_geq10.cfg \
-#    device/hp/tenderloin/dsp/soundimage/srsfx_trumedia_51.cfg:system/etc/soundimage/srsfx_trumedia_51.cfg \
-#    device/hp/tenderloin/dsp/soundimage/srsfx_trumedia_movie.cfg:system/etc/soundimage/srsfx_trumedia_movie.cfg \
-#    device/hp/tenderloin/dsp/soundimage/srsfx_trumedia_music.cfg:system/etc/soundimage/srsfx_trumedia_music.cfg \
-#    device/hp/tenderloin/prebuilt/snd3254:system/bin/snd3254
-
 # Wifi Modules
 PRODUCT_COPY_FILES += \
     device/hp/tenderloin/prebuilt/wifi/ar6000.ko:system/lib/modules/ar6000.ko \
@@ -178,9 +146,6 @@ endif
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_KERNEL):kernel
-
-# stuff common to all HTC phones
-#$(call inherit-product, device/hp/common/common.mk)
 
 $(call inherit-product, build/target/product/full_base.mk)
 
