@@ -110,6 +110,13 @@ def WriteFullOTAPackage(input_zip, output_zip):
 
   script.Mount("/boot")
   script.UnpackPackageFile("boot.img", "/boot/uImage.CyanogenMod")
+
+  moboot_tga = open(OPTIONS.device_out + "/moboot.splash.CyanogenMod.tga")
+  common.ZipWriteStr(output_zip, "moboot.splash.CyanogenMod.tga", moboot_tga.read())
+  moboot_tga.close()
+
+  script.UnpackPackageFile("moboot.splash.CyanogenMod.tga", "/boot/moboot.splash.CyanogenMod.tga")
+
   # -- tenderloin build change done
 
   script.ShowProgress(0.1, 0)
