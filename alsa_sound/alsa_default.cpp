@@ -43,6 +43,7 @@ static status_t s_open(alsa_handle_t *, uint32_t, int);
 static status_t s_close(alsa_handle_t *);
 static status_t s_standby(alsa_handle_t *);
 static status_t s_route(alsa_handle_t *, uint32_t, int);
+static status_t s_resetDefaults(alsa_handle_t *handle);
 
 static hw_module_methods_t s_module_methods = {
     open            : s_device_open
@@ -79,6 +80,7 @@ static int s_device_open(const hw_module_t* module, const char* name,
     dev->close = s_close;
     dev->standby = s_standby;
     dev->route = s_route;
+    dev->resetDefaults = s_resetDefaults;
 
     *device = &dev->common;
     return 0;
@@ -108,6 +110,7 @@ static alsa_handle_t _defaultsOut = {
     format      : SND_PCM_FORMAT_S16_LE, // AudioSystem::PCM_16_BIT
     channels    : 2,
     sampleRate  : DEFAULT_SAMPLE_RATE,
+    realsampleRate : 0,
     latency     : 0, // Desired Delay in usec
     bufferSize  : 0, // Desired Number of samples
     mmap        : 0,
@@ -115,6 +118,7 @@ static alsa_handle_t _defaultsOut = {
     modPrivate  : 0,
     period_time : 0,
     period_frames: 1024,
+    id		: 0,
 };
 
 static alsa_handle_t _defaultsIn = {
@@ -126,6 +130,7 @@ static alsa_handle_t _defaultsIn = {
     format      : SND_PCM_FORMAT_S16_LE, // AudioSystem::PCM_16_BIT
     channels    : 1,
     sampleRate  : AudioRecord::DEFAULT_SAMPLE_RATE,
+    realsampleRate : 0,
     latency     : 0, // Desired Delay in usec
     bufferSize  : 0, // Desired Number of samples
     mmap        : 0,
@@ -133,7 +138,7 @@ static alsa_handle_t _defaultsIn = {
     modPrivate  : 0,
     period_time : 0,
     period_frames: 0,
-
+    id		: 1,
 };
 
 struct device_suffix_t {
@@ -214,6 +219,24 @@ status_t setGlobalParams(alsa_handle_t *handle)
 	LOGI("Set global parms\n");
 
 	usleep(1000);
+
+	if(handle==&_defaultsOut)
+	{
+		if(_defaultsIn.handle)
+		{
+			LOGE("Opening output device but input already running!");
+			handle->sampleRate = _defaultsIn.realsampleRate;
+		}
+	}
+
+	if(handle==&_defaultsIn)
+	{
+		if(_defaultsOut.handle)
+		{
+			LOGE("Opening input device but output already running!");
+			handle->sampleRate = _defaultsOut.realsampleRate;
+		}
+	}
 
 	
 	snd_pcm_hw_params_alloca(&params);
@@ -392,6 +415,8 @@ status_t setGlobalParams(alsa_handle_t *handle)
 		snd_pcm_mmap_commit(handle->handle, offset, 0);
 	}
 
+	handle->realsampleRate = handle->sampleRate;
+
 //	buffer_frames = buffer_size;	/* for position test */
 	return NO_ERROR;
 }
@@ -410,7 +435,7 @@ static status_t s_init(alsa_device_t *module, ALSAHandleList &list)
     _defaultsOut.module = module;
     _defaultsOut.bufferSize = bufferSize;
 
-    list.push_back(_defaultsOut);
+    list.push_back(&_defaultsOut);
 
     bufferSize = _defaultsIn.bufferSize;
 
@@ -420,7 +445,7 @@ static status_t s_init(alsa_device_t *module, ALSAHandleList &list)
     _defaultsIn.module = module;
     _defaultsIn.bufferSize = bufferSize;
 
-    list.push_back(_defaultsIn);
+    list.push_back(&_defaultsIn);
 
     return NO_ERROR;
 }
@@ -500,7 +525,10 @@ static status_t s_close(alsa_handle_t *handle)
         err = snd_pcm_close(h);
     }
 
-	LOGI("ALSA Module: closing down device");
+	if(handle == &_defaultsIn)
+		LOGI("ALSA Module: closing down input device");
+	if(handle == &_defaultsOut)
+		LOGI("ALSA Module: closing down output device");
 
     return err;
 }
@@ -524,5 +552,15 @@ static status_t s_route(alsa_handle_t *handle, uint32_t devices, int mode)
 
     return s_open(handle, devices, mode);
 }
+
+static status_t s_resetDefaults(alsa_handle_t *handle)
+{
+	if(handle == &_defaultsIn)
+		LOGE("Reset defaults called on input");
+	if(handle == &_defaultsOut)
+		LOGE("Reset defaults called on output");
+	return NO_ERROR;
+}
+
 
 }

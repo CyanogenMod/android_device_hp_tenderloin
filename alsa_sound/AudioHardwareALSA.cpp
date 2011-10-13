@@ -63,7 +63,7 @@ static void ALSAErrorHandler(const char *file,
     l = snprintf(buf, BUFSIZ, "%s:%i:(%s) ", file, line, function);
     vsnprintf(buf + l, BUFSIZ - l, fmt, arg);
     buf[BUFSIZ-1] = '\0';
-    LOG(LOG_ERROR, "ALSALib", "%s", buf);
+  //  LOG(LOG_ERROR, "ALSALib", "%s", buf);
     va_end(arg);
 }
 
@@ -154,7 +154,7 @@ status_t AudioHardwareALSA::setMode(int mode)
             // take care of mode change.
             for(ALSAHandleList::iterator it = mDeviceList.begin();
                 it != mDeviceList.end(); ++it) {
-                status = mALSADevice->route(&(*it), it->curDev, mode);
+                status = mALSADevice->route((*it), (*it)->curDev, mode);
                 if (status != NO_ERROR)
                     break;
             }
@@ -199,10 +199,10 @@ AudioHardwareALSA::openOutputStream(uint32_t devices,
     // Find the appropriate alsa device
     for(ALSAHandleList::iterator it = mDeviceList.begin();
         it != mDeviceList.end(); ++it)
-        if (it->devices & devices) {
-            err = mALSADevice->open(&(*it), devices, mode());
+        if ((*it)->devices & devices) {
+            err = mALSADevice->open((*it), devices, mode());
             if (err) break;
-            out = new AudioStreamOutALSA(this, &(*it));
+            out = new AudioStreamOutALSA(this, (*it));
             err = out->set(format, channels, sampleRate);
             break;
         }
@@ -239,10 +239,10 @@ AudioHardwareALSA::openInputStream(uint32_t devices,
     // Find the appropriate alsa device
     for(ALSAHandleList::iterator it = mDeviceList.begin();
         it != mDeviceList.end(); ++it)
-        if (it->devices & devices) {
-            err = mALSADevice->open(&(*it), devices, mode());
+        if ((*it)->devices & devices) {
+            err = mALSADevice->open((*it), devices, mode());
             if (err) break;
-            in = new AudioStreamInALSA(this, &(*it), acoustics);
+            in = new AudioStreamInALSA(this, (*it), acoustics);
             err = in->set(format, channels, sampleRate);
             break;
         }

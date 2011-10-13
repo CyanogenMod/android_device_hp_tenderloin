@@ -79,6 +79,8 @@ status_t ALSAStreamOps::set(int      *format,
                             uint32_t *rate)
 {
 
+   LOGE("Stream set");
+
     status_t status = NO_ERROR;
     if (channels && *channels != 0) {
         if (mHandle->channels != popCount(*channels)) {
