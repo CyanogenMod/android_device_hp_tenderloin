@@ -527,9 +527,6 @@ int main(int argc, char** argv)
 			FD_ZERO(&fdset);
 			FD_SET(uart_fd, &fdset);
 
-                        /* Flush uart - for the powermanagement stuff */
-                        ioctl(uart_fd, HSUART_IOCTL_FLUSH, 0x9);
-
 			/* Now enter indefinite sleep iuntil input appears */
 			select(uart_fd+1, &fdset, NULL, NULL, NULL);
 			/* In case we were wrongly woken up check the event

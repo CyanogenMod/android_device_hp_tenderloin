@@ -115,20 +115,12 @@ on boot
     write /sys/block/mmcblk0/bdi/read_ahead_kb 1024
 
     # Enable low memory killer to check file pages
-    write /sys/module/lowmemorykiller/parameters/minfile 0,0,0,5120,5632,6144
-    write /sys/module/lowmemorykiller/parameters/check_filepages 1
-
+    write /sys/module/lowmemorykiller/parameters/minfree 8192,10240,12288,14336,16384,20480
     write /sys/devices/system/cpu/cpufreq/ondemand/up_threshold 90
     write /sys/devices/system/cpu/cpufreq/ondemand/sampling_rate 50000
 
     # wifi modules
 
-    insmod /system/lib/modules/lib80211.ko
-    insmod /system/lib/modules/lib80211_crypt_ccmp.ko
-    insmod /system/lib/modules/lib80211_crypt_wep.ko
-    insmod /system/lib/modules/lib80211_crypt_tkip.ko
-    insmod /system/lib/modules/compat.ko
-    insmod /system/lib/modules/cfg80211.ko
     insmod /system/lib/modules/librasdioif.ko
 
     # Setup Alsa

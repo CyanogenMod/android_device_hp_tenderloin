@@ -47,6 +47,7 @@ struct alsa_handle_t {
     snd_pcm_format_t    format;
     uint32_t            channels;
     uint32_t            sampleRate;
+    uint32_t		realsampleRate;
     unsigned int        latency;         // Delay in usec
     unsigned int        bufferSize;      // Size of sample buffer
     int                 mmap;
@@ -54,10 +55,11 @@ struct alsa_handle_t {
     void *              modPrivate;
     unsigned		period_time;
     snd_pcm_uframes_t	period_frames;
+    int			id;
     int			chunk_bytes;
 };
 
-typedef List<alsa_handle_t> ALSAHandleList;
+typedef List<alsa_handle_t*> ALSAHandleList;
 
 struct alsa_device_t {
     hw_device_t common;
@@ -169,6 +171,10 @@ protected:
 
     Mutex                   mLock;
     bool                    mPowerLock;
+
+    unsigned int	    mSamplerate;
+    unsigned int	    mChannels;
+    unsigned int	    mFormat;
 };
 
 // ----------------------------------------------------------------------------

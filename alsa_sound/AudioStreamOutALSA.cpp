@@ -89,6 +89,11 @@ ssize_t AudioStreamOutALSA::write(const void *buffer, size_t bytes)
        /* check if handle is still valid, otherwise we are coming out of standby */
        if(mHandle->handle == NULL) {
         nsecs_t previously = systemTime();
+	//Attempt to restore the configuration
+	mHandle->channels = mChannels;
+  	mHandle->sampleRate = mSamplerate;
+	mHandle->format = (snd_pcm_format_t)mFormat;
+
             mHandle->module->open(mHandle, mHandle->curDev, mHandle->curMode);
         nsecs_t delta = systemTime() - previously;
         LOGE("RE-OPEN AFTER STANDBY:: took %llu msecs\n", ns2ms(delta));
