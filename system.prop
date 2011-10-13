@@ -5,8 +5,7 @@ dalvik.vm.heapsize=32m
 
 ro.sf.hwrotation=270
 
-ro.additionalmounts=/mnt/emmc;/mnt/usbdisk
-ro.vold.switchablepair=/mnt/sdcard,/mnt/emmc
+ro.additionalmounts=/mnt/usbdisk
 
 rild.libpath=/system/lib/libreference-ril.so
 rild.libargs=-d /dev/ttyS0
@@ -25,16 +24,11 @@ debug.composition.type=c2d
 # This is a 16.16 fixed point number
 ro.opengles.version = 131072
 
-# For the default value of agps
-ro.ril.def.agps.mode = 2
-
 # For emmc phone storage
 ro.phone_storage = 1
 
 # Make rmt_storage start at init
 ro.emmc = 1
-
-ro.additionalmounts=/mnt/emmc
 
 # bluetooth
 net.bt.name=Android
