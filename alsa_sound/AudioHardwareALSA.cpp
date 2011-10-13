@@ -185,7 +185,7 @@ AudioHardwareALSA::openOutputStream(uint32_t devices,
 {
     AutoMutex lock(mLock);
 
-    LOGD("openOutputStream called for devices: 0x%08x", devices);
+    LOGE("openOutputStream called for devices: 0x%08x", devices);
 
     status_t err = BAD_VALUE;
     AudioStreamOutALSA *out = 0;

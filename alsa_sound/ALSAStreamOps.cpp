@@ -161,6 +161,11 @@ status_t ALSAStreamOps::set(int      *format,
             }
         }
     }
+
+    mChannels = mHandle->channels;
+    mFormat = mHandle->format;
+    mSamplerate = mHandle->sampleRate;
+
     if (status == BAD_VALUE) {
         /* resetting the default values */
         if (mParent->mALSADevice->resetDefaults) {
@@ -171,6 +176,7 @@ status_t ALSAStreamOps::set(int      *format,
             }
         }
     }
+
     return status;
 
 }
@@ -321,6 +327,8 @@ void ALSAStreamOps::close()
 //
 status_t ALSAStreamOps::open(int mode)
 {
+	LOGE("ALSAStreamOps Close");
+
     return mParent->mALSADevice->open(mHandle, mHandle->curDev, mode);
 }
 

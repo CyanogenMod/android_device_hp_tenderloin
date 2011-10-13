@@ -171,6 +171,10 @@ protected:
 
     Mutex                   mLock;
     bool                    mPowerLock;
+
+    unsigned int	    mSamplerate;
+    unsigned int	    mChannels;
+    unsigned int	    mFormat;
 };
 
 // ----------------------------------------------------------------------------
