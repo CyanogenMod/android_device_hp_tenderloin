@@ -49,24 +49,38 @@ void touchscreen_power(int enable)
     struct i2c_rdwr_ioctl_data i2c_ioctl_data;
     struct i2c_msg i2c_msg;
     __u8 i2c_buf[16];
+    int rc;
 
     if (enable) {
+	int retry_count = 0;
+
+try_again:
+	/* Set reset so the chip immediatelly sees it */
+        lseek(xres_fd, 0, SEEK_SET);
+        rc = write(xres_fd, "1", 1);
+	LOGE_IF(rc != 1, "TSpower, failed set xres");
+
+	/* Then power on */
         lseek(vdd_fd, 0, SEEK_SET);
-        write(vdd_fd, "1", 1);
+        rc = write(vdd_fd, "1", 1);
+	LOGE_IF(rc != 1, "TSpower, failed to enable vdd");
+
+	/* Sleep some more for the voltage to stabilize */
+        usleep(50000);
 
         lseek(wake_fd, 0, SEEK_SET);
-        write(wake_fd, "1", 1);
+        rc = write(wake_fd, "1", 1);
+	LOGE_IF(rc != 1, "TSpower, failed to assert wake");
 
         lseek(xres_fd, 0, SEEK_SET);
-        write(xres_fd, "1", 1);
-
-        lseek(xres_fd, 0, SEEK_SET);
-        write(xres_fd, "0", 1);
+        rc = write(xres_fd, "0", 1);
+	LOGE_IF(rc != 1, "TSpower, failed to reset xres");
 
         usleep(50000);
 
         lseek(wake_fd, 0, SEEK_SET);
-        write(wake_fd, "0", 1);
+        rc = write(wake_fd, "0", 1);
+	LOGE_IF(rc != 1, "TSpower, failed to deassert wake");
 
         usleep(50000);
 
@@ -79,34 +93,52 @@ void touchscreen_power(int enable)
 
         i2c_msg.len = 2;
         i2c_buf[0] = 0x08; i2c_buf[1] = 0;
-        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+        rc = ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+	LOGE_IF( rc != 1, "TSPower, ioctl1 failed %d errno %d\n", rc, errno);
+	/* Ok, so the TS failed to wake, we need to retry a few times
+         * before totally giving up */
+	if ((rc != 1) && (retry_count++ < 3)) {
+		lseek(vdd_fd, 0, SEEK_SET);
+		rc = write(vdd_fd, "0", 1);
+		usleep(10000);
+		LOGE("TS wakeup retry #%d\n", retry_count);
+		goto try_again;
+	}
 
         i2c_msg.len = 6;
         i2c_buf[0] = 0x31; i2c_buf[1] = 0x01; i2c_buf[2] = 0x08;
         i2c_buf[3] = 0x0C; i2c_buf[4] = 0x0D; i2c_buf[5] = 0x0A;
-        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+        rc = ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+	LOGE_IF( rc != 1, "TSPower, ioctl2 failed %d errno %d\n", rc, errno);
 
         i2c_msg.len = 2;
         i2c_buf[0] = 0x30; i2c_buf[1] = 0x0F;
-        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+        rc = ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+	LOGE_IF( rc != 1, "TSPower, ioctl3 failed %d errno %d\n", rc, errno);
 
         i2c_buf[0] = 0x40; i2c_buf[1] = 0x02;
-        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+        rc = ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+	LOGE_IF( rc != 1, "TSPower, ioctl4 failed %d errno %d\n", rc, errno);
 
         i2c_buf[0] = 0x41; i2c_buf[1] = 0x10;
-        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+        rc = ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+	LOGE_IF( rc != 1, "TSPower, ioctl5 failed %d errno %d\n", rc, errno);
 
         i2c_buf[0] = 0x0A; i2c_buf[1] = 0x04;
-        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+        rc = ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+	LOGE_IF( rc != 1, "TSPower, ioctl6 failed %d errno %d\n", rc, errno);
 
         i2c_buf[0] = 0x08; i2c_buf[1] = 0x03;
-        ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+        rc = ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
+	LOGE_IF( rc != 1, "TSPower, ioctl7 failed %d errno %d\n", rc, errno);
 
         lseek(wake_fd, 0, SEEK_SET);
-        write(wake_fd, "1", 1);
+        rc = write(wake_fd, "1", 1);
+	LOGE_IF(rc != 1, "TSpower, failed to assert wake again");
     } else {
         lseek(vdd_fd, 0, SEEK_SET);
-        write(vdd_fd, "0", 1);
+        rc = write(vdd_fd, "0", 1);
+	LOGE_IF(rc != 1, "TSpower, failed to disable vdd");
         /* XXX, should be correllated with LIFTOFF_TIMEOUT in ts driver */
         usleep(80000);
     }
