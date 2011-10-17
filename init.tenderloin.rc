@@ -67,6 +67,10 @@ on init
     mkdir /mnt/emmc 0000 system system
     symlink /mnt/emmc /emmc
 
+    #  for mounting USB storage
+
+    mkdir /mnt/usbdisk 0000 system system
+
     # For TS control
     chown system system /sys/devices/platform/cy8ctma395/vdd
     chown system system /sys/devices/platform/cy8ctma395/xres
