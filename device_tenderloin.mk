@@ -95,7 +95,8 @@ PRODUCT_COPY_FILES += \
 # Wifi Modules
 PRODUCT_COPY_FILES += \
     device/hp/tenderloin/prebuilt/wifi/ar6000.ko:system/lib/modules/ar6000.ko \
-    device/hp/tenderloin/prebuilt/wifi/librasdioif.ko:system/lib/modules/librasdioif.ko
+    device/hp/tenderloin/prebuilt/modules/cifs.ko:system/lib/modules/cifs.ko \
+    device/hp/tenderloin/prebuilt/modules/ntfs.ko:system/lib/modules/ntfs.ko
 
 #Wifi Firmware
 # from kernel.org

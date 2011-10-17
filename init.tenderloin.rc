@@ -124,8 +124,11 @@ on boot
     write /sys/devices/system/cpu/cpufreq/ondemand/sampling_rate 50000
 
     # wifi modules
-
     insmod /system/lib/modules/librasdioif.ko
+
+    # modules
+    insmod /system/lib/modules/cifs.ko
+    insmod /system/lib/modules/ntfs.ko
 
     # Setup Alsa
     exec /system/bin/alsatool
