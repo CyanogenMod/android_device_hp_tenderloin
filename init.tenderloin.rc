@@ -114,6 +114,9 @@ on boot
     # bluetooth MAC address programming
     chown bluetooth bluetooth /sys/module/hp_bdaddress/parameters/bdaddress
     setprop ro.bt.bdaddr_path /sys/module/hp_bdaddress/parameters/bdaddress
+
+    chown audio audio /dev/input/event5
+    chmod 0660 /dev/input/event5
     
     # Increase readahead buffers on MMC devices
     write /sys/block/mmcblk0/bdi/read_ahead_kb 1024
