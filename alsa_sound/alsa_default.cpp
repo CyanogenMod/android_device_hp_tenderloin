@@ -17,6 +17,12 @@
 
 #define LOG_TAG "ALSAModule"
 #include <utils/Log.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/time.h>
+#include <sound/asound.h>
 
 #include "AudioHardwareALSA.h"
 #include <media/AudioRecord.h>
@@ -33,8 +39,104 @@
 #define ALSA_DEFAULT_SAMPLE_RATE 44100 // in Hz
 #endif
 
+struct snd_ctl_elem_id {
+	unsigned int numid;		/* numeric identifier, zero = invalid */
+	snd_ctl_elem_iface_t iface;	/* interface identifier */
+	unsigned int device;		/* device/client number */
+	unsigned int subdevice;		/* subdevice (substream) number */
+	unsigned char name[44];		/* ASCII name of item */
+	unsigned int index;		/* index of item */
+};
+
+struct snd_ctl_elem_value {
+	struct snd_ctl_elem_id id;	/* W: element ID */
+	unsigned int indirect: 1;	/* W: indirect access - obsoleted */
+	union {
+		union {
+			long value[128];
+			long *value_ptr;	/* obsoleted */
+		} integer;
+		union {
+			long long value[64];
+			long long *value_ptr;	/* obsoleted */
+		} integer64;
+		union {
+			unsigned int item[128];
+			unsigned int *item_ptr;	/* obsoleted */
+		} enumerated;
+		union {
+			unsigned char data[512];
+			unsigned char *data_ptr;	/* obsoleted */
+		} bytes;
+		struct snd_aes_iec958 iec958;
+	} value;		/* RO */
+	struct timespec tstamp;
+	unsigned char reserved[128-sizeof(struct timespec)];
+};
+
+struct snd_ctl_elem_list {
+	unsigned int offset;		/* W: first element ID to get */
+	unsigned int space;		/* W: count of element IDs to get */
+	unsigned int used;		/* R: count of element IDs set */
+	unsigned int count;		/* R: count of all elements */
+	struct snd_ctl_elem_id __user *pids; /* R: IDs */
+	unsigned char reserved[50];
+};
+
 namespace android
 {
+
+struct snd_ctl_elem_id *elements;
+int nelements, idle_standalone_fd, idle_collapse_fd;
+
+static struct dsp_control {
+    int fd;
+    struct snd_ctl_elem_id *pcm_playback_id;
+	struct snd_ctl_elem_id *pcm_capture_id;
+	struct snd_ctl_elem_id *speaker_stereo_rx_id;
+	struct snd_ctl_elem_id *speaker_mono_tx_id;
+} dsp;
+
+int get_elem_list( int fd, struct snd_ctl_elem_list* list )
+{
+    int i = 0;
+    struct snd_ctl_elem_id* pid;
+    if (ioctl( fd, SNDRV_CTL_IOCTL_ELEM_LIST, list) < 0) {
+        printf( " SNDRV_CTL_IOCTL_ELEM_LIST fail\n" );
+        return -1;
+    }
+
+    return 0;
+}
+
+struct snd_ctl_elem_id* get_id(char *name)
+{
+	int i;
+	for( i = 0; i < nelements; i++ ) {
+		if(strcmp((const char*)elements[i].name,name)==0)
+			return &elements[i];
+	}
+	printf("Error unable to locate mixer control: %s\n", name);
+	return 0;
+}
+
+int write_elem(int fd, struct snd_ctl_elem_id* id, int d0, int d1, int d2)
+{
+    struct snd_ctl_elem_value control;
+
+	control.id = *id;
+	control.value.integer.value[0] = d0;
+	control.value.integer.value[1] = d1;
+	control.value.integer.value[2] = d2;
+    if (ioctl( fd,SNDRV_CTL_IOCTL_ELEM_WRITE, &control ) < 0) {
+		printf( " SNDRV_CTL_IOCTL_ELEM_WRITE fail\n");
+		return -1;
+	}
+
+	return 0;
+}
+
+// ----------------------------------------------------------------------------
 
 static int s_device_open(const hw_module_t*, const char*, hw_device_t**);
 static int s_device_close(hw_device_t*);
@@ -425,6 +527,119 @@ status_t setGlobalParams(alsa_handle_t *handle)
 
 static status_t s_init(alsa_device_t *module, ALSAHandleList &list)
 {
+    struct snd_ctl_elem_list elem_list;
+    struct snd_ctl_elem_id *line1mix_id;
+    struct snd_ctl_elem_id *line1outn_id;
+    struct snd_ctl_elem_id *line1outp_id;
+    struct snd_ctl_elem_id *line2mix_id;
+    struct snd_ctl_elem_id *line2outn_id;
+    struct snd_ctl_elem_id *line2outp_id;
+    struct snd_ctl_elem_id *leftdacmix_id;
+    struct snd_ctl_elem_id *rightdacmix_id;
+    struct snd_ctl_elem_id *aif2adc_id;
+    struct snd_ctl_elem_id *aif2adcvol_id;
+    struct snd_ctl_elem_id *aif2adcr_id;
+    struct snd_ctl_elem_id *aif2dacl_id;
+    struct snd_ctl_elem_id *dac2vol_id;
+    struct snd_ctl_elem_id *in1pgan_id;
+    struct snd_ctl_elem_id *in1pgap_id;
+    struct snd_ctl_elem_id *mixinl_id;
+    struct snd_ctl_elem_id *in1l_id;
+    struct snd_ctl_elem_id *in1lvol_id;
+    struct snd_ctl_elem_id *in1lzc_id;
+    struct snd_ctl_elem_id *mixinl1_id;
+    struct snd_ctl_elem_id *mixinlvol_id;
+    struct snd_ctl_elem_id *outvol_id;
+    struct snd_ctl_elem_id *dac1aifl_id;
+    struct snd_ctl_elem_id *dac1aifr_id;
+    struct snd_ctl_elem_id *dac1_id;
+    struct snd_ctl_elem_id *dac2_id;
+
+    dsp.fd = open("/dev/snd/controlC0", O_RDONLY);
+    if(dsp.fd <=0) {
+        LOGE("Unable to open sound device for init");
+        exit(-1);
+    }
+
+    idle_collapse_fd = open("/sys/module/pm_8x60/modes/cpu0/power_collapse/idle_enabled", O_WRONLY);
+    idle_standalone_fd = open("/sys/module/pm_8x60/modes/cpu0/standalone_power_collapse/idle_enabled", O_WRONLY);
+
+    //Ignore open errors
+    if(idle_collapse_fd <= 0)
+        LOGE("Unable to open power_collapse/idle_enabled");
+    if(idle_standalone_fd <= 0)
+        LOGE("Unable to open standalone_power_collapse/idle_enabled");
+
+    elem_list.offset = 0;
+    elem_list.space  = 300;
+    elements = ( struct snd_ctl_elem_id* ) malloc( elem_list.space * sizeof( struct snd_ctl_elem_id ) );
+    elem_list.pids = elements;
+    get_elem_list(dsp.fd,&elem_list);
+    nelements = elem_list.used;
+
+    dsp.pcm_playback_id = get_id("PCM Playback Sink");
+    dsp.pcm_capture_id = get_id("PCM Capture Source");
+    dsp.speaker_stereo_rx_id = get_id("speaker_stereo_rx");
+    dsp.speaker_mono_tx_id = get_id("speaker_mono_tx");
+    line1mix_id = get_id("LINEOUT1 Mixer Output Switch");
+    line1outn_id = get_id("LINEOUT1N Switch");
+    line1outp_id = get_id("LINEOUT1P Switch");
+    line2mix_id = get_id("LINEOUT2 Mixer Output Switch");
+    line2outn_id = get_id("LINEOUT2N Switch");
+    line2outp_id = get_id("LINEOUT2P Switch");
+    leftdacmix_id = get_id("Left Output Mixer DAC Switch");
+    rightdacmix_id = get_id("Right Output Mixer DAC Switch");
+    aif2adc_id = get_id("AIF2ADC HPF Switch");
+    aif2adcvol_id = get_id("AIF2ADC Volume");
+    aif2adcr_id = get_id("AIF2ADCR Source");
+    aif2dacl_id = get_id("AIF2DAC2L Mixer Left Sidetone Switch");
+    dac2vol_id = get_id("DAC2 Left Sidetone Volume");
+    in1pgan_id = get_id("IN1L PGA IN1LN Switch");
+    in1pgap_id = get_id("IN1L PGA IN1LP Switch");
+    mixinl_id = get_id("MIXINL Output Record Volume");
+    in1l_id = get_id("IN1L Switch");
+    in1lvol_id = get_id("IN1L Volume");
+    in1lzc_id = get_id("IN1L ZC Switch");
+    mixinl1_id = get_id("MIXINL IN1L Switch");
+    mixinlvol_id = get_id("MIXINL IN1L Volume");
+    outvol_id = get_id("Output Volume");
+    dac1aifl_id = get_id("DAC1L Mixer AIF1.1 Switch");
+    dac1aifr_id = get_id("DAC1R Mixer AIF1.1 Switch");
+    dac1_id = get_id("DAC1 Switch");
+    dac2_id = get_id("DAC2 Switch");
+
+    write_elem(dsp.fd,line1mix_id,1,0,0);
+    write_elem(dsp.fd,line1outn_id,1,0,0);
+    write_elem(dsp.fd,line1outp_id,1,0,0);
+
+    write_elem(dsp.fd,line2mix_id,1,0,0);
+    write_elem(dsp.fd,line2outn_id,1,0,0);
+    write_elem(dsp.fd,line2outp_id,1,0,0);
+
+    write_elem(dsp.fd,leftdacmix_id,1,0,0);
+    write_elem(dsp.fd,rightdacmix_id,1,0,0);
+    write_elem(dsp.fd,aif2adc_id,1,1,0);
+    write_elem(dsp.fd,aif2adcvol_id,0x64,0x64,0);
+    write_elem(dsp.fd,aif2adcr_id,0,0,0);
+    write_elem(dsp.fd,aif2dacl_id,1,0,0);
+    write_elem(dsp.fd,dac2vol_id,0xC,0,0);
+
+    write_elem(dsp.fd,in1pgan_id,1,0,0);
+    write_elem(dsp.fd,in1pgap_id,1,0,0);
+    write_elem(dsp.fd,mixinl_id,1,0,0);
+    write_elem(dsp.fd,in1l_id,1,0,0);
+    write_elem(dsp.fd,in1lvol_id,0x1B,0,0);
+    write_elem(dsp.fd,in1lzc_id,0,0,0);
+
+    write_elem(dsp.fd,mixinl1_id,1,0,0);
+    write_elem(dsp.fd,mixinlvol_id,0,0,0);
+    write_elem(dsp.fd,outvol_id,0x3B,0x3B,0);
+    write_elem(dsp.fd,dac1aifl_id,1,0,0);
+    write_elem(dsp.fd,dac1aifr_id,1,0,0);
+
+    write_elem(dsp.fd,dac1_id,1,1,0);
+    write_elem(dsp.fd,dac2_id,1,1,0);
+
     list.clear();
 
     snd_pcm_uframes_t bufferSize = _defaultsOut.bufferSize;
@@ -464,6 +679,22 @@ static status_t s_open(alsa_handle_t *handle, uint32_t devices, int mode)
     // mixer settings (see asound.conf).
     //
     s_close(handle);
+
+    write_elem(dsp.fd, dsp.pcm_playback_id, 0, 0, 1);
+	write_elem(dsp.fd, dsp.pcm_capture_id, 0, 1, 1);
+	write_elem(dsp.fd, dsp.speaker_stereo_rx_id, 1, 1, 1);
+
+    if(idle_standalone_fd > 0) {
+        int bytes = 0;
+        bytes = write(idle_standalone_fd, "0", 1);
+        LOGI("Disable: Bytes written to standalone idle_enabled: %d\n", bytes);
+    }
+
+    if(idle_collapse_fd > 0) {
+        int bytes = 0;
+        bytes = write(idle_collapse_fd, "0", 1);
+        LOGI("Disable: Bytes written to collapse idle_enabled: %d\n", bytes);
+    }
 
     LOGD("open called for devices %08x in mode %d...", devices, mode);
 
@@ -525,10 +756,26 @@ static status_t s_close(alsa_handle_t *handle)
         err = snd_pcm_close(h);
     }
 
-	if(handle == &_defaultsIn)
-		LOGI("ALSA Module: closing down input device");
-	if(handle == &_defaultsOut)
-		LOGI("ALSA Module: closing down output device");
+    write_elem(dsp.fd, dsp.pcm_playback_id, 0, 0, 0);
+    write_elem(dsp.fd, dsp.pcm_capture_id, 0, 1, 0);
+    write_elem(dsp.fd, dsp.speaker_stereo_rx_id, 0, 1, 0);
+
+    if(idle_standalone_fd > 0) {
+        int bytes = 0;
+        bytes = write(idle_standalone_fd, "1", 1);
+        LOGI("Enabled: Bytes written to standalone idle_enabled: %d\n", bytes);
+    }
+
+    if(idle_collapse_fd > 0) {
+        int bytes = 0;
+        bytes = write(idle_collapse_fd, "1", 1);
+        LOGI("Enabled: Bytes written to collapse idle_enabled: %d\n", bytes);
+    }
+
+    if(handle == &_defaultsIn)
+        LOGI("ALSA Module: closing down input device");
+    if(handle == &_defaultsOut)
+        LOGI("ALSA Module: closing down output device");
 
     return err;
 }
@@ -561,6 +808,4 @@ static status_t s_resetDefaults(alsa_handle_t *handle)
 		LOGE("Reset defaults called on output");
 	return NO_ERROR;
 }
-
-
 }
