@@ -131,6 +131,10 @@ on boot
     chmod 0660 /sys/module/pm_8x60/modes/cpu0/power_collapse/idle_enabled
     chown audio audio /sys/module/pm_8x60/modes/cpu0/standalone_power_collapse/idle_enabled
     chmod 0660 /sys/module/pm_8x60/modes/cpu0/standalone_power_collapse/idle_enabled
+    chown audio audio /sys/module/pm_8x60/modes/cpu1/power_collapse/idle_enabled
+    chmod 0660 /sys/module/pm_8x60/modes/cpu1/power_collapse/idle_enabled
+    chown audio audio /sys/module/pm_8x60/modes/cpu1/standalone_power_collapse/idle_enabled
+    chmod 0660 /sys/module/pm_8x60/modes/cpu1/standalone_power_collapse/idle_enabled
 
     # Enable power collapse where always safe
     write /sys/module/pm_8x60/modes/cpu0/power_collapse/suspend_enabled 1
@@ -139,6 +143,10 @@ on boot
     write /sys/module/pm_8x60/modes/cpu1/power_collapse/suspend_enabled 1
     write /sys/module/pm_8x60/modes/cpu1/standalone_power_collapse/idle_enabled 1
     write /sys/module/pm_8x60/modes/cpu1/standalone_power_collapse/suspend_enabled 1
+    write /sys/module/rpm_resources/enable_low_power/vdd_dig 2
+    write /sys/module/rpm_resources/enable_low_power/vdd_mem 2
+    write /sys/module/rpm_resources/enable_low_power/L2_cache 1
+    write /sys/module/rpm_resources/enable_low_power/pxo 1
 
     # wifi modules
     insmod /system/lib/modules/librasdioif.ko
