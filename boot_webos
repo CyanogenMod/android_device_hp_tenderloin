@@ -1,5 +1,7 @@
 #!/system/xbin/bash
 
+export PATH=/system/xbin:/system/bin
+
 busybox mount / -o remount,rw
 mkdir /boot
 busybox mount /dev/block/mmcblk0p13 /boot
