@@ -37,7 +37,8 @@ mkdir -p ../../../vendor/hp/$DEVICE/proprietary
 
 # Prelink
 PRODUCT_COPY_FILES += \\
-    vendor/hp/__DEVICE__/proprietary/lib/libcamera.so:obj/lib/libcamera.so
+    vendor/hp/__DEVICE__/proprietary/lib/libcamera.so:obj/lib/libcamera.so \\
+    vendor/hp/__DEVICE__/proprietary/lib/libwebkitaccel.so:obj/lib/libwebkitaccel.so
 
 # Shared Object Libraries
 PRODUCT_COPY_FILES += \\
@@ -49,7 +50,9 @@ PRODUCT_COPY_FILES += \\
     vendor/hp/__DEVICE__/proprietary/lib/libOpenVG.so:system/lib/libOpenVG.so \\
     vendor/hp/__DEVICE__/proprietary/lib/libqdp.so:system/lib/libqdp.so \\
     vendor/hp/__DEVICE__/proprietary/lib/libqmi.so:system/lib/libqmi.so \\
-    vendor/hp/__DEVICE__/proprietary/lib/libqmiservices.so:system/lib/libqmiservices.so 
+    vendor/hp/__DEVICE__/proprietary/lib/libqmiservices.so:system/lib/libqmiservices.so \\
+    vendor/hp/__DEVICE__/proprietary/lib/libC2D2.so:system/lib/libC2D2.so \\
+    vendor/hp/__DEVICE__/proprietary/lib/libwebkitaccel.so:system/lib/libwebkitaccel.so
 
 #EGL
 PRODUCT_COPY_FILES += \\
@@ -86,9 +89,9 @@ PRODUCT_COPY_FILES += \\
 	vendor/hp/__DEVICE__/proprietary/etc/firmware/vidc_1080p.fw:/system/etc/firmware/vidc_1080p.fw \\
 	vendor/hp/__DEVICE__/proprietary/etc/firmware/yamato_pfp.fw:/system/etc/firmware/yamato_pfp.fw \\
 	vendor/hp/__DEVICE__/proprietary/etc/firmware/yamato_pm4.fw:/system/etc/firmware/yamato_pm4.fw \\
-	vendor/hp/tenderloin/proprietary/etc/firmware/wm8958_enh_eq.wfw:/system/etc/firmware/wm8958_enh_eq.wfw \\
-	vendor/hp/tenderloin/proprietary/etc/firmware/wm8958_mbc.wfw:/system/etc/firmware/wm8958_mbc.wfw \\
-	vendor/hp/tenderloin/proprietary/etc/firmware/wm8958_mbc_vss.wfw:/system/etc/firmware/wm8958_mbc_vss.wfw
+	vendor/hp/__DEVICE__/proprietary/etc/firmware/wm8958_enh_eq.wfw:/system/etc/firmware/wm8958_enh_eq.wfw \\
+	vendor/hp/__DEVICE__/proprietary/etc/firmware/wm8958_mbc.wfw:/system/etc/firmware/wm8958_mbc.wfw \\
+	vendor/hp/__DEVICE__/proprietary/etc/firmware/wm8958_mbc_vss.wfw:/system/etc/firmware/wm8958_mbc_vss.wfw
 EOF
 
 ./setup-makefiles.sh
