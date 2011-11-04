@@ -14,11 +14,15 @@ ro.telephony.ril_class=simulated
 
 ro.cwm.forbid_format=/boot
 
-wifi.supplicant_scan_interval=15
+wifi.supplicant_scan_interval=45
 wifi.interface=wlan0 
+
+debug.fb.rgb565 = 0
+defug.sf.hw=1
 
 #c2d
 debug.composition.type=c2d
+debug.overlayui.enable=0
 
 # The OpenGL ES API level that is natively supported by this device.
 # This is a 16.16 fixed point number

@@ -4,7 +4,7 @@
 TARGET_SPECIFIC_HEADER_PATH := device/hp/tenderloin/include 
 
 # We have so much memory 3:1 split is detrimental to us.
-TARGET_USES_2G_VM_SPLIT := true
+#TARGET_USES_2G_VM_SPLIT := true
 
 TARGET_NO_BOOTLOADER := true
 TARGET_NO_KERNEL := false
@@ -19,7 +19,7 @@ TARGET_CPU_SMP := true
 ARCH_ARM_HAVE_TLS_REGISTER := true
 
 TARGET_BOOTLOADER_BOARD_NAME := tenderloin
-TARGET_HAVE_HDMI_OUT := false
+TARGET_HAVE_HDMI_OUT := true
 TARGET_USES_OVERLAY := true
 TARGET_NO_RADIOIMAGE := true
 TARGET_HAVE_TSLIB := false
@@ -52,15 +52,14 @@ BOARD_USES_QCOM_LIBS := true
 BOARD_USES_QCOM_LIBRPC := true
 BOARD_USE_QCOM_PMEM := true
 BOARD_CAMERA_USE_GETBUFFERINFO := true
-BOARD_USE_FROYO_LIBCAMERA := true
-BOARD_USE_LARGE_CAMHAL := true
+#BOARD_USE_LARGE_CAMHAL := true
 BOARD_FIRST_CAMERA_FRONT_FACING := true
 BOARD_CAMERA_USE_ENCODEDATA := true
 
 BOARD_OVERLAY_FORMAT_YCbCr_420_SP := true
 BOARD_USES_ADRENO_200 := true
-
 TARGET_BOOTLOADER_BOARD_NAME := tenderloin
+USE_CAMERA_STUB := true
 
 # tenderloin- these kernel settings are temporary to complete build
 BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.hardware=qcom
@@ -71,8 +70,10 @@ TARGET_USE_SCORPION_BIONIC_OPTIMIZATION := true
 
 BOARD_HAVE_FAKE_GPS := true
 
-TARGET_USES_C2D_COMPOSITION := false
-TARGET_HAVE_HDMI_OUT := false
+TARGET_USES_C2D_COMPOSITION := true
+TARGET_USES_SF_BYPASS := true
+BOARD_AVOID_DRAW_TEXTURE_EXTENSION := true
+TARGET_LIBAGL_USE_GRALLOC_COPYBITS := true
 
 TARGET_RELEASETOOL_IMG_FROM_TARGET_SCRIPT := device/hp/tenderloin/releasetools/tenderloin_img_from_target_files
 TARGET_RELEASETOOL_OTA_FROM_TARGET_SCRIPT := device/hp/tenderloin/releasetools/tenderloin_ota_from_target_files
