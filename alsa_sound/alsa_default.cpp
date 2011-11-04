@@ -29,6 +29,8 @@
 #include "AudioHardwareALSA.h"
 #include <media/AudioRecord.h>
 
+//#define IDLE_CONTROL
+
 #undef DISABLE_HARWARE_RESAMPLING
 
 #define ALSA_NAME_MAX 128
@@ -89,7 +91,8 @@ namespace android
 {
 
 struct snd_ctl_elem_id *elements;
-int nelements, idle_standalone_fd, idle_collapse_fd;
+int nelements, idle0_standalone_fd, idle0_collapse_fd, 
+    idle1_standalone_fd, idle1_collapse_fd;
 
 static struct dsp_control {
     int fd;
@@ -599,16 +602,22 @@ static status_t s_init(alsa_device_t *module, ALSAHandleList &list)
         LOGE("Unable to open sound device for init");
         exit(-1);
     }
-
-    idle_collapse_fd = open("/sys/module/pm_8x60/modes/cpu0/power_collapse/idle_enabled", O_WRONLY);
-    idle_standalone_fd = open("/sys/module/pm_8x60/modes/cpu0/standalone_power_collapse/idle_enabled", O_WRONLY);
+#ifdef IDLE_CONTROL
+    idle0_collapse_fd = open("/sys/module/pm_8x60/modes/cpu0/power_collapse/idle_enabled", O_WRONLY);
+    idle0_standalone_fd = open("/sys/module/pm_8x60/modes/cpu0/standalone_power_collapse/idle_enabled", O_WRONLY);
+    idle1_collapse_fd = open("/sys/module/pm_8x60/modes/cpu1/power_collapse/idle_enabled", O_WRONLY);
+    idle1_standalone_fd = open("/sys/module/pm_8x60/modes/cpu1/standalone_power_collapse/idle_enabled", O_WRONLY);
 
     //Ignore open errors
-    if(idle_collapse_fd <= 0)
-        LOGE("Unable to open power_collapse/idle_enabled");
-    if(idle_standalone_fd <= 0)
-        LOGE("Unable to open standalone_power_collapse/idle_enabled");
-
+    if(idle0_collapse_fd <= 0)
+        LOGE("Unable to open cpu0/power_collapse/idle_enabled");
+    if(idle0_standalone_fd <= 0)
+        LOGE("Unable to open cpu0/standalone_power_collapse/idle_enabled");
+    if(idle1_collapse_fd <= 0)
+        LOGE("Unable to open cpu1/power_collapse/idle_enabled");
+    if(idle1_standalone_fd <= 0)
+        LOGE("Unable to open cpu1/standalone_power_collapse/idle_enabled");
+#endif
     elem_list.offset = 0;
     elem_list.space  = 300;
     elements = ( struct snd_ctl_elem_id* ) malloc( elem_list.space * sizeof( struct snd_ctl_elem_id ) );
@@ -721,22 +730,36 @@ static status_t s_open(alsa_handle_t *handle, uint32_t devices, int mode)
     //
     s_close(handle);
 
-    write_elem(dsp.fd, dsp.pcm_playback_id, 0, 0, 1);
-	write_elem(dsp.fd, dsp.pcm_capture_id, 0, 1, 1);
-	write_elem(dsp.fd, dsp.speaker_stereo_rx_id, 1, 1, 1);
-
-    if(idle_standalone_fd > 0) {
-        int bytes = 0;
-        bytes = write(idle_standalone_fd, "0", 1);
-        LOGI("Disable: Bytes written to standalone idle_enabled: %d\n", bytes);
+    if (handle == &_defaultsOut) {
+        write_elem(dsp.fd, dsp.pcm_playback_id, 0, 0, 1);
+        write_elem(dsp.fd, dsp.speaker_stereo_rx_id, 1, 1, 1);
     }
-
-    if(idle_collapse_fd > 0) {
-        int bytes = 0;
-        bytes = write(idle_collapse_fd, "0", 1);
-        LOGI("Disable: Bytes written to collapse idle_enabled: %d\n", bytes);
+    if (handle == &_defaultsIn) {
+        write_elem(dsp.fd, dsp.pcm_capture_id, 0, 1, 1);
+        write_elem(dsp.fd, dsp.speaker_mono_tx_id,1,1,1);
     }
-
+#ifdef IDLE_CONTROL
+    if(idle0_standalone_fd > 0) {
+        int bytes = 0;
+        bytes = write(idle0_standalone_fd, "0", 1);
+        LOGI("Disable: Bytes written to standalone idle0_enabled: %d\n", bytes);
+    }
+    if(idle0_collapse_fd > 0) {
+        int bytes = 0;
+        bytes = write(idle0_collapse_fd, "0", 1);
+        LOGI("Disable: Bytes written to collapse idle0_enabled: %d\n", bytes);
+    }
+    if(idle1_standalone_fd > 0) {
+        int bytes = 0;
+        bytes = write(idle1_standalone_fd, "0", 1);
+        LOGI("Disable: Bytes written to standalone idle1_enabled: %d\n", bytes);
+    }
+    if(idle1_collapse_fd > 0) {
+        int bytes = 0;
+        bytes = write(idle1_collapse_fd, "0", 1);
+        LOGI("Disable: Bytes written to collapse idle1_enabled: %d\n", bytes);
+    }
+#endif
     LOGD("open called for devices %08x in mode %d...", devices, mode);
 
     const char *stream = streamName(handle);
@@ -797,22 +820,38 @@ static status_t s_close(alsa_handle_t *handle)
         err = snd_pcm_close(h);
     }
 
-    write_elem(dsp.fd, dsp.pcm_playback_id, 0, 0, 0);
-    write_elem(dsp.fd, dsp.pcm_capture_id, 0, 1, 0);
-    write_elem(dsp.fd, dsp.speaker_stereo_rx_id, 0, 1, 0);
-
-    if(idle_standalone_fd > 0) {
-        int bytes = 0;
-        bytes = write(idle_standalone_fd, "1", 1);
-        LOGI("Enabled: Bytes written to standalone idle_enabled: %d\n", bytes);
+    if (handle == &_defaultsOut) {
+        write_elem(dsp.fd, dsp.pcm_playback_id, 0, 0, 0);
+        write_elem(dsp.fd, dsp.speaker_stereo_rx_id, 0, 1, 0);
     }
-
-    if(idle_collapse_fd > 0) {
-        int bytes = 0;
-        bytes = write(idle_collapse_fd, "1", 1);
-        LOGI("Enabled: Bytes written to collapse idle_enabled: %d\n", bytes);
+    if (handle == &_defaultsIn) {
+        write_elem(dsp.fd, dsp.pcm_capture_id, 0, 1, 0);
+        write_elem(dsp.fd, dsp.speaker_mono_tx_id,0,1,0);
     }
-
+#ifdef IDLE_CONTROL
+    if (!_defaultsIn.handle && !_defaultsOut.handle) {
+        if(idle0_standalone_fd > 0) {
+            int bytes = 0;
+            bytes = write(idle0_standalone_fd, "1", 1);
+            LOGI("Enabled: Bytes written to standalone idle0_enabled: %d\n", bytes);
+        }
+        if(idle0_collapse_fd > 0) {
+            int bytes = 0;
+            bytes = write(idle0_collapse_fd, "1", 1);
+            LOGI("Enabled: Bytes written to collapse idle0_enabled: %d\n", bytes);
+        }
+        if(idle1_standalone_fd > 0) {
+            int bytes = 0;
+            bytes = write(idle1_standalone_fd, "1", 1);
+            LOGI("Enabled: Bytes written to standalone idle1_enabled: %d\n", bytes);
+        }
+        if(idle1_collapse_fd > 0) {
+            int bytes = 0;
+            bytes = write(idle1_collapse_fd, "1", 1);
+            LOGI("Enabled: Bytes written to collapse idle1_enabled: %d\n", bytes);
+        }
+    }
+#endif
     if(handle == &_defaultsIn)
         LOGI("ALSA Module: closing down input device");
     if(handle == &_defaultsOut)
