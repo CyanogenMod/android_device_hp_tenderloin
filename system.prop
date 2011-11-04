@@ -18,7 +18,7 @@ wifi.supplicant_scan_interval=45
 wifi.interface=wlan0 
 
 debug.fb.rgb565 = 0
-defug.sf.hw=1
+debug.sf.hw=1
 
 #c2d
 debug.composition.type=c2d
