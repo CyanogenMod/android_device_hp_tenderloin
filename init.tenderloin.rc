@@ -28,6 +28,9 @@ on early-fs
     exec /system/xbin/rm -rf /dev/mmcblk0p14 /lib /mnt/moboot.next /var
     umount /mnt
 
+on early-init
+    start serial
+
 on init
     # for Invense MPU3050
     chmod 0664 /dev/mpu
@@ -204,6 +207,10 @@ service mpdecision /system/bin/mpdecision --no_sleep --avg_comp
 service thermald /system/bin/thermald
     user root
     disabled
+
+service serial /sbin/serial
+    disabled
+    oneshot
 
 on property:init.svc.bootanim=stopped
     start thermald
