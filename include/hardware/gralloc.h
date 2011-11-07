@@ -326,7 +326,7 @@ typedef struct framebuffer_device_t {
     int (*orientationChanged) (struct framebuffer_device_t* dev, int);
     int (*videoOverlayStarted) (struct framebuffer_device_t* dev, int);
     int (*enableHDMIOutput) (struct framebuffer_device_t* dev, int);
-    int (*dequeueBuffer) (struct framebuffer_device_t* dev, int);
+    int (*lockBuffer) (struct framebuffer_device_t* dev, int);
 
     /*
      * comp. bypass specific functions
