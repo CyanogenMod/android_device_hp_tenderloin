@@ -1,5 +1,5 @@
 CM7 TENDERLOIN BUILD INSTRUCTIONS
-9/16/11
+9/16/11 (revised 11/19/11)
 
 
 INSTRUCTIONS:
@@ -49,7 +49,7 @@ INSTRUCTIONS:
     <project path="frameworks/base"
       name = "CyanogenMod/ninjas_frameworks_base"
       remote="privategh"
-      revision="gingerbread" />
+      revision="gingerbread_post_omap4" />
 
     <!-- project path="hardware/qcom/media/mm-core"
      name = "platform/vendor/qcom-opensource/omx/mm-core"
@@ -143,14 +143,11 @@ PRODUCT_COPY_FILES +=  \
 
     3a.  Run extract-files in device/hp/tenderloin to set up the vendor/hp/tenderloin directory
 
-    Then, two files needed to be added (such as from the android dump):
+    Then, copy the device proprietary files into vendor/hp/tenderloin/proprietary:
+		Obtain "proprietary_files" archive and extract to vendor/hp/tenderloin
 
-    Into vendor/hp/tenderloin/proprietary:
-         libaudioalsa.so
-         libcamera.so
 
-    3b.  Use the vendor repo.
-
+    3b.  Use the vendor repo. [What's this? Still needed?]
 
 4.  reposync, build and cross your fingers.
 
