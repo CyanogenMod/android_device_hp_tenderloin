@@ -49,7 +49,7 @@ INSTRUCTIONS:
     <project path="frameworks/base"
       name = "CyanogenMod/ninjas_frameworks_base"
       remote="privategh"
-      revision="gingerbread_post_omap4" />
+      revision="omap_merge_sf_bypass" />
 
     <!-- project path="hardware/qcom/media/mm-core"
      name = "platform/vendor/qcom-opensource/omx/mm-core"
