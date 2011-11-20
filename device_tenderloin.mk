@@ -28,6 +28,11 @@ PRODUCT_PROPERTY_OVERRIDES += \
     dalvik.vm.lockprof.threshold=500 \
     dalvik.vm.dexopt-flags=m=y
 
+PRODUCT_CHARACTERISTICS := tablet,nosdcard
+
+PRODUCT_PACKAGES += \
+	make_ext4fs
+
 PRODUCT_COPY_FILES += \
     device/hp/tenderloin/init.tenderloin.rc:root/init.tenderloin.rc \
     device/hp/tenderloin/ueventd.tenderloin.rc:root/ueventd.tenderloin.rc \

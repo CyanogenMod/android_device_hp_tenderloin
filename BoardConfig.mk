@@ -10,7 +10,7 @@ TARGET_NO_BOOTLOADER := true
 TARGET_NO_KERNEL := false
 
 TARGET_BOARD_PLATFORM := msm8660
-TARGET_BOARD_PLATFORM_GPU := qcom-adreno200
+# TARGET_BOARD_PLATFORM_GPU := qcom-adreno200
 
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
@@ -20,7 +20,7 @@ ARCH_ARM_HAVE_TLS_REGISTER := true
 
 TARGET_BOOTLOADER_BOARD_NAME := tenderloin
 TARGET_HAVE_HDMI_OUT := true
-TARGET_USES_OVERLAY := true
+#TARGET_USES_OVERLAY := true
 TARGET_NO_RADIOIMAGE := true
 TARGET_HAVE_TSLIB := false
 TARGET_GLOBAL_CFLAGS += -mfpu=neon -mfloat-abi=softfp
@@ -28,24 +28,25 @@ TARGET_GLOBAL_CPPFLAGS += -mfpu=neon -mfloat-abi=softfp
 
 
 # Wifi related defines
-BOARD_WPA_SUPPLICANT_DRIVER := WEXT
-WPA_SUPPLICANT_VERSION      := VER_0_6_X
-BOARD_WLAN_DEVICE           := ar6000
-WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/ar6000.ko"
-WIFI_DRIVER_MODULE_NAME     := "ar6000"
-BOARD_WEXT_NO_COMBO_SCAN	:= true
+#BOARD_WPA_SUPPLICANT_DRIVER := WEXT
+#WPA_SUPPLICANT_VERSION      := VER_0_6_X
+#BOARD_WLAN_DEVICE           := ar6000
+#WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/ar6000.ko"
+#WIFI_DRIVER_MODULE_NAME     := "ar6000"
+#BOARD_WEXT_NO_COMBO_SCAN	:= true
 
 # Audio 
-BOARD_USES_GENERIC_AUDIO := false
-TARGET_PROVIDES_LIBAUDIO := true
-BOARD_USES_ALSA_AUDIO := true
-BOARD_WITH_ALSA_UTILS := true
+BOARD_USES_GENERIC_AUDIO := true
+TARGET_PROVIDES_LIBAUDIO := false
+BOARD_USES_ALSA_AUDIO := false
+BOARD_WITH_ALSA_UTILS := false
 
 #Bluetooth
-BOARD_HAVE_BLUETOOTH := true
-BOARD_HAVE_BLUETOOTH_CSR := true
+BOARD_HAVE_BLUETOOTH := false
+BOARD_HAVE_BLUETOOTH_CSR := false
 
 # Define egl.cfg location
+USE_OPENGL_RENDERER := true
 BOARD_EGL_CFG := device/hp/tenderloin/egl.cfg
 
 BOARD_USES_QCOM_LIBS := true
@@ -56,8 +57,8 @@ BOARD_CAMERA_USE_GETBUFFERINFO := true
 BOARD_FIRST_CAMERA_FRONT_FACING := true
 BOARD_CAMERA_USE_ENCODEDATA := true
 
-BOARD_OVERLAY_FORMAT_YCbCr_420_SP := true
-BOARD_USES_ADRENO_200 := true
+#BOARD_OVERLAY_FORMAT_YCbCr_420_SP := true
+#BOARD_USES_ADRENO_200 := true
 TARGET_BOOTLOADER_BOARD_NAME := tenderloin
 USE_CAMERA_STUB := true
 
@@ -70,9 +71,9 @@ TARGET_USE_SCORPION_BIONIC_OPTIMIZATION := true
 
 BOARD_HAVE_FAKE_GPS := true
 
-TARGET_USES_C2D_COMPOSITION := true
-TARGET_USES_SF_BYPASS := true
-BOARD_AVOID_DRAW_TEXTURE_EXTENSION := true
+#TARGET_USES_C2D_COMPOSITION := true
+#TARGET_USES_SF_BYPASS := true
+#BOARD_AVOID_DRAW_TEXTURE_EXTENSION := true
 TARGET_LIBAGL_USE_GRALLOC_COPYBITS := true
 
 TARGET_RELEASETOOL_IMG_FROM_TARGET_SCRIPT := device/hp/tenderloin/releasetools/tenderloin_img_from_target_files
@@ -85,9 +86,10 @@ BOARD_USES_UBOOT_MULTIIMAGE := true
 TARGET_PREBUILT_KERNEL := device/hp/tenderloin/prebuilt/boot/kernel
 
 # clockworkmod
-BOARD_CUSTOM_RECOVERY_KEYMAPPING:= ../../device/hp/tenderloin/recovery_ui.c
-TARGET_RECOVERY_INITRC := device/hp/tenderloin/init.recovery.rc
-BOARD_RECOVERY_IGNORE_BOOTABLES := true
+TARGET_NO_RECOVERY := true
+#BOARD_CUSTOM_RECOVERY_KEYMAPPING:= ../../device/hp/tenderloin/recovery_ui.c
+#TARGET_RECOVERY_INITRC := device/hp/tenderloin/init.recovery.rc
+#BOARD_RECOVERY_IGNORE_BOOTABLES := true
 
 # tenderloin - these partition sizes are temporary to complete build
 TARGET_USERIMAGES_USE_EXT4 := true
@@ -106,7 +108,7 @@ BOARD_HAS_SDCARD_INTERNAL := false
 BOARD_USES_MMCUTILS := true
 BOARD_HAS_NO_MISC_PARTITION := true
 BOARD_HAS_NO_SELECT_BUTTON := true
-BOARD_CUSTOM_GRAPHICS:= ../../../device/hp/tenderloin/graphics.c
+#BOARD_CUSTOM_GRAPHICS:= ../../../device/hp/tenderloin/graphics.c
 BOARD_USES_RECOVERY_CHARGEMODE := true
 
 # Multiboot stuff
