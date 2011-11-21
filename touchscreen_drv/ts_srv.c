@@ -21,7 +21,7 @@
  * uinput bits and the rest by Oleg Drokin green@linuxhacker.ru
  * Multitouch detection by Rafael Brune mail@rbrune.de
  *
- * Copyright (c) 2011 CyanogenMon Touchpad Project.
+ * Copyright (c) 2011 CyanogenMod Touchpad Project.
  *
  *
  */
@@ -41,7 +41,7 @@
 #include <sys/select.h>
 
 #if 1
-// This is for Andrioid
+// This is for Android
 #define UINPUT_LOCATION "/dev/uinput"
 #else
 // This is for webos and possibly other Linuxes
