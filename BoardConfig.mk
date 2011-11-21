@@ -74,7 +74,7 @@ BOARD_HAVE_FAKE_GPS := true
 #TARGET_USES_C2D_COMPOSITION := true
 #TARGET_USES_SF_BYPASS := true
 #BOARD_AVOID_DRAW_TEXTURE_EXTENSION := true
-TARGET_LIBAGL_USE_GRALLOC_COPYBITS := true
+TARGET_LIBAGL_USE_GRALLOC_COPYBITS := false
 
 TARGET_RELEASETOOL_IMG_FROM_TARGET_SCRIPT := device/hp/tenderloin/releasetools/tenderloin_img_from_target_files
 TARGET_RELEASETOOL_OTA_FROM_TARGET_SCRIPT := device/hp/tenderloin/releasetools/tenderloin_ota_from_target_files
@@ -108,7 +108,7 @@ BOARD_HAS_SDCARD_INTERNAL := false
 BOARD_USES_MMCUTILS := true
 BOARD_HAS_NO_MISC_PARTITION := true
 BOARD_HAS_NO_SELECT_BUTTON := true
-#BOARD_CUSTOM_GRAPHICS:= ../../../device/hp/tenderloin/graphics.c
+BOARD_CUSTOM_GRAPHICS:= ../../../device/hp/tenderloin/graphics.c
 BOARD_USES_RECOVERY_CHARGEMODE := true
 
 # Multiboot stuff

@@ -1,6 +1,9 @@
-# import init.tuna.usb.rc
+# import init.tenderloin.usb.rc
 
 on early-init
+   start-serial
+
+on init
     mkdir /system
     mkdir /data 0771 system system
     mkdir /cache 0770 system cache
@@ -10,6 +13,7 @@ on early-init
     # We need to set LVM_SYSTEM_DIR for lvm to work and it does not work
     # with embedded export command until too late, so we exploit
     # the fact that there is /bin/sh on the 13th partition that we can use.
+
     mount ext3 /dev/block/mmcblk0p13 /mnt wait noatime barrier=1
 
     # Unfortunately it's dynamically linked so we need to create this
@@ -23,26 +27,22 @@ on early-init
 
     # regular mounts
     mount ext4 /dev/store/cm-system /system wait ro barrier=1
-    mount ext4 /dev/store/cm-data /data wait noatime nosuid nodev barrier=1 noauto_da_alloc
-    mount ext4 /dev/store/cm-cache /cache wait noatime nosuid nodev barrier=1
+    mount ext4 /dev/store/cm-data /data /data/mnt/data wait noatime nosuid nodev barrier=1 noauto_da_alloc
+    mount ext4 /dev/store/cm-cache /cache  /data/mnt/cache wait noatime nosuid nodev barrier=1
 
     # remove all the lvm stuff as well as the moboot nextboot instruction
     exec /system/xbin/rm -rf /dev/mmcblk0p14 /lib /mnt/moboot.next /var
     umount /mnt
-
 
 	export EXTERNAL_STORAGE /mnt/sdcard
 	mkdir /mnt/sdcard 0000 system system
 	# for backwards compatibility
 	symlink /mnt/sdcard /sdcard
 
-on post-fs-data
+on post-fs
 	# we will remap this as /mnt/sdcard with the sdcard fuse tool
 	mkdir /data/media 0775 media_rw media_rw
 	chown media_rw media_rw /data/media
-	mkdir /data/misc/wifi 0770 wifi wifi
-	mkdir /data/misc/wifi/sockets 0770 wifi wifi
-	mkdir /data/misc/dhcp 0770 dhcp dhcp
 	chown dhcp dhcp /data/misc/dhcp
 	mkdir /data/smc 0770 drmrpc drmrpc
         chown drmrpc drmrpc /data/smc/counter.bin
@@ -63,35 +63,139 @@ on post-fs-data
 #    chmod 0660 /sys/devices/tuna_otg/uart_sel
 #    chmod 0660 /sys/devices/tuna_otg/usb_sel
 
+on init
+
+    # for Invense MPU3050
+    chmod 0664 /dev/mpu
+    chmod 0664 /dev/mpuirq
+    chmod 0664 /dev/timerirq
+    chown system system /dev/mpu
+    chown system system /dev/mpuirq
+    chown system system /dev/timerirq
+
+    chown system system /dev/compasssensor
+    chmod 0666 /dev/compasssensor
+    chown system system /dev/lightsensor
+    chmod 0666 /dev/lightsensor
+    chown system system /dev/gsensor
+    chmod 0666 /dev/gsensor
+    chown system system /dev/magsensor
+    chmod 0666 /dev/magsensor
+    chown system system /dev/gyrosensor
+    chmod 0666 /dev/gyrosensor
+    chown system system /dev/psensor
+    chmod 0666 /dev/psensor
+    chmod 0666 /sys/bus/platform/devices/max8903-charger/CEN_N_pin/value
+    chmod 0666 /sys/bus/platform/devices/max8903-charger/DCM_pin/value
+    chmod 0666 /sys/bus/platform/devices/max8903-charger/USUS_pin/value
+    chmod 0666 /sys/bus/platform/devices/max8903-charger/IUSB_pin/value
+    chmod 0666 /sys/bus/platform/devices/max8903-charger/CHG_D_ISET1_GPIO/value
+    chmod 0666 /sys/bus/platform/devices/max8903-charger/CHG_D_ISET2_GPIO/value
+    chmod 0664 /sys/class/leds/button-backlight/brightness
+    chmod 0664 /sys/class/leds/core_navi_left/brightness
+    chmod 0664 /sys/class/leds/core_navi_right/brightness
+    chown system system /sys/class/leds/core_navi_left/brightness
+    chown system system /sys/class/leds/core_navi_right/brightness
+
+    #  for emmc  (shared with webos at /dev/share/media)
+
+    export PHONE_STORAGE /mnt/emmc
+    mkdir /mnt/emmc 0000 system system
+    symlink /mnt/emmc /emmc
+
+    #  for mounting USB storage
+
+    mkdir /mnt/usbdisk 0000 system system
+
+    # For TS control
+    chown system system /sys/devices/platform/cy8ctma395/vdd
+    chown system system /sys/devices/platform/cy8ctma395/xres
+    chown system system /sys/user_hw/pins/ctp/wake/level
+    chown system system /dev/i2c-5
+
+        # increase per-process file limit to prevent warning
+        setrlimit 7 10000 10000
+
 on boot
 	mount debugfs /sys/kernel/debug /sys/kernel/debug
 	chmod 0666 /dev/pvrsrvkm
 	setprop ro.crypto.keyfile.userdata /dev/block/platform/omap/omap_hsmmc.0/by-name/metadata
 
-# Lower maximum frequency when screen is off
-	write /sys/devices/system/cpu/cpu0/cpufreq/screen_off_max_freq 700000
+    mkdir /data/misc/wifi 0770 system wifi
+    mkdir /data/misc/wifi/sockets 0770 system wifi
+    chown dhcp dhcp /data/misc/dhcp
+    mount debugfs /sys/kernel/debug /sys/kernel/debug
 
-# cpufreq interactive governor: timer 20ms, min sample 20ms, hispeed 700MHz
-	write /sys/devices/system/cpu/cpufreq/interactive/timer_rate 20000
-	write /sys/devices/system/cpu/cpufreq/interactive/min_sample_time 20000
-	write /sys/devices/system/cpu/cpufreq/interactive/hispeed_freq 700000
+    #  permissions for kgsl
+    chmod 0666 /dev/kgsl-2d0
+    chmod 0666 /dev/kgsl-2d1
+    chmod 0666 /dev/kgsl-3d0
+    chown system graphics /dev/kgsl-2d0
+    chown system graphics /dev/kgsl-2d1
+    chown system graphics /dev/kgsl-3d0
 
-# autosuspend root hubs immediatly after attached devices
-	write /sys/bus/usb/devices/usb1/power/autosuspend_delay_ms 0
-	write /sys/bus/usb/devices/usb2/power/autosuspend_delay_ms 0
+    # bluetooth power up/down interface
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
+    chmod 0660                /sys/class/rfkill/rfkill0/state
 
-on fs
-	mkdir /factory 0775 radio radio
-	mount ext4 /dev/block/platform/omap/omap_hsmmc.0/by-name/system /system wait ro
-	setprop ro.crypto.tmpfs_options size=128m,mode=0771,uid=1000,gid=1000
-#	mount ext4 /dev/block/platform/omap/omap_hsmmc.0/by-name/userdata /data wait noatime nosuid nodev nomblk_io_submit,errors=panic
-#	mount ext4 /dev/block/platform/omap/omap_hsmmc.0/by-name/cache /cache wait noatime nosuid nodev nomblk_io_submit,errors=panic
-#	mount ext4 /dev/block/platform/omap/omap_hsmmc.0/by-name/efs /factory wait ro
-	setprop ro.crypto.fuse_sdcard true
+    # fmtx
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill1/type
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill1/state
+    chmod 0660                /sys/class/rfkill/rfkill1/state
 
-# change permissions for mtd device
-	chmod 0660 /dev/mtd/mtd0
-	chown media media /dev/mtd/mtd0
+    chown bluetooth bluetooth /dev/rfkill
+    chmod 0660                /dev/rfkill
+
+    chown bluetooth bluetooth /sys/user_hw/pins/bt/reset/level
+    chown bluetooth bluetooth /sys/user_hw/pins/bt/host_wake/level
+
+    # bluetooth MAC address programming
+    chown bluetooth bluetooth /sys/module/hp_bdaddress/parameters/bdaddress
+    setprop ro.bt.bdaddr_path /sys/module/hp_bdaddress/parameters/bdaddress
+
+    chown audio audio /dev/input/event5
+    chmod 0660 /dev/input/event5
+
+    # Increase readahead buffers on MMC devices
+    write /sys/block/mmcblk0/bdi/read_ahead_kb 1024
+
+    # Enable low memory killer to check file pages
+    write /sys/module/lowmemorykiller/parameters/minfree 8192,10240,12288,14336,16384,20480
+    write /sys/devices/system/cpu/cpufreq/ondemand/up_threshold 90
+    write /sys/devices/system/cpu/cpufreq/ondemand/sampling_rate 50000
+
+    # allow libaudio to change idle collapse on open/close
+    #chown audio audio /sys/module/pm_8x60/modes/cpu0/power_collapse/idle_enabled
+    #chmod 0660 /sys/module/pm_8x60/modes/cpu0/power_collapse/idle_enabled
+    #chown audio audio /sys/module/pm_8x60/modes/cpu0/standalone_power_collapse/idle_enabled
+    #chmod 0660 /sys/module/pm_8x60/modes/cpu0/standalone_power_collapse/idle_enabled
+    #chown audio audio /sys/module/pm_8x60/modes/cpu1/power_collapse/idle_enabled
+    #chmod 0660 /sys/module/pm_8x60/modes/cpu1/power_collapse/idle_enabled
+    #chown audio audio /sys/module/pm_8x60/modes/cpu1/standalone_power_collapse/idle_enabled
+    #chmod 0660 /sys/module/pm_8x60/modes/cpu1/standalone_power_collapse/idle_enabled
+
+    # Enable power collapse where always safe
+    write /sys/module/pm_8x60/modes/cpu0/power_collapse/suspend_enabled 1
+    write /sys/module/pm_8x60/modes/cpu0/standalone_power_collapse/suspend_enabled 1
+    #write /sys/module/pm_8x60/modes/cpu1/power_collapse/idle_enabled 1
+    write /sys/module/pm_8x60/modes/cpu1/power_collapse/suspend_enabled 1
+    #write /sys/module/pm_8x60/modes/cpu1/standalone_power_collapse/idle_enabled 1
+    write /sys/module/pm_8x60/modes/cpu1/standalone_power_collapse/suspend_enabled 1
+    write /sys/module/rpm_resources/enable_low_power/vdd_dig 2
+    write /sys/module/rpm_resources/enable_low_power/vdd_mem 2
+    write /sys/module/rpm_resources/enable_low_power/L2_cache 1
+    write /sys/module/rpm_resources/enable_low_power/pxo 1
+
+    # wifi modules
+#    insmod /system/lib/modules/librasdioif.ko
+
+    # modules
+#    insmod /system/lib/modules/nls_utf8.ko
+#    insmod /system/lib/modules/cifs.ko
+#    insmod /system/lib/modules/ntfs.ko
+#    insmod /system/lib/modules/tun.ko
+
 
 # change permissions for i2c-2 device
 	chmod 0660 /dev/i2c-2
@@ -113,51 +217,25 @@ on fs
 # add symlink for HDCP key
         symlink /factory/hdcp.keys /system/vendor/firmware/hdcp.keys
 
-# nfc
-    setprop ro.nfc.port "COM4"
-    chmod 0600 /dev/ttyO3
-    chown nfc nfc /dev/ttyO3
-    chmod 0600 /sys/devices/platform/nfc-power/nfc_power
-    chown nfc nfc /sys/devices/platform/nfc-power/nfc_power
-
-# permissions for bluetooth.
-	setprop ro.bt.bdaddr_path "/factory/bluetooth/bt_addr"
-	chown bluetooth bluetooth ro.bt.bdaddr_path
-	chown bluetooth bluetooth /dev/ttyO1
-	chmod 0600 /dev/ttyO1
-	chmod 0660 /sys/class/rfkill/rfkill0/state
-	chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
-	chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
-
-# backlight
-	chown system system /sys/class/backlight/s6e8aa0/brightness
-
-# leds
-	chown system system /dev/an30259a_leds
-
-# for GPS
-    chown root system /sys/class/sec/gps/GPS_PWR_EN/value
-    chmod 0660 /sys/class/sec/gps/GPS_PWR_EN/value
-    chown root system /sys/class/sec/gps/GPS_nRST/value
-    chmod 0660 /sys/class/sec/gps/GPS_nRST/value
-
-# ril control auto-suspend
-	chmod 0660 /sys/bus/usb/devices/usb1/power/control
-	chown radio radio /sys/bus/usb/devices/usb1/power/control
-
 on property:persist.sys.tenderloin.off_mode=*
 	write /d/pm_debug/enable_off_mode $persist.sys.tenderloin.off_mode
 
-on property:ril.modem.lte.powercontrol=*
-	write /sys/bus/usb/devices/1-1/power/control $ril.modem.lte.powercontrol
+#on property:ril.modem.lte.powercontrol=*
+#	write /sys/bus/usb/devices/1-1/power/control $ril.modem.lte.powercontrol
 
-service fRom /system/bin/fRom \
-	-x /data/misc/camera/R5_MVEN003_LD2_ND0_IR0_SH0_FL1_SVEN003_DCCID1044 \
-	-d /dev/mtd/mtd0
-	user media
-	group media
-	class late_start
-	oneshot
+on property:persist.service.adb.enable=1
+    start adbd
+
+on property:persist.service.adb.enable=0
+    stop adbd
+
+#service fRom /system/bin/fRom \
+#	-x /data/misc/camera/R5_MVEN003_LD2_ND0_IR0_SH0_FL1_SVEN003_DCCID1044 \
+#	-d /dev/mtd/mtd0
+#	user media
+#	group media
+#	class late_start
+#	oneshot
 
 service hciattach /system/bin/brcm_patchram_plus --enable_hci --no2bytes --enable_lpm \
 	--tosleep 50000 --baudrate 3000000 --use_baudrate_for_download --i2s=1,1,0,1 \
@@ -175,27 +253,27 @@ service pvrsrvinit /vendor/bin/pvrsrvinit
 	oneshot
 
 # create filesystems if necessary
-service setup_fs /system/bin/setup_fs \
-		/dev/block/platform/omap/omap_hsmmc.0/by-name/cache \
-		/dev/block/platform/omap/omap_hsmmc.0/by-name/userdata
-        class core
-        user root
-        group root
+#service setup_fs /system/bin/setup_fs \
+#		/dev/block/platform/omap/omap_hsmmc.0/by-name/cache \
+#		/dev/block/platform/omap/omap_hsmmc.0/by-name/userdata
+#       class core
+#      user root
+#        group root
         oneshot
 
-service tf_daemon /system/bin/tf_daemon \
-        -d -c /vendor/etc/smc_normal_world_android_cfg.ini
-        class core
-        user drmrpc
-        group drmrpc
+#service tf_daemon /system/bin/tf_daemon \
+#        -d -c /vendor/etc/smc_normal_world_android_cfg.ini
+#        class core
+#        user drmrpc
+#        group drmrpc
 
-service smc_pa_wvdrm /system/bin/smc_pa_ctrl \
-        -c /vendor/etc/smc_normal_world_android_cfg.ini \
-        start /vendor/firmware/smc_pa_wvdrm.ift
-        class core
-        user drmrpc
-        group drmrpc
-        oneshot
+#service smc_pa_wvdrm /system/bin/smc_pa_ctrl \
+#        -c /vendor/etc/smc_normal_world_android_cfg.ini \
+#        start /vendor/firmware/smc_pa_wvdrm.ift
+#        class core
+#        user drmrpc
+#        group drmrpc
+#        oneshot
 
 # create virtual SD card at /mnt/sdcard, based on the /data/media directory
 # daemon will drop to user/group system/media_rw after initializing
@@ -214,42 +292,51 @@ service wpa_supplicant /system/bin/wpa_supplicant \
 	disabled
 	oneshot
 
-service dhcpcd_wlan0 /system/bin/dhcpcd -ABKL
-	class main
-	disabled
-	oneshot
-
-service dhcpcd_p2p /system/bin/dhcpcd -aABKL
-	class main
-	disabled
-	oneshot
-
-service dhcpcd_bnep0 /system/bin/dhcpcd -ABKL
-	class main
-	disabled
-	oneshot
+service dhcpcd_wlan0 /system/bin/dhcpcd -ABKL wlan0
+    disabled
+    oneshot
 
 service iprenew_wlan0 /system/bin/dhcpcd -n
-	class main
-	disabled
-	oneshot
+    disabled
+    oneshot
 
-service iprenew_p2p /system/bin/dhcpcd -n
-	class main
-	disabled
-	oneshot
+# bugreport is triggered by the KEY_BACK and KEY_MENU keycodes
+service bugreport /system/bin/dumpstate -d -v -o /sdcard/bugreports/bugreport
+    disabled
+    oneshot
+    keycodes 158 139
 
-service iprenew_bnep0 /system/bin/dhcpcd -n
-	class main
-	disabled
-	oneshot
+service hciattach /system/bin/sh /system/etc/init.qcom.bt.sh
+    user bluetooth
+    group qcom_oncrpc bluetooth net_bt_admin system
+    disabled
+    oneshot
 
-# bugreport is triggered by holding down volume down, volume up and power
-service bugreport /system/bin/bugmailer.sh -v
-	class main
-	disabled
-	oneshot
-	keycodes 114 115 116
+service tsdriver /system/bin/ts_srv
+    critical
 
-service battery_charger /charger
-	class charger
+service dcvs0 /system/bin/dcvs --cpu=0 --slacktime=64
+    user root
+    disabled
+
+service dcvs1 /system/bin/dcvs --cpu=1 --slacktime=64
+    user root
+    disabled
+
+service mpdecision /system/bin/mpdecision --no_sleep --avg_comp
+    user root
+    disabled
+
+service thermald /system/bin/thermald
+    user root
+    disabled
+
+service serial /sbin/serial
+    disabled
+    oneshot
+
+on property:init.svc.bootanim=stopped
+    start thermald
+    start mpdecision
+
+
