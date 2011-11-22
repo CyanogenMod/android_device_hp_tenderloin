@@ -26,9 +26,9 @@ on init
     exec /mnt/bin/sh -c "LVM_SYSTEM_DIR=/mnt/etc/lvm /mnt/usr/sbin/lvm.static vgchange -ay"
 
     # regular mounts
-    mount ext4 /dev/store/ics-system /system wait ro barrier=1
-    mount ext4 /dev/store/ics-data /data wait noatime nosuid nodev barrier=1 noauto_da_alloc
-    mount ext4 /dev/store/ics-cache /cache wait noatime nosuid nodev barrier=1
+    mount ext4 /dev/store/cm-system /system wait ro barrier=1
+    mount ext4 /dev/store/cm-data /data wait noatime nosuid nodev barrier=1 noauto_da_alloc
+    mount ext4 /dev/store/cm-cache /cache wait noatime nosuid nodev barrier=1
 
     # remove all the lvm stuff as well as the moboot nextboot instruction
     exec /system/xbin/rm -rf /dev/mmcblk0p14 /lib /mnt/moboot.next /var
