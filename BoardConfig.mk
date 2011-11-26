@@ -28,12 +28,12 @@ TARGET_GLOBAL_CPPFLAGS += -mfpu=neon -mfloat-abi=softfp
 
 
 # Wifi related defines
-#BOARD_WPA_SUPPLICANT_DRIVER := WEXT
-#WPA_SUPPLICANT_VERSION      := VER_0_6_X
-#BOARD_WLAN_DEVICE           := ar6000
-#WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/ar6000.ko"
-#WIFI_DRIVER_MODULE_NAME     := "ar6000"
-#BOARD_WEXT_NO_COMBO_SCAN	:= true
+BOARD_WPA_SUPPLICANT_DRIVER := WEXT
+WPA_SUPPLICANT_VERSION      := VER_0_6_X
+BOARD_WLAN_DEVICE           := ar6000
+WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/ar6000.ko"
+WIFI_DRIVER_MODULE_NAME     := "ar6000"
+BOARD_WEXT_NO_COMBO_SCAN	:= true
 
 # Audio 
 BOARD_USES_GENERIC_AUDIO := true
@@ -114,3 +114,7 @@ BOARD_USES_RECOVERY_CHARGEMODE := true
 # Multiboot stuff
 TARGET_RECOVERY_PRE_COMMAND := "/system/bin/rebootcmd recovery"
 TARGET_ALTOS_PRE_COMMAND := "/system/bin/rebootcmd altos"
+
+# touchscreen
+BOARD_USE_LEGACY_TOUCHSCREEN := true
+
