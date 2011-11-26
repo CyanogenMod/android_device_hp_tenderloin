@@ -122,9 +122,6 @@ struct kgsl_shadowprop {
 	unsigned int flags; /* contains KGSL_FLAGS_ values */
 };
 
-#ifdef __KERNEL__
-#include <mach/msm_bus.h>
-
 struct kgsl_platform_data {
 	unsigned int high_axi_2d;
 	unsigned int high_axi_3d;
@@ -151,8 +148,6 @@ struct kgsl_platform_data {
 	unsigned int pt_va_size;
 	unsigned int pt_max_count;
 };
-
-#endif
 
 /* structure holds list of ibs */
 struct kgsl_ibdesc {
@@ -219,6 +214,7 @@ struct kgsl_device_waittimestamp {
  * other ioctls to determine when the commands have been executed by
  * the GPU.
  */
+
 struct kgsl_ringbuffer_issueibcmds {
 	unsigned int drawctxt_id;
 	unsigned int ibdesc_addr;
@@ -309,7 +305,6 @@ struct kgsl_sharedmem_free {
 #define IOCTL_KGSL_SHAREDMEM_FREE \
 	_IOW(KGSL_IOC_TYPE, 0x21, struct kgsl_sharedmem_free)
 
-
 struct kgsl_gmem_desc {
 	unsigned int x;
 	unsigned int y;
@@ -319,9 +314,9 @@ struct kgsl_gmem_desc {
 };
 
 struct kgsl_buffer_desc {
-	void 			*hostptr;
+	void 		*hostptr;
 	unsigned int	gpuaddr;
-	int				size;
+	int		size;
 	unsigned int	format;
 	unsigned int  	pitch;
 	unsigned int  	enabled;
@@ -388,3 +383,4 @@ int kgsl_gem_obj_addr(int drm_fd, int handle, unsigned long *start,
 #endif
 #endif
 #endif /* _MSM_KGSL_H */
+
