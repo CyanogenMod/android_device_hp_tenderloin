@@ -10,7 +10,7 @@ TARGET_NO_BOOTLOADER := true
 TARGET_NO_KERNEL := false
 
 TARGET_BOARD_PLATFORM := msm8660
-# TARGET_BOARD_PLATFORM_GPU := qcom-adreno200
+TARGET_BOARD_PLATFORM_GPU := qcom-adreno200
 
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
@@ -42,8 +42,8 @@ BOARD_USES_ALSA_AUDIO := false
 BOARD_WITH_ALSA_UTILS := false
 
 #Bluetooth
-BOARD_HAVE_BLUETOOTH := false
-BOARD_HAVE_BLUETOOTH_CSR := false
+BOARD_HAVE_BLUETOOTH := true
+BOARD_HAVE_BLUETOOTH_CSR := true
 
 # Define egl.cfg location
 #USE_OPENGL_RENDERER := true
@@ -75,6 +75,7 @@ TARGET_USES_C2D_COMPOSITION := true
 TARGET_USES_SF_BYPASS := true
 BOARD_AVOID_DRAW_TEXTURE_EXTENSION := true
 TARGET_LIBAGL_USE_GRALLOC_COPYBITS := true
+BOARD_NEEDS_CUTILS_LOG := true
 
 TARGET_RELEASETOOL_IMG_FROM_TARGET_SCRIPT := device/hp/tenderloin/releasetools/tenderloin_img_from_target_files
 TARGET_RELEASETOOL_OTA_FROM_TARGET_SCRIPT := device/hp/tenderloin/releasetools/tenderloin_ota_from_target_files
