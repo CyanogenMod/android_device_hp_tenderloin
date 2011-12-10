@@ -30,6 +30,9 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 PRODUCT_CHARACTERISTICS := tablet,nosdcard
 
+#PRODUCT_AAPT_CONFIG := normal mdpi
+#PRODUCT_AAPT_PREF_CONFIG := mdpi
+
 PRODUCT_PACKAGES += \
 	make_ext4fs
 
@@ -69,11 +72,17 @@ PRODUCT_COPY_FILES += \
     frameworks/base/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml
 
 PRODUCT_PACKAGES += \
-    librs_jni \
     gralloc.msm8660 \
     copybit.msm8660 \
-    overlay.default \
+    hwcomposer.msm8660 \
+    gralloc.msm8660 \
     liboverlay \
+    libmemalloc \
+    audio.a2dp.default \
+    libaudioutils \
+    audio.primary.tenderloin \
+    libaudio \
+    librs_jni \
     wpa_supplicant.conf \
     com.android.future.usb.accessory \
     libOmxCore \
@@ -82,9 +91,6 @@ PRODUCT_PACKAGES += \
     sensors.tenderloin \
     alsa.tenderloin \
     lights.tenderloin
-
-PRODUCT_PACKAGES += \
-    libreference-ril
 
 # Keylayouts
 PRODUCT_COPY_FILES += \
@@ -158,6 +164,7 @@ endif
 PRODUCT_COPY_FILES += \
     $(LOCAL_KERNEL):kernel
 
+$(call inherit-product, frameworks/base/build/tablet-dalvik-heap.mk)
 $(call inherit-product, build/target/product/full_base.mk)
 
 PRODUCT_NAME := full_tenderloin
