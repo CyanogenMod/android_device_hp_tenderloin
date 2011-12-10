@@ -1,22 +1,17 @@
 #
 # system.prop for tenderloin
 #
-dalvik.vm.heapsize=32m
-
 ro.sf.hwrotation=270
 
 ro.additionalmounts=/mnt/usbdisk
 
-rild.libpath=/system/lib/libreference-ril.so
-rild.libargs=-d /dev/ttyS0
-ro.telephony.default_network=0
-ro.telephony.ril_class=simulated
-
 ro.cwm.forbid_format=/boot
 
 wifi.supplicant_scan_interval=45
-wifi.interface=wlan0 
+wifi.interface=wlan0
 
+#ro.config.disable_hw_accel=true
+hwui.render_dirty_regions=false
 #debug.fb.rgb565 = 0
 #debug.sf.hw=1
 
