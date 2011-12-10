@@ -1,9 +1,10 @@
 # import init.tenderloin.usb.rc
 
 on early-init
-   start-serial
+   start serial
 
 on init
+    mkdir /boot
     mkdir /system
     mkdir /data 0771 system system
     mkdir /cache 0770 system cache
@@ -14,16 +15,16 @@ on init
     # with embedded export command until too late, so we exploit
     # the fact that there is /bin/sh on the 13th partition that we can use.
 
-    mount ext3 /dev/block/mmcblk0p13 /mnt wait noatime barrier=1
+    mount ext3 /dev/block/mmcblk0p13 /boot wait noatime barrier=1
 
     # Unfortunately it's dynamically linked so we need to create this
     # /lib symlink first and kill it later when no longer needed.
-    symlink /mnt/lib /lib
+    symlink /boot/lib /lib
 
     # Also stupid lvm binary expects block devices to live in /dev,
     # not /dev/block
     symlink /dev/block/mmcblk0p14 /dev/mmcblk0p14
-    exec /mnt/bin/sh -c "LVM_SYSTEM_DIR=/mnt/etc/lvm /mnt/usr/sbin/lvm.static vgchange -ay"
+    exec /boot/bin/sh -c "LVM_SYSTEM_DIR=/boot/etc/lvm /boot/usr/sbin/lvm.static vgchange -ay"
 
     # regular mounts
     mount ext4 /dev/store/cm-system /system wait ro barrier=1
@@ -55,16 +56,9 @@ on post-fs
 
 	setprop vold.post_fs_data_done 1
 
-# LTE
-#    chown radio system /sys/devices/tuna_otg/usb_sel
-#    chown radio system /sys/devices/tuna_otg/uart_sel
-#    chown radio system /sys/bus/i2c/drivers/fsa9480/4-0025/switch
-#    chmod 0660 /sys/bus/i2c/drivers/fsa9480/4-0025/switch
-#    chmod 0660 /sys/devices/tuna_otg/uart_sel
-#    chmod 0660 /sys/devices/tuna_otg/usb_sel
-
 on init
 
+    chmod 0660 /dev/ctp_uart
     # for Invense MPU3050
     chmod 0664 /dev/mpu
     chmod 0664 /dev/mpuirq
@@ -118,8 +112,6 @@ on init
 
 on boot
 	mount debugfs /sys/kernel/debug /sys/kernel/debug
-	chmod 0666 /dev/pvrsrvkm
-	setprop ro.crypto.keyfile.userdata /dev/block/platform/omap/omap_hsmmc.0/by-name/metadata
 
     mkdir /data/misc/wifi 0770 system wifi
     mkdir /data/misc/wifi/sockets 0770 system wifi
@@ -214,28 +206,11 @@ on boot
 	mkdir /data/radio 0775 radio radio
 	mkdir /data/radio/log 0775 radio radio
 
-# add symlink for HDCP key
-        symlink /factory/hdcp.keys /system/vendor/firmware/hdcp.keys
-
-on property:persist.sys.tenderloin.off_mode=*
-	write /d/pm_debug/enable_off_mode $persist.sys.tenderloin.off_mode
-
-#on property:ril.modem.lte.powercontrol=*
-#	write /sys/bus/usb/devices/1-1/power/control $ril.modem.lte.powercontrol
-
 on property:persist.service.adb.enable=1
     start adbd
 
 on property:persist.service.adb.enable=0
     stop adbd
-
-#service fRom /system/bin/fRom \
-#	-x /data/misc/camera/R5_MVEN003_LD2_ND0_IR0_SH0_FL1_SVEN003_DCCID1044 \
-#	-d /dev/mtd/mtd0
-#	user media
-#	group media
-#	class late_start
-#	oneshot
 
 service hciattach /system/bin/brcm_patchram_plus --enable_hci --no2bytes --enable_lpm \
 	--tosleep 50000 --baudrate 3000000 --use_baudrate_for_download --i2s=1,1,0,1 \
@@ -246,43 +221,13 @@ service hciattach /system/bin/brcm_patchram_plus --enable_hci --no2bytes --enabl
 	disabled
 	oneshot
 
-service pvrsrvinit /vendor/bin/pvrsrvinit
-	class core
-	user root
-	group root
-	oneshot
-
-# create filesystems if necessary
-#service setup_fs /system/bin/setup_fs \
-#		/dev/block/platform/omap/omap_hsmmc.0/by-name/cache \
-#		/dev/block/platform/omap/omap_hsmmc.0/by-name/userdata
-#       class core
-#      user root
-#        group root
-        oneshot
-
-#service tf_daemon /system/bin/tf_daemon \
-#        -d -c /vendor/etc/smc_normal_world_android_cfg.ini
-#        class core
-#        user drmrpc
-#        group drmrpc
-
-#service smc_pa_wvdrm /system/bin/smc_pa_ctrl \
-#        -c /vendor/etc/smc_normal_world_android_cfg.ini \
-#        start /vendor/firmware/smc_pa_wvdrm.ift
-#        class core
-#        user drmrpc
-#        group drmrpc
-#        oneshot
-
 # create virtual SD card at /mnt/sdcard, based on the /data/media directory
 # daemon will drop to user/group system/media_rw after initializing
 # underlying files in /data/media will be created with user and group media_rw (1023)
 service sdcard /system/bin/sdcard /data/media 1023 1023
 	class late_start
 
-service wpa_supplicant /system/bin/wpa_supplicant \
-	-Dnl80211 -iwlan0 -puse_p2p_group_interface=1 -e/data/misc/wifi/entropy.bin
+service wpa_supplicant /system/bin/wpa_supplicant -Dar6000 -iwlan0 -c/data/misc/wifi/wpa_supplicant.conf
 	#   we will start as root and wpa_supplicant will switch to user wifi
 	#   after setting up the capabilities required for WEXT
 	#   user wifi
@@ -292,7 +237,7 @@ service wpa_supplicant /system/bin/wpa_supplicant \
 	disabled
 	oneshot
 
-service dhcpcd_wlan0 /system/bin/dhcpcd -ABKL wlan0
+service dhcpcd_wlan0 /system/bin/dhcpcd -ABKL
     class main
     disabled
     oneshot
@@ -310,22 +255,28 @@ service bugreport /system/bin/dumpstate -d -v -o /sdcard/bugreports/bugreport
 
 service hciattach /system/bin/sh /system/etc/init.qcom.bt.sh
     user bluetooth
+    class main
     group qcom_oncrpc bluetooth net_bt_admin system
     disabled
     oneshot
 
 service tsdriver /system/bin/ts_srv
+    class core
+    user root
     critical
 
 service dcvs0 /system/bin/dcvs --cpu=0 --slacktime=64
+    class core
     user root
     disabled
 
 service dcvs1 /system/bin/dcvs --cpu=1 --slacktime=64
+    class core
     user root
     disabled
 
 service mpdecision /system/bin/mpdecision --no_sleep --avg_comp
+    class core
     user root
     disabled
 
@@ -335,6 +286,7 @@ service thermald /system/bin/thermald
     disabled
 
 service serial /sbin/serial
+    class core
     disabled
     oneshot
 
