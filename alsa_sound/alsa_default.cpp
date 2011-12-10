@@ -888,4 +888,12 @@ static status_t s_resetDefaults(alsa_handle_t *handle)
 		LOGE("Reset defaults called on output");
 	return NO_ERROR;
 }
+
+status_t setHardwareParams(alsa_handle_t *handle) {
+    return 0;
+}
+
+status_t setSoftwareParams(alsa_handle_t *handle) {
+    return 0;
+}
 }
