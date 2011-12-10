@@ -15,7 +15,7 @@ on init
     # with embedded export command until too late, so we exploit
     # the fact that there is /bin/sh on the 13th partition that we can use.
 
-    mount ext3 /dev/block/mmcblk0p13 /boot wait noatime barrier=1
+    mount ext3 /dev/block/mmcblk0p13 /boot wait noatime ro barrier=1
 
     # Unfortunately it's dynamically linked so we need to create this
     # /lib symlink first and kill it later when no longer needed.
@@ -33,7 +33,6 @@ on init
 
     # remove all the lvm stuff as well as the moboot nextboot instruction
     exec /system/xbin/rm -rf /dev/mmcblk0p14 /lib /mnt/moboot.next /var
-    umount /mnt
 
 	export EXTERNAL_STORAGE /mnt/sdcard
 	mkdir /mnt/sdcard 0000 system system
