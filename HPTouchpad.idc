@@ -21,7 +21,7 @@
 #
 
 # Touch Size
-touch.touchSize.calibration = pressure
+#touch.touchSize.calibration = pressure
 
 # Tool Size
 # Driver reports tool size as a linear width measurement summed over
@@ -33,10 +33,10 @@ touch.touchSize.calibration = pressure
 # is 10px per mm we obtain a scale factor of 10 pixels / unit and
 # a bias of 160 pixels.  In addition, the raw width represents a
 # sum of all contact area so we note this fact in the calibration.
-touch.toolSize.calibration = linear
-touch.toolSize.linearScale = 6.3
-touch.toolSize.linearBias = 160
-touch.toolSize.isSummed = 1
+#touch.toolSize.calibration = linear
+#touch.toolSize.linearScale = 6.3
+#touch.toolSize.linearBias = 160
+#touch.toolSize.isSummed = 1
 
 # Pressure
 # Driver reports signal strength as pressure.
@@ -49,12 +49,12 @@ touch.toolSize.isSummed = 1
 # reported as having a pressure somewhere in the vicinity of 1.0,
 # a featherlight touch will be below 1.0 and a heavy or large touch
 # will be above 1.0.  We don't expect these values to be accurate.
-touch.pressure.calibration = amplitude
-touch.pressure.source = default
-touch.pressure.scale = 0.01
+#touch.pressure.calibration = amplitude
+#touch.pressure.source = default
+#touch.pressure.scale = 0.01
 
 # Size
-touch.size.calibration = normalized
+#touch.size.calibration = normalized
 
 # Orientation
 touch.orientation.calibration = none

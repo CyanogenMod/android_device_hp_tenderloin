@@ -58,7 +58,7 @@
 #define WANT_SINGLETOUCH 0
 
 #define RECV_BUF_SIZE 1540
-#define LIFTOFF_TIMEOUT 40000 /* 20ms */
+#define LIFTOFF_TIMEOUT 25000
 
 #define MAX_CLIST 75
 
@@ -172,8 +172,8 @@ void calc_point()
 		
 		// discard points close to already detected touches
 		for(l=0; l<tpc; l++) {
-			//if(tpoint[l].i >= mini && tpoint[l].i < maxi && tpoint[l].j >= minj && tpoint[l].j < maxj) newtp=0;
-			if(tpoint[l].i >= mini+1 && tpoint[l].i < maxi-1 && tpoint[l].j >= minj+1 && tpoint[l].j < maxj-1) newtp=0;		
+			if(tpoint[l].i >= mini+1 && tpoint[l].i < maxi-1 && tpoint[l].j >= minj+1 && tpoint[l].j < maxj-1)
+                newtp=0;
 		}
 		
 		// calculate new touch near the found candidate
@@ -183,21 +183,21 @@ void calc_point()
 			jsum=0;
 			for(i=MAX(0, mini); i < MIN(30, maxi); i++) {
 				for(j=MAX(0, minj); j < MIN(40, maxj); j++) {
-                                       //powered = pow(matrix[i][j], 1.5);
-                                       //printf("d= %d\n", dist(i,j,clist[k].i,clist[k].j));
-                                       int dd = dist(i,j,clist[k].i,clist[k].j);
-                                       powered = matrix[i][j];
-                                       //if(dd <= 1) powered = matrix[i][j];
-                                       if(dd == 2 && 0.65f * matrix[clist[k].i][clist[k].j] < matrix[i][j] ) powered = 0.65f * matrix[clist[k].i][clist[k].j];
-                                       if(dd == 4 && 0.15f * matrix[clist[k].i][clist[k].j] < matrix[i][j] ) powered = 0.15f * matrix[clist[k].i][clist[k].j];
-                                       if(dd == 5 && 0.10f * matrix[clist[k].i][clist[k].j] < matrix[i][j] ) powered = 0.10f * matrix[clist[k].i][clist[k].j];
-                                       if(dd == 8 && 0.05f * matrix[clist[k].i][clist[k].j] < matrix[i][j] ) powered = 0.05f * matrix[clist[k].i][clist[k].j];
+					int dd = dist(i,j,clist[k].i,clist[k].j);
+					powered = matrix[i][j];
+					if(dd == 2 && 0.65f * matrix[clist[k].i][clist[k].j] < matrix[i][j] ) 
+						powered = 0.65f * matrix[clist[k].i][clist[k].j];
+					if(dd == 4 && 0.15f * matrix[clist[k].i][clist[k].j] < matrix[i][j] ) 
+						powered = 0.15f * matrix[clist[k].i][clist[k].j];
+					if(dd == 5 && 0.10f * matrix[clist[k].i][clist[k].j] < matrix[i][j] ) 
+						powered = 0.10f * matrix[clist[k].i][clist[k].j];
+					if(dd == 8 && 0.05f * matrix[clist[k].i][clist[k].j] < matrix[i][j] ) 
+						powered = 0.05f * matrix[clist[k].i][clist[k].j];
 					
-				       powered = pow(powered, 1.5);
-
-                                       tweight += powered;
-                                       isum += powered * i;
-                                       jsum += powered * j;
+					powered = pow(powered, 1.5);
+					tweight += powered;
+					isum += powered * i;
+					jsum += powered * j;
 				}
 			}
 			avgi = isum / (float)tweight;
@@ -209,19 +209,10 @@ void calc_point()
 #if DEBUG
 			printf("Coords %d %lf, %lf, %d\n", tpc, avgi, avgj, tweight);
 #endif
-#if 0
-			/* Android does not need this an it simplifies stuff
-			 * for us as we don't need to track individual touches
-			 */
-			send_uevent(uinput_fd, EV_ABS, ABS_MT_TRACKING_ID, tpc);
-#endif
-			send_uevent(uinput_fd, EV_ABS, ABS_MT_TOUCH_MAJOR, 1);
-			send_uevent(uinput_fd, EV_ABS, ABS_MT_WIDTH_MAJOR, 10);
+			send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 1);
 			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, avgi*768/29);
 			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, 1024-avgj*1024/39);
 			send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
-
-
 		}
 	}
 
@@ -271,9 +262,7 @@ void calc_point()
 	send_uevent(uinput_fd, EV_ABS, ABS_PRESSURE, 1);
 	send_uevent(uinput_fd, EV_ABS, ABS_TOOL_WIDTH, 10);
 	send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 1);
-
 	send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
-	
 }
 #endif
 
@@ -383,6 +372,7 @@ void open_uinput()
     device.id.product=1;
     device.id.version=1;
 
+#if WANT_SINGLETOUCH
     for (i=0; i < ABS_MAX; i++) {
         device.absmax[i] = -1;
         device.absmin[i] = -1;
@@ -399,9 +389,10 @@ void open_uinput()
     device.absfuzz[ABS_Y]=1;
     device.absflat[ABS_Y]=0;
     device.absmin[ABS_PRESSURE]=0;
-    device.absmax[ABS_PRESSURE]=1;
+    device.absmax[ABS_PRESSURE]=255;
     device.absfuzz[ABS_PRESSURE]=0;
     device.absflat[ABS_PRESSURE]=0;
+#endif
 #if WANT_MULTITOUCH
     device.absmin[ABS_MT_POSITION_X]=0;
     device.absmax[ABS_MT_POSITION_X]=768;
@@ -411,8 +402,6 @@ void open_uinput()
     device.absmax[ABS_MT_POSITION_Y]=1024;
     device.absfuzz[ABS_MT_POSITION_Y]=1;
     device.absflat[ABS_MT_POSITION_Y]=0;
-    device.absmax[ABS_MT_TOUCH_MAJOR]=1;
-    device.absmax[ABS_MT_WIDTH_MAJOR]=100;
 #endif
 
 
@@ -430,7 +419,7 @@ void open_uinput()
     if (ioctl(uinput_fd,UI_SET_EVBIT,EV_ABS) < 0)
             fprintf(stderr, "error evbit rel\n");
 
-#if 1
+#if WANT_SINGLETOUCH
     if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_X) < 0)
             fprintf(stderr, "error x rel\n");
 
@@ -448,12 +437,12 @@ void open_uinput()
 //            fprintf(stderr, "error trkid rel\n");
 
 #if WANT_MULTITOUCH
-    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_TOUCH_MAJOR) < 0)
+/*    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_TOUCH_MAJOR) < 0)
             fprintf(stderr, "error tool rel\n");
 
     if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_WIDTH_MAJOR) < 0)
             fprintf(stderr, "error tool rel\n");
-
+*/
     if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_POSITION_X) < 0)
             fprintf(stderr, "error tool rel\n");
 
@@ -480,7 +469,7 @@ int main(int argc, char** argv)
 	char recv_buf[RECV_BUF_SIZE];
 	fd_set fdset;
 	struct timeval seltmout;
-
+	
 	uart_fd = open("/dev/ctp_uart", O_RDONLY|O_NONBLOCK);
 	if(uart_fd<=0)
 	{
@@ -498,7 +487,6 @@ int main(int argc, char** argv)
 
 	while(1)
 	{
-	//	usleep(50000);
 		FD_ZERO(&fdset);
 		FD_SET(uart_fd, &fdset);
 		seltmout.tv_sec = 0;
@@ -510,18 +498,11 @@ int main(int argc, char** argv)
 #if DEBUG
 			printf("timeout! sending liftoff\n");
 #endif
-#if 1
-			send_uevent(uinput_fd, EV_ABS, ABS_PRESSURE, 0);
-//			send_uevent(uinput_fd, EV_ABS, BTN_2, 0);
+
+//			send_uevent(uinput_fd, EV_ABS, ABS_MT_TOUCH_MAJOR, 0);
 			send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 0);
-#endif
 
-#if WANT_MULTITOUCH
-//			send_uevent(uinput_fd, EV_ABS, ABS_MT_TRACKING_ID, 1);
-			send_uevent(uinput_fd, EV_ABS, ABS_MT_TOUCH_MAJOR, 0);
-			send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
-#endif
-
+            send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
 			send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
 
 			FD_ZERO(&fdset);
@@ -531,23 +512,21 @@ int main(int argc, char** argv)
 			select(uart_fd+1, &fdset, NULL, NULL, NULL);
 			/* In case we were wrongly woken up check the event
 			 * count again */
-			continue;
+			//continue;
 		}
 			
 		nbytes = read(uart_fd, recv_buf, RECV_BUF_SIZE);
 		
 		if(nbytes <= 0)
 			continue;
-
-
-	/*	printf("Received %d bytes\n", nbytes);
+#if DEBUG
+		printf("Received %d bytes\n", nbytes);
 		
 		for(i=0; i < nbytes; i++)
 			printf("%2.2X ",recv_buf[i]);
-		printf("\n");	*/	
-
+		printf("\n");
+#endif
 		snarf2(recv_buf,nbytes);
-
 	}
 
 	return 0;
