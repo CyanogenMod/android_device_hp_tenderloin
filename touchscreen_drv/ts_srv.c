@@ -57,9 +57,12 @@
 #define WANT_MULTITOUCH 1
 #define WANT_SINGLETOUCH 0
 
+#define AVG_FILTER 1
+
 #define RECV_BUF_SIZE 1540
 #define LIFTOFF_TIMEOUT 25000
 
+#define MAX_TOUCH 10
 #define MAX_CLIST 75
 
 unsigned char cline[64];
@@ -96,36 +99,105 @@ struct touchpoint {
 	int pw;
 	float i;
 	float j;
+    unsigned short isValid;
 };
 
 int tpcmp(const void *v1, const void *v2)
 {
     return ((*(struct candidate *)v2).pw - (*(struct candidate *)v1).pw);
 }
-
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 #define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
+#define isBetween(A, B, C) ( ((A-B) > 0) && ((A-C) < 0) )
 
 int dist(int x1, int y1, int x2, int y2)  {
-       return pow(x1 - x2, 2)+pow(y1 - y2, 2);
+	return pow(x1 - x2, 2)+pow(y1 - y2, 2);
 }
 
-
 #if WANT_MULTITOUCH
+struct touchpoint tpoint[MAX_TOUCH];
+struct touchpoint prevtpoint[MAX_TOUCH];
+struct touchpoint prev2tpoint[MAX_TOUCH];
+
+#if AVG_FILTER
+int isClose(struct touchpoint a, struct touchpoint b)
+{
+	if (isBetween(b.i, a.i+2.5, a.i-2.5) && isBetween(b.j, a.j+2.5, a.j-2.5))
+		return 1;
+	return 0;
+}
+
+//return 1 if b is closer
+//return 2 if c is closer
+int find_closest(struct touchpoint a, struct touchpoint b, struct touchpoint c)
+{
+	int diffB = fabs(a.i - b.i) + fabs(a.j - b.j);
+	int diffC = fabs(a.i - c.i) + fabs(a.j - c.j);
+
+	if (diffB < diffC)
+		return 1;
+	else
+		return 2;
+}
+
+int avg_filter(struct touchpoint *t) {
+	int tp1_found, tp2_found, i;
+	tp1_found = tp2_found = -1;
+
+	for(i=0; i<MAX_TOUCH; i++) {
+		if(isClose(*t, prevtpoint[i])) {
+			if(tp1_found < 0) {
+				tp1_found = i;
+			} else {
+				if (find_closest(*t, prevtpoint[tp1_found], prevtpoint[i]) == 2)
+					tp1_found = i;
+			}
+		}
+		if(isClose(*t, prev2tpoint[i])) {
+			if(tp2_found < 0) {
+				tp2_found = i;
+			} else {
+                if (find_closest(*t, prev2tpoint[tp2_found], prev2tpoint[i]) == 2)
+                    tp2_found = i;
+			}
+		}
+	}
+#if DEBUG
+	printf("before: i=%f, j=%f", t->i, t->j);
+#endif 
+	if (tp1_found >= 0 && tp2_found >= 0) {
+		t->i = (t->i + prevtpoint[tp1_found].i + prev2tpoint[tp2_found].i) / 3.0;
+		t->j = (t->j + prevtpoint[tp1_found].j + prev2tpoint[tp2_found].j) / 3.0;
+	}
+#if DEBUG
+    printf("|||| after: i=%f, j=%f\n", t->i, t->j);
+#endif
+	return 0;
+}
+#endif //AVG_FILTER
+
 void calc_point()
 {
 	int i,j;
 	int tweight=0;
+	int tpc=0;
 	float isum=0, jsum=0;
 	float avgi, avgj;
 	float powered;
 	
-	int tpc=0;
-	struct touchpoint tpoint[10];
-
 	int clc=0;
 	struct candidate clist[MAX_CLIST];
-	
+
+    //Record values for processing later
+	for(tpc=0; tpc < MAX_TOUCH; tpc++) {
+		prev2tpoint[tpc].i = prevtpoint[tpc].i;
+		prev2tpoint[tpc].j = prevtpoint[tpc].j;
+		prevtpoint[tpc].i = tpoint[tpc].i;
+		prevtpoint[tpc].j = tpoint[tpc].j;
+		prevtpoint[tpc].pw = tpoint[tpc].pw;
+	}
+    tpc = 0;
+
 	// generate list of high values
 	for(i=0; i < 30; i++) {
 		for(j=0; j < 40; j++) {
@@ -205,21 +277,31 @@ void calc_point()
 			tpoint[tpc].pw = tweight;
 			tpoint[tpc].i = avgi;
 			tpoint[tpc].j = avgj;
+			tpoint[tpc].isValid = 1;
 			tpc++;
 #if DEBUG
 			printf("Coords %d %lf, %lf, %d\n", tpc, avgi, avgj, tweight);
 #endif
-			send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 1);
-			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, avgi*768/29);
-			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, 1024-avgj*1024/39);
-			send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
+
 		}
 	}
 
+	//report touches
+	for (tpc = 0; tpc < MAX_TOUCH; tpc++) {
+		if (tpoint[tpc].isValid) {
+#if AVG_FILTER
+			avg_filter(&tpoint[tpc]);
+#endif //AVG_FILTER
+			send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 1);
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, tpoint[tpc].i*768/29);
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, 1024-tpoint[tpc].j*1024/39);
+			send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
+			tpoint[tpc].isValid = 0;
+        }
+    }
 	send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
 }
 #endif
-
 
 #if WANT_SINGLETOUCH
 void calc_point()
@@ -499,6 +581,15 @@ int main(int argc, char** argv)
 			printf("timeout! sending liftoff\n");
 #endif
 
+			int i;
+			for(i=0; i<MAX_TOUCH; i++) {
+				tpoint[i].i = -10;
+				tpoint[i].j = -10;
+				prevtpoint[i].i = -10;
+				prevtpoint[i].j = -10;
+				prev2tpoint[i].i = -10;
+				prev2tpoint[i].j = -10;
+			}
 //			send_uevent(uinput_fd, EV_ABS, ABS_MT_TOUCH_MAJOR, 0);
 			send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 0);
 
@@ -512,7 +603,7 @@ int main(int argc, char** argv)
 			select(uart_fd+1, &fdset, NULL, NULL, NULL);
 			/* In case we were wrongly woken up check the event
 			 * count again */
-			//continue;
+			continue;
 		}
 			
 		nbytes = read(uart_fd, recv_buf, RECV_BUF_SIZE);
