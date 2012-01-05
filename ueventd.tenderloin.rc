@@ -34,5 +34,5 @@
 /dev/kgsl-3d0           0666    root        root
 /dev/kgs1-2d1           0666    root        root
 /dev/pmem               0660    system      graphics
-/dev/genlock            0660    system      graphics
+/dev/genlock            0666    system      graphics
 
