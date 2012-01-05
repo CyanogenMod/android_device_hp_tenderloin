@@ -10,13 +10,15 @@ ro.cwm.forbid_format=/boot
 wifi.supplicant_scan_interval=45
 wifi.interface=wlan0
 
-#ro.config.disable_hw_accel=true
-hwui.render_dirty_regions=false
-#debug.fb.rgb565 = 0
-#debug.sf.hw=1
+debug.fb.rgb565 = 0
+debug.sf.hw=1
+debug.enabletr=true
+
+com.qc.hardware=true
 
 #c2d
-#debug.composition.type=c2d
+debug.composition.type=c2d
+#ro.sf.compbypass.enable=1
 #debug.overlayui.enable=0
 
 # The OpenGL ES API level that is natively supported by this device.
