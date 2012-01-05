@@ -163,8 +163,3 @@ PRODUCT_COPY_FILES += \
 
 $(call inherit-product, frameworks/base/build/tablet-dalvik-heap.mk)
 $(call inherit-product, build/target/product/full_base.mk)
-
-PRODUCT_NAME := full_tenderloin
-PRODUCT_DEVICE := tenderloin
-PRODUCT_MODEL := HP Touchpad
-PRODUCT_MANUFACTURER := HP
