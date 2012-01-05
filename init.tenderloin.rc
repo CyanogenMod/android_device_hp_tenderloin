@@ -40,15 +40,6 @@ on init
 	symlink /mnt/sdcard /sdcard
 
 on post-fs
-	# we will remap this as /mnt/sdcard with the sdcard fuse tool
-	mkdir /data/media 0775 media_rw media_rw
-	chown media_rw media_rw /data/media
-	chown dhcp dhcp /data/misc/dhcp
-	mkdir /data/smc 0770 drmrpc drmrpc
-        chown drmrpc drmrpc /data/smc/counter.bin
-        chown drmrpc drmrpc /data/smc/storage.bin
-        chown drmrpc drmrpc /data/smc/system.bin
-
 	# camera calibration
 	mkdir /data/misc/camera 0770 media media
 	mkdir /data/misc/camera/R5_MVEN003_LD2_ND0_IR0_SH0_FL1_SVEN003_DCCID1044 0770 media media
@@ -66,38 +57,12 @@ on init
     chown system system /dev/mpuirq
     chown system system /dev/timerirq
 
-    chown system system /dev/compasssensor
-    chmod 0666 /dev/compasssensor
-    chown system system /dev/lightsensor
-    chmod 0666 /dev/lightsensor
-    chown system system /dev/gsensor
-    chmod 0666 /dev/gsensor
-    chown system system /dev/magsensor
-    chmod 0666 /dev/magsensor
-    chown system system /dev/gyrosensor
-    chmod 0666 /dev/gyrosensor
-    chown system system /dev/psensor
-    chmod 0666 /dev/psensor
-    chmod 0666 /sys/bus/platform/devices/max8903-charger/CEN_N_pin/value
-    chmod 0666 /sys/bus/platform/devices/max8903-charger/DCM_pin/value
-    chmod 0666 /sys/bus/platform/devices/max8903-charger/USUS_pin/value
-    chmod 0666 /sys/bus/platform/devices/max8903-charger/IUSB_pin/value
-    chmod 0666 /sys/bus/platform/devices/max8903-charger/CHG_D_ISET1_GPIO/value
-    chmod 0666 /sys/bus/platform/devices/max8903-charger/CHG_D_ISET2_GPIO/value
-    chmod 0664 /sys/class/leds/button-backlight/brightness
     chmod 0664 /sys/class/leds/core_navi_left/brightness
     chmod 0664 /sys/class/leds/core_navi_right/brightness
     chown system system /sys/class/leds/core_navi_left/brightness
     chown system system /sys/class/leds/core_navi_right/brightness
 
-    #  for emmc  (shared with webos at /dev/share/media)
-
-    export PHONE_STORAGE /mnt/emmc
-    mkdir /mnt/emmc 0000 system system
-    symlink /mnt/emmc /emmc
-
     #  for mounting USB storage
-
     mkdir /mnt/usbdisk 0000 system system
 
     # For TS control
@@ -106,24 +71,17 @@ on init
     chown system system /sys/user_hw/pins/ctp/wake/level
     chown system system /dev/i2c-5
 
-        # increase per-process file limit to prevent warning
-        setrlimit 7 10000 10000
+    # increase per-process file limit to prevent warning
+    setrlimit 7 10000 10000
 
 on boot
 	mount debugfs /sys/kernel/debug /sys/kernel/debug
 
     mkdir /data/misc/wifi 0770 system wifi
     mkdir /data/misc/wifi/sockets 0770 system wifi
+	mkdir /data/misc/dhcp
     chown dhcp dhcp /data/misc/dhcp
     mount debugfs /sys/kernel/debug /sys/kernel/debug
-
-    #  permissions for kgsl
-    chmod 0666 /dev/kgsl-2d0
-    chmod 0666 /dev/kgsl-2d1
-    chmod 0666 /dev/kgsl-3d0
-    chown system graphics /dev/kgsl-2d0
-    chown system graphics /dev/kgsl-2d1
-    chown system graphics /dev/kgsl-3d0
 
     # bluetooth power up/down interface
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
@@ -141,11 +99,8 @@ on boot
     chown bluetooth bluetooth /sys/user_hw/pins/bt/reset/level
     chown bluetooth bluetooth /sys/user_hw/pins/bt/host_wake/level
 
-    # bluetooth MAC address programming
-    chown bluetooth bluetooth /sys/module/hp_bdaddress/parameters/bdaddress
-    setprop ro.bt.bdaddr_path /sys/module/hp_bdaddress/parameters/bdaddress
-
-    chown audio audio /dev/input/event5
+    # Headphone jack detection
+	chown audio audio /dev/input/event5
     chmod 0660 /dev/input/event5
 
     # Increase readahead buffers on MMC devices
@@ -178,53 +133,22 @@ on boot
     write /sys/module/rpm_resources/enable_low_power/L2_cache 1
     write /sys/module/rpm_resources/enable_low_power/pxo 1
 
-    # wifi modules
-#    insmod /system/lib/modules/librasdioif.ko
-
     # modules
-#    insmod /system/lib/modules/nls_utf8.ko
-#    insmod /system/lib/modules/cifs.ko
-#    insmod /system/lib/modules/ntfs.ko
-#    insmod /system/lib/modules/tun.ko
+    #insmod /system/lib/modules/nls_utf8.ko
+    #insmod /system/lib/modules/cifs.ko
+    #insmod /system/lib/modules/ntfs.ko
+    #insmod /system/lib/modules/tun.ko
 
 
-# change permissions for i2c-2 device
+    # change permissions for i2c-2 device
 	chmod 0660 /dev/i2c-2
 	chown media media /dev/i2c-2
-
-# change permissions for Tiler driver
-    chmod 0777 /dev/tiler
-    chmod 0777 /dev/dmm
-
-# change permissions for ION driver
-    chmod 0777 /dev/ion
-
-# We chown/chmod /factory because mount is run as root + defaults
-	chown radio radio /factory
-	chmod 0775 /factory
-	mkdir /data/radio 0775 radio radio
-	mkdir /data/radio/log 0775 radio radio
 
 on property:persist.service.adb.enable=1
     start adbd
 
 on property:persist.service.adb.enable=0
     stop adbd
-
-service hciattach /system/bin/brcm_patchram_plus --enable_hci --no2bytes --enable_lpm \
-	--tosleep 50000 --baudrate 3000000 --use_baudrate_for_download --i2s=1,1,0,1 \
-	--patchram /vendor/firmware/bcm4330.hcd /dev/ttyO1
-	class main
-	user bluetooth
-	group bluetooth net_bt_admin
-	disabled
-	oneshot
-
-# create virtual SD card at /mnt/sdcard, based on the /data/media directory
-# daemon will drop to user/group system/media_rw after initializing
-# underlying files in /data/media will be created with user and group media_rw (1023)
-service sdcard /system/bin/sdcard /data/media 1023 1023
-	class late_start
 
 service wpa_supplicant /system/bin/wpa_supplicant -Dar6000 -iwlan0 -c/data/misc/wifi/wpa_supplicant.conf
 	#   we will start as root and wpa_supplicant will switch to user wifi
