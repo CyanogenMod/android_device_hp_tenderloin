@@ -14,29 +14,22 @@
 # limitations under the License.
 #
 
-# The gps config appropriate for this device
-#PRODUCT_COPY_FILES += \
-    device/hp/tenderloin/prebuilt/gps.conf:system/etc/gps.conf
-
 ## (1) First, the most specific values, i.e. the aspects that are specific to GSM
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.sf.lcd_density=160 \
-    ro.com.google.clientidbase=android-hp \
-    ro.com.google.locationfeatures=1 \
     ro.com.google.networklocation=1 \
-    ro.setupwizard.enable_bypass=1 \
     dalvik.vm.lockprof.threshold=500 \
     dalvik.vm.dexopt-flags=m=y
 
-PRODUCT_CHARACTERISTICS := tablet,nosdcard
+PRODUCT_CHARACTERISTICS := tablet
 
-#PRODUCT_AAPT_CONFIG := normal mdpi
-#PRODUCT_AAPT_PREF_CONFIG := mdpi
+PRODUCT_AAPT_CONFIG := large mdpi
 
 PRODUCT_PACKAGES += \
 	make_ext4fs
 
 PRODUCT_COPY_FILES += \
+    device/hp/tenderloin/init.tenderloin.usb.rc:root/init.tenderloin.usb.rc \
     device/hp/tenderloin/init.tenderloin.rc:root/init.tenderloin.rc \
     device/hp/tenderloin/ueventd.tenderloin.rc:root/ueventd.tenderloin.rc \
     device/hp/tenderloin/initlogo.rle:root/initlogo.rle \
@@ -71,26 +64,30 @@ PRODUCT_COPY_FILES += \
     frameworks/base/data/etc/android.hardware.usb.accessory.xml:system/etc/permissions/android.hardware.usb.accessory.xml \
     frameworks/base/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml
 
+# QCOM Hal
 PRODUCT_PACKAGES += \
-    gralloc.msm8660 \
     copybit.msm8660 \
     hwcomposer.msm8660 \
     gralloc.msm8660 \
     liboverlay \
     libmemalloc \
+    libtilerenderer \
+    libgenlock \
+    libQcomUI
+
+# Audio
+PRODUCT_PACKAGES += \
     audio.a2dp.default \
     libaudioutils \
     audio.primary.tenderloin \
-    libaudio \
+
+# Sensors, misc
+PRODUCT_PACKAGES += \
     librs_jni \
     wpa_supplicant.conf \
-    com.android.future.usb.accessory \
-    libOmxCore \
-    libOmxVenc \
-    libOmxVdec \
     sensors.tenderloin \
-    alsa.tenderloin \
-    lights.tenderloin
+    lights.tenderloin \
+    ts_srv
 
 # Keylayouts
 PRODUCT_COPY_FILES += \
