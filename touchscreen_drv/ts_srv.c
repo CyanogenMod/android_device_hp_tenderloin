@@ -59,6 +59,8 @@
 
 #define AVG_FILTER 1
 
+#define USERSPACE_270_ROTATE 1
+
 #define RECV_BUF_SIZE 1540
 #define LIFTOFF_TIMEOUT 25000
 
@@ -293,8 +295,13 @@ void calc_point()
 			avg_filter(&tpoint[tpc]);
 #endif //AVG_FILTER
 			send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 1);
+#if USERSPACE_270_ROTATE
 			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, tpoint[tpc].i*768/29);
 			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, 1024-tpoint[tpc].j*1024/39);
+#else
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, 768-tpoint[tpc].i*768/29);
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, 1024-tpoint[tpc].j*1024/39);
+#endif //USERSPACE_270_ROTATE
 			send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
 			tpoint[tpc].isValid = 0;
         }
