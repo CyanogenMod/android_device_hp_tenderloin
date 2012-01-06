@@ -27,7 +27,7 @@
 
 #include "lsm303dlh_acc.h"
 
-#define POLL_RATE 200000000
+#define POLL_RATE 50000000 //50ms
 
 Lsm303dlhGSensor::Lsm303dlhGSensor()
 : SensorBase(LSM303DLH_ACC_DEVICE_NAME, "lsm303dlh_acc_sysfs"),
@@ -73,7 +73,7 @@ int Lsm303dlhGSensor::enable(int32_t handle, int en)
 
     if (!err) {
         mEnabled = newState;
-        setDelay(0, POLL_RATE);
+        //setDelay(0, POLL_RATE);
     }
 
     return err;
@@ -87,18 +87,18 @@ int Lsm303dlhGSensor::setDelay(int32_t handle, int64_t ns)
         if (ns < 0)
             return -EINVAL;
 
-        unsigned long delay = ns / 1000000; //nano to mili
-
         // ok we need to set our enabled state
         int fd = open(LSM303DLH_ACC_DELAY_FILE, O_WRONLY);
         if(fd >= 0) {
             char buffer[20];
-            int bytes = sprintf(buffer, "%d\n", delay);
+            int bytes = sprintf(buffer, "%d\n", 100/*ns / (100 * 100)*/);
             err = write(fd, buffer, bytes);
             err = err < 0 ? -errno : 0;
         } else {
             err = -errno;
         }
+
+		close(fd);
 
         LOGE_IF(err < 0,
                 "Error setting delay of LSM303DLH accelerometer (%s)",
