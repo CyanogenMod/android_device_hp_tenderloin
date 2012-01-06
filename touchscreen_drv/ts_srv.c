@@ -59,7 +59,7 @@
 
 #define AVG_FILTER 1
 
-#define USERSPACE_270_ROTATE 1
+#define USERSPACE_270_ROTATE 0
 
 #define RECV_BUF_SIZE 1540
 #define LIFTOFF_TIMEOUT 25000
@@ -483,12 +483,17 @@ void open_uinput()
     device.absflat[ABS_PRESSURE]=0;
 #endif
 #if WANT_MULTITOUCH
-    device.absmin[ABS_MT_POSITION_X]=0;
+#if USERSPACE_270_ROTATE
     device.absmax[ABS_MT_POSITION_X]=768;
+    device.absmax[ABS_MT_POSITION_Y]=1024;
+#else
+    device.absmax[ABS_MT_POSITION_X]=1024;
+    device.absmax[ABS_MT_POSITION_Y]=768;
+#endif // USERSPACE_270_ROTATE
+    device.absmin[ABS_MT_POSITION_X]=0;
+    device.absmin[ABS_MT_POSITION_Y]=0;
     device.absfuzz[ABS_MT_POSITION_X]=2;
     device.absflat[ABS_MT_POSITION_X]=0;
-    device.absmin[ABS_MT_POSITION_Y]=0;
-    device.absmax[ABS_MT_POSITION_Y]=1024;
     device.absfuzz[ABS_MT_POSITION_Y]=1;
     device.absflat[ABS_MT_POSITION_Y]=0;
 #endif
