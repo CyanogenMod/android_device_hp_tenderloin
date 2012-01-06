@@ -1,7 +1,7 @@
 #
 # system.prop for tenderloin
 #
-ro.sf.hwrotation=270
+#ro.sf.hwrotation=270
 
 ro.additionalmounts=/mnt/usbdisk
 
@@ -12,7 +12,7 @@ wifi.interface=wlan0
 
 debug.fb.rgb565 = 0
 debug.sf.hw=1
-debug.enabletr=true
+debug.enabletr=false
 
 com.qc.hardware=true
 
