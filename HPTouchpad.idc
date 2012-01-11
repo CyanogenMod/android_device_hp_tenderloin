@@ -63,3 +63,6 @@ touch.orientationAware = 1
 #
 touch.deviceType = touchScreen
 
+# make sure it's seen as an internal device and gets assigned to the internal display and not the external
+device.internal = 1
+
