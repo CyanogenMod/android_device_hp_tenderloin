@@ -80,7 +80,12 @@ int send_uevent(int fd, __u16 type, __u16 code, __s32 value)
     event.type = type;
     event.code = code;
     event.value = value;
-    gettimeofday(&event.time, NULL);
+
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+
+    event.time.tv_sec = ts.tv_sec;
+    event.time.tv_usec = ts.tv_nsec / 1000L;
 
     if (write(fd, &event, sizeof(event)) != sizeof(event)) {
         fprintf(stderr, "Error on send_event %d", sizeof(event));
@@ -456,7 +461,7 @@ void open_uinput()
     uinput_fd=open(UINPUT_LOCATION,O_WRONLY);
     strcpy(device.name,"HPTouchpad");
 
-    device.id.bustype=BUS_USB;
+    device.id.bustype=BUS_VIRTUAL;
     device.id.vendor=1;
     device.id.product=1;
     device.id.version=1;
