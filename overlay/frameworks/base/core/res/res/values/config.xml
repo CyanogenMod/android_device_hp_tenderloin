@@ -47,6 +47,74 @@
         <item>"1,1"</item>
     </string-array>
 
+    <!-- Flag indicating whether we should enable the automatic brightness in Settings.
+         config_hardware_automatic_brightness_available is not set, so we will use software implementation -->
+	<bool name="config_automatic_brightness_available">true</bool>
+
+    <!-- Array of light sensor LUX values to define our levels for auto
+         backlight brightness support. The N entries of this array define
+         N + 1 zones as follows:
+         Zone 0: 0 <= LUX < array[0]
+         Zone 1: array[0] <= LUX < array[1]
+         ...
+         Zone N: array[N - 1] <= LUX < array[N]
+         Zone N + 1: array[N] <= LUX < infinity
+
+         Must be overridden in platform specific overlays -->
+    <integer-array name="config_autoBrightnessLevels">
+         <item>50</item>
+         <item>100</item>
+         <item>175</item>
+         <item>225</item>
+         <item>300</item>
+         <item>400</item>
+         <item>500</item>
+    </integer-array>
+
+    <!-- Array of output values for LCD backlight corresponding to the
+         LUX values in the config_autoBrightnessLevels array. This array
+         should have size one greater than the size of the
+         config_autoBrightnessLevels array. -->
+    <integer-array name="config_autoBrightnessLcdBacklightValues">
+        <item>21</item>
+        <item>41</item>
+        <item>75</item>
+        <item>100</item>
+        <item>150</item>
+        <item>200</item>
+        <item>225</item>
+        <item>255</item>
+    </integer-array>
+
+    <!-- Array of output values for button backlight corresponding to the LUX values
+         in the config_autoBrightnessLevels array.  This array should have size one greater
+         than the size of the config_autoBrightnessLevels array.
+         This must be overridden in platform specific overlays -->
+    <integer-array name="config_autoBrightnessButtonBacklightValues">
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+    </integer-array>
+
+    <!-- Array of output values for keyboard backlight corresponding to the LUX values
+         in the config_autoBrightnessLevels array.  This array should have size one greater
+         than the size of the config_autoBrightnessLevels array.
+         This must be overridden in platform specific overlays -->
+    <integer-array name="config_autoBrightnessKeyboardBacklightValues">
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+        <item>0</item>
+    </integer-array>
 
     <!-- XXXXXX END OF RESOURCES USING WRONG NAMING CONVENTION -->
 
@@ -88,5 +156,11 @@
     <!-- Whether a software navigation bar should be shown. NOTE: in the future this may be
          autodetected from the Configuration. -->
     <bool name="config_showNavigationBar">false</bool>
+
+    <!-- Component name of the service providing network location support. -->
+    <string name="config_networkLocationProvider">com.google.android.location.NetworkLocationProvider</string>
+
+    <!-- Component name of the service providing geocoder API support. -->
+    <string name="config_geocodeProvider">com.google.android.location.GeocodeProvider</string>
 
 </resources>
