@@ -30,7 +30,7 @@
 #define _MSM_KGSL_H
 
 #define KGSL_VERSION_MAJOR        3
-#define KGSL_VERSION_MINOR        2
+#define KGSL_VERSION_MINOR        8
 
 /*context flags */
 #define KGSL_CONTEXT_SAVE_GMEM	1
@@ -78,9 +78,11 @@ struct kgsl_devinfo {
 	unsigned int chip_id;
 	unsigned int mmu_enabled;
 	unsigned int gmem_gpubaseaddr;
-	/* if gmem_hostbaseaddr is NULL, we would know its not mapped into
-	 * mmio space */
-	unsigned int gmem_hostbaseaddr;
+	/*
+	* This field contains the adreno revision
+	* number 200, 205, 220, etc...
+	*/
+	unsigned int gpu_id;
 	unsigned int gmem_sizebytes;
 };
 
@@ -267,8 +269,11 @@ struct kgsl_cmdstream_readtimestamp {
 	unsigned int timestamp; /*output param */
 };
 
-#define IOCTL_KGSL_CMDSTREAM_READTIMESTAMP \
+#define IOCTL_KGSL_CMDSTREAM_READTIMESTAMP_OLD \
 	_IOR(KGSL_IOC_TYPE, 0x11, struct kgsl_cmdstream_readtimestamp)
+
+#define IOCTL_KGSL_CMDSTREAM_READTIMESTAMP \
+	_IOWR(KGSL_IOC_TYPE, 0x11, struct kgsl_cmdstream_readtimestamp)
 
 /* free memory when the GPU reaches a given timestamp.
  * gpuaddr specify a memory region created by a
@@ -347,6 +352,18 @@ struct kgsl_sharedmem_free {
 #define IOCTL_KGSL_SHAREDMEM_FREE \
 	_IOW(KGSL_IOC_TYPE, 0x21, struct kgsl_sharedmem_free)
 
+struct kgsl_cff_user_event {
+	unsigned char cff_opcode;
+	unsigned int op1;
+	unsigned int op2;
+	unsigned int op3;
+	unsigned int op4;
+	unsigned int op5;
+	unsigned int __pad[2];
+};
+
+#define IOCTL_KGSL_CFF_USER_EVENT \
+	_IOW(KGSL_IOC_TYPE, 0x31, struct kgsl_cff_user_event)
 
 struct kgsl_gmem_desc {
 	unsigned int x;
@@ -417,6 +434,46 @@ struct kgsl_cmdwindow_write {
 #define IOCTL_KGSL_CMDWINDOW_WRITE \
 	_IOW(KGSL_IOC_TYPE, 0x2e, struct kgsl_cmdwindow_write)
 
+struct kgsl_gpumem_alloc {
+	unsigned long gpuaddr;
+	size_t size;
+	unsigned int flags;
+};
+
+#define IOCTL_KGSL_GPUMEM_ALLOC \
+	_IOWR(KGSL_IOC_TYPE, 0x2f, struct kgsl_gpumem_alloc)
+
+struct kgsl_cff_syncmem {
+	unsigned int gpuaddr;
+	unsigned int len;
+	unsigned int __pad[2]; /* For future binary compatibility */
+};
+
+#define IOCTL_KGSL_CFF_SYNCMEM \
+	_IOW(KGSL_IOC_TYPE, 0x30, struct kgsl_cff_syncmem)
+
+/*
+ * A timestamp event allows the user space to register an action following an
+ * expired timestamp.
+ */
+struct kgsl_timestamp_event {
+	int type;                /* Type of event (see list below) */
+	unsigned int timestamp;  /* Timestamp to trigger event on */
+	unsigned int context_id; /* Context for the timestamp */
+	void *priv;              /* Pointer to the event specific blob */
+	size_t len;              /* Size of the event specific blob */
+};
+
+#define IOCTL_KGSL_TIMESTAMP_EVENT \
+	_IOW(KGSL_IOC_TYPE, 0x31, struct kgsl_timestamp_event)
+
+/* A genlock timestamp event releases an existing lock on timestamp expire */
+#define KGSL_TIMESTAMP_EVENT_GENLOCK 1
+
+struct kgsl_timestamp_event_genlock {
+	int handle; /* Handle of the genlock lock to release */
+};
+
 #ifdef __KERNEL__
 #ifdef CONFIG_MSM_KGSL_DRM
 int kgsl_gem_obj_addr(int drm_fd, int handle, unsigned long *start,
@@ -426,4 +483,5 @@ int kgsl_gem_obj_addr(int drm_fd, int handle, unsigned long *start,
 #endif
 #endif
 #endif /* _MSM_KGSL_H */
+
 
