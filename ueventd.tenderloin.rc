@@ -36,3 +36,5 @@
 /dev/pmem               0660    system      graphics
 /dev/genlock            0666    system      graphics
 
+# Bluetooth
+/dev/ttyHS0             0600    bluetooth   bluetooth
