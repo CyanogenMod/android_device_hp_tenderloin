@@ -81,12 +81,6 @@ int send_uevent(int fd, __u16 type, __u16 code, __s32 value)
     event.code = code;
     event.value = value;
 
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-
-    event.time.tv_sec = ts.tv_sec;
-    event.time.tv_usec = ts.tv_nsec / 1000L;
-
     if (write(fd, &event, sizeof(event)) != sizeof(event)) {
         fprintf(stderr, "Error on send_event %d", sizeof(event));
         return -1;
@@ -360,6 +354,7 @@ void calc_point()
 }
 #endif
 
+int cline_valid(int extras);
 void put_byte(unsigned char byte)
 {
 //	printf("Putc %d %d\n", cidx, byte);
