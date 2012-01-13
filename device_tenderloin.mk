@@ -87,7 +87,10 @@ PRODUCT_PACKAGES += \
     wpa_supplicant.conf \
     sensors.tenderloin \
     lights.tenderloin \
-    ts_srv
+    ts_srv \
+    bcattach \
+    serial \
+    com.android.future.usb.accessory
 
 # Keylayouts
 PRODUCT_COPY_FILES += \
