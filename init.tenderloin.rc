@@ -1,4 +1,4 @@
-# import init.tenderloin.usb.rc
+import init.tenderloin.usb.rc
 
 on early-init
    start serial
