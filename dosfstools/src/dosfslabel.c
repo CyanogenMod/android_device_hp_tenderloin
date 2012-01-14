@@ -30,6 +30,10 @@
 #include <unistd.h>
 #include <getopt.h>
 
+#ifdef _USING_BIONIC_
+#include <linux/fs.h>
+#endif
+
 #include "common.h"
 #include "dosfsck.h"
 #include "io.h"

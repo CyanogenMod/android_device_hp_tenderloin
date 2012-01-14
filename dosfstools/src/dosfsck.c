@@ -45,6 +45,12 @@ int atari_format = 0;
 unsigned n_files = 0;
 void *mem_queue = NULL;
 
+#ifdef USE_ANDROID_RETVALS
+unsigned retandroid = 1;
+#else
+unsigned retandroid = 0;
+#endif
+
 static void usage(char *name)
 {
     fprintf(stderr, "usage: %s [-aAflrtvVwy] [-d path -d ...] "
@@ -52,7 +58,7 @@ static void usage(char *name)
     fprintf(stderr, "  -a       automatically repair the file system\n");
     fprintf(stderr, "  -A       toggle Atari file system format\n");
     fprintf(stderr, "  -d path  drop that file\n");
-    fprintf(stderr, "  -f       salvage unused chains to files\n");
+    fprintf(stderr, "  -f       ignored\n");
     fprintf(stderr, "  -l       list path names\n");
     fprintf(stderr,
 	    "  -n       no-op, check non-interactively without changing\n");
@@ -64,7 +70,11 @@ static void usage(char *name)
     fprintf(stderr, "  -V       perform a verification pass\n");
     fprintf(stderr, "  -w       write changes to disk immediately\n");
     fprintf(stderr, "  -y       same as -a, for compat with other *fsck\n");
-    exit(2);
+	if (retandroid) {
+		exit(1);
+	} else {
+    	exit(2);
+	}
 }
 
 /*
@@ -157,7 +167,11 @@ int main(int argc, char **argv)
 	}
     if ((test || write_immed) && !rw) {
 	fprintf(stderr, "-t and -w require -a or -r\n");
-	exit(2);
+	if (retandroid) {
+		exit(1);
+	} else {
+		exit(2);
+	}
     }
     if (optind != argc - 1)
 	usage(argv[0]);
@@ -171,7 +185,7 @@ int main(int argc, char **argv)
 	qfree(&mem_queue);
     if (test)
 	fix_bad(&fs);
-    if (salvage_files)
+    if (salvage_files && 0)
 	reclaim_file(&fs);
     else
 	reclaim_free(&fs);
@@ -202,5 +216,9 @@ int main(int argc, char **argv)
     printf("%s: %u files, %lu/%lu clusters\n", argv[optind],
 	   n_files, fs.clusters - free_clusters, fs.clusters);
 
-    return fs_close(rw) ? 1 : 0;
+	if (retandroid) {
+		return fs_close(rw) ? 4 : 0;
+	} else {
+    	return fs_close(rw) ? 1 : 0;
+	}
 }

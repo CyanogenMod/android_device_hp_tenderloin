@@ -31,6 +31,10 @@
 #define _LINUX_STRING_H_	/* hack to avoid inclusion of <linux/string.h> */
 #define _LINUX_FS_H		/* hack to avoid inclusion of <linux/fs.h> */
 
+#ifdef _USING_BIONIC_
+#include <sys/endian.h>
+#endif
+
 #include <asm/types.h>
 #include <asm/byteorder.h>
 
@@ -193,6 +197,7 @@ extern int interactive, rw, list, verbose, test, write_immed;
 extern int atari_format;
 extern unsigned n_files;
 extern void *mem_queue;
+extern unsigned retandroid;
 
 /* value to use as end-of-file marker */
 #define FAT_EOF(fs)	((atari_format ? 0xfff : 0xff8) | FAT_EXTD(fs))

@@ -47,7 +47,11 @@
 
 #include <fcntl.h>
 #include <linux/hdreg.h>
+#if defined(_USING_BIONIC_)
+#include <linux/fs.h>
+#else
 #include <sys/mount.h>
+#endif
 #include <linux/fd.h>
 #include <endian.h>
 #include <mntent.h>
@@ -539,6 +543,7 @@ static unsigned long long count_blocks(char *filename, int *remainder)
 
 static void check_mount(char *device_name)
 {
+#if ! defined(_USING_BIONIC_)
     FILE *f;
     struct mntent *mnt;
 
@@ -548,6 +553,7 @@ static void check_mount(char *device_name)
 	if (strcmp(device_name, mnt->mnt_fsname) == 0)
 	    die("%s contains a mounted file system.");
     endmntent(f);
+#endif
 }
 
 /* Establish the geometry and media parameters for the device */
