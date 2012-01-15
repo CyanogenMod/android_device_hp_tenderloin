@@ -72,12 +72,11 @@ else # Seperate uboot images kernel/ramdisk
 $(INSTALLED_BOOTIMAGE_TARGET): $(BUILT_UBOOT_RAMDISK_TARGET)
 endif
 
-ifeq (0,1)
 #
 # Recovery Image
 #
-INSTALLED_RECOVERYIMAGE_TARGET := $(PRODUCT_OUT)/cwm.img
-recovery_ramdisk := $(PRODUCT_OUT)/recovery.img
+INSTALLED_RECOVERYIMAGE_TARGET := $(PRODUCT_OUT)/recovery.img
+recovery_ramdisk := $(PRODUCT_OUT)/ramdisk-recovery.img
 INTERNAL_RECOVERYRAMDISK_IMAGENAME := CWM $(TARGET_DEVICE) Ramdisk
 INTERNAL_RECOVERYRAMDISKIMAGE_ARGS := -A ARM -O Linux -T RAMDisk -C none -n "$(INTERNAL_RECOVERYRAMDISK_IMAGENAME)" -d $(recovery_ramdisk)
 recovery_uboot_ramdisk := $(recovery_ramdisk:%.img=%.ub)
@@ -90,17 +89,19 @@ $(recovery_uboot_ramdisk): $(MKIMAGE) $(recovery_ramdisk)
 ifeq ($(BOARD_USES_UBOOT_MULTIIMAGE),true)
     $(warning We are here.)
     INTERNAL_RECOVERYIMAGE_IMAGENAME := CWM $(TARGET_DEVICE) Multiboot
-    INTERNAL_RECOVERYIMAGE_ARGS := -A ARM -O Linux -T multi -C none -n "$(INTERNAL_RECOVERYIMAGE_IMAGENAME)"
+    INTERNAL_RECOVERYIMAGE_ARGS := -A arm -T multi -C none -n "$(INTERNAL_RECOVERYIMAGE_IMAGENAME)"
 
     BOARD_UBOOT_ENTRY := $(strip $(BOARD_UBOOT_ENTRY))
     ifdef BOARD_UBOOT_ENTRY
         INTERNAL_RECOVERYIMAGE_ARGS += -e $(BOARD_UBOOT_ENTRY)
     endif
 
-    BOARD_UBOOT_LOAD := $(strip $(BOARD_UBOOT_LOAD))    
-    ifdef BOARD_UBOOT_LOAD
-        INTERNAL_RECOVERYIMAGE_ARGS += -a $(BOARD_UBOOT_LOAD)
-    endif
+# XXX somehow even though we don't define BOARD_UBOOT_LOAD, it's still
+# detected here and produces empty -a argument that confuses mkimage
+#    BOARD_UBOOT_LOAD := $(strip $(BOARD_UBOOT_LOAD))    
+#    ifdef BOARD_UBOOT_LOAD
+#        INTERNAL_RECOVERYIMAGE_ARGS += -a $(BOARD_UBOOT_LOAD)
+#    endif
 
     recovery_kernel := $(INSTALLED_KERNEL_TARGET) # hard-coded for tenderloin
 
@@ -118,5 +119,4 @@ $(INSTALLED_RECOVERYIMAGE_TARGET): $(recovery_uboot_ramdisk) $(recovery_kernel)
 	zip -qDj $@ $(recovery_uboot_ramdisk) $(recovery_kernel)
 	@echo ----- Made recovery image \(zip\) -------- $@
 
-endif
 endif
