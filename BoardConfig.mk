@@ -89,6 +89,9 @@ TARGET_RELEASETOOL_OTA_FROM_TARGET_SCRIPT := device/hp/tenderloin/releasetools/t
 BOARD_USES_UBOOT := true
 BOARD_USES_UBOOT_MULTIIMAGE := true
 
+# use dosfsck from dosfstools
+BOARD_USES_CUSTOM_FSCK_MSDOS := true
+
 # Define Prebuilt kernel locations
 TARGET_PREBUILT_KERNEL := device/hp/tenderloin/prebuilt/boot/kernel
 

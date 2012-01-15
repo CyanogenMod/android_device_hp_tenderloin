@@ -88,6 +88,7 @@ PRODUCT_PACKAGES += \
     sensors.tenderloin \
     lights.tenderloin \
     ts_srv \
+    dosfsck \
     bcattach \
     serial \
     com.android.future.usb.accessory
