@@ -40,7 +40,6 @@ MAKEFILE=../../../$OUTDIR/$DEVICE-vendor-blobs.mk
 PRODUCT_COPY_FILES += \\
     $OUTDIR/proprietary/lib/libcamera.so:obj/lib/libcamera.so \\
     $OUTDIR/proprietary/lib/libaudio.so:obj/lib/libaudio.so \\
-    $OUTDIR/proprietary/lib/libaudioalsa.so:obj/lib/libaudioalsa.so \\
     $OUTDIR/proprietary/lib/libaudiopolicy.so:obj/lib/libaudiopolicy.so \\
 	$OUTDIR/proprietary/lib/liba2dp.so:obj/lib/liba2dp.so
 
@@ -53,7 +52,7 @@ PRODUCT_PACKAGES := \\
     librs_jni
 
 # Publish that we support the live wallpaper feature.
-PRODUCT_COPY_FILES := \\
+PRODUCT_COPY_FILES += \\
     packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:/system/etc/permissions/android.software.live_wallpaper.xml
 
 PRODUCT_COPY_FILES += \\
