@@ -57,8 +57,10 @@ on init
     chown system system /dev/mpuirq
     chown system system /dev/timerirq
 
+    chmod 0664 /dev/lm8502
     chmod 0664 /sys/class/leds/core_navi_left/brightness
     chmod 0664 /sys/class/leds/core_navi_right/brightness
+    chown system system /dev/lm8502
     chown system system /sys/class/leds/core_navi_left/brightness
     chown system system /sys/class/leds/core_navi_right/brightness
 

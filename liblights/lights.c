@@ -35,11 +35,23 @@ static pthread_once_t g_init = PTHREAD_ONCE_INIT;
 static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
 
 char const *const LCD_FILE = "/sys/class/leds/lcd-backlight/brightness";
-char const *const LED_FILE_RIGHT = 
-                        "/sys/class/leds/core_navi_right/brightness";
-char const *const LED_FILE_LEFT = 
-                        "/sys/class/leds/core_navi_left/brightness";
+char const *const LED_FILE = "/dev/lm8502";
 
+/* copied from kernel include/linux/i2c_lm8502_led.h */
+#define LM8502_DOWNLOAD_MICROCODE       1
+#define LM8502_START_ENGINE             9
+#define LM8502_STOP_ENGINE              3
+#define LM8502_WAIT_FOR_ENGINE_STOPPED  8
+
+/* LED engine programs */
+static const uint16_t notif_led_program_pulse[] = {
+    0x9c0f, 0x9c8f, 0xe004, 0x4000, 0x047f, 0x4c00, 0x057f, 0x4c00,
+    0x047f, 0x4c00, 0x057f, 0x7c00, 0xa30a, 0x0000, 0x0000, 0x0007,
+    0x9c1f, 0x9c9f, 0xe080, 0x03ff, 0xc800
+};
+static const uint16_t notif_led_program_reset[] = {
+    0x9c0f, 0x9c8f, 0x03ff, 0xc000
+};
 
 /** TS power stuff */
 static int vdd_fd, xres_fd, wake_fd, i2c_fd, ts_state;
@@ -177,23 +189,100 @@ static int rgb_to_brightness(struct light_state_t const *state)
 		+ (150*((color>>8) & 0x00ff)) + (29*(color & 0x00ff))) >> 8;
 }
 
+static void init_notification_led(void)
+{
+	uint16_t microcode[96];
+	int fd;
+
+	memset(microcode, 0, sizeof(microcode));
+
+	fd = open(LED_FILE, O_RDWR);
+	if (fd < 0) {
+		LOGE("Cannot open notification LED device - %d", errno);
+		return;
+	}
+
+	/* download microcode */
+	if (ioctl(fd, LM8502_DOWNLOAD_MICROCODE, microcode) < 0) {
+		LOGE("Cannot download LED microcode - %d", errno);
+		return;
+	}
+	if (ioctl(fd, LM8502_STOP_ENGINE, 1) < 0) {
+		LOGE("Cannot stop LED engine 1 - %d", errno);
+	}
+	if (ioctl(fd, LM8502_STOP_ENGINE, 2) < 0) {
+		LOGE("Cannot stop LED engine 2 - %d", errno);
+	}
+
+	close(fd);
+}
+
 static int set_light_notifications(struct light_device_t* dev,
 			struct light_state_t const* state)
 {
-	int brightness =  rgb_to_brightness(state);
-	int v = 0;
-	int ret = 0;
+	int on = state->color & 0x00ffffff;
+	uint16_t microcode[96];
+	int fd, ret;
+
+	LOGI("%sabling notification light", on ? "En" : "Dis");
+	memset(microcode, 0, sizeof(microcode));
+	if (on) {
+		memcpy(microcode, notif_led_program_pulse, sizeof(notif_led_program_pulse));
+	} else {
+		memcpy(microcode, notif_led_program_reset, sizeof(notif_led_program_reset));
+	}
+
 	pthread_mutex_lock(&g_lock);
 
-	if (brightness+state->color == 0 || brightness > 100) {
-		if (state->color & 0x00ffffff)
-			v = 100;
-	} else
-		v = 0;
+	fd = open(LED_FILE, O_RDWR);
+	if (fd < 0) {
+		LOGE("Opening %s failed - %d", LED_FILE, errno);
+		ret = -errno;
+	} else {
+		ret = 0;
 
-	LOGI("color %u fm %u status %u is lit %u brightness", state->color, state->flashMode, v, (state->color & 0x00ffffff), brightness);
-	ret = write_int(LED_FILE_RIGHT, v);
-    write_int(LED_FILE_LEFT, v);
+		/* download microcode */
+		if (ioctl(fd, LM8502_DOWNLOAD_MICROCODE, microcode) < 0) {
+			LOGE("Copying notification microcode failed - %d", errno);
+			ret = -errno;
+		}
+		if (ret == 0 && on) {
+			if (ioctl(fd, LM8502_START_ENGINE, 2) < 0) {
+				LOGE("Starting notification LED engine 2 failed - %d", errno);
+				ret = -errno;
+			}
+		}
+		if (ret == 0) {
+			if (ioctl(fd, LM8502_START_ENGINE, 1) < 0) {
+				LOGE("Starting notification LED engine 1 failed - %d", errno);
+				ret = -errno;
+			}
+		}
+		if (ret == 0 && !on) {
+		    LOGI("stop engine 1");
+			if (ioctl(fd, LM8502_STOP_ENGINE, 1) < 0) {
+				LOGE("Stopping notification LED engine 1 failed - %d", errno);
+				ret = -errno;
+			}
+			if (ioctl(fd, LM8502_STOP_ENGINE, 2) < 0) {
+				LOGE("Stopping notification LED engine 2 failed - %d", errno);
+				ret = -errno;
+			}
+		}
+		if (ret == 0 && !on) {
+			LOGD("Waiting for notification LED engine to stop after reset");
+			int state;
+			/* make sure the reset is complete */
+			if (ioctl(fd, LM8502_WAIT_FOR_ENGINE_STOPPED, &state) < 0) {
+				LOGW("Waiting for notification LED reset failed - %d", errno);
+				ret = -errno;
+			}
+			LOGD("Notification LED reset finished with stop state %d", state);
+		}
+
+		close(fd);
+	}
+
 	pthread_mutex_unlock(&g_lock);
 	return ret;
 }
@@ -270,6 +359,8 @@ static int open_lights(const struct hw_module_t *module, char const *name,
 	LOGE_IF(wake_fd < 0, "TScontrol: Cannot open wake - %d", errno);
 	i2c_fd = open("/dev/i2c-5", O_RDWR);
 	LOGE_IF(i2c_fd < 0, "TScontrol: Cannot open i2c dev - %d", errno);
+
+	init_notification_led();
 
 	return 0;
 }
