@@ -82,6 +82,7 @@ TARGET_USE_SCORPION_BIONIC_OPTIMIZATION := true
 
 BOARD_NEEDS_CUTILS_LOG := true
 
+TARGET_PROVIDES_RELEASETOOLS := true
 TARGET_RELEASETOOL_IMG_FROM_TARGET_SCRIPT := device/hp/tenderloin/releasetools/tenderloin_img_from_target_files
 TARGET_RELEASETOOL_OTA_FROM_TARGET_SCRIPT := device/hp/tenderloin/releasetools/tenderloin_ota_from_target_files
 
@@ -91,8 +92,7 @@ BOARD_USES_UBOOT_MULTIIMAGE := true
 # Define Prebuilt kernel locations
 TARGET_PREBUILT_KERNEL := device/hp/tenderloin/prebuilt/boot/kernel
 
-# clockworkmod
-TARGET_NO_RECOVERY := true
+TARGET_RECOVERY_INITRC := device/hp/tenderloin/recovery/init.rc
 
 TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/usb_mass_storage/lun0/file
 
@@ -111,7 +111,6 @@ BOARD_USES_MMCUTILS := true
 BOARD_HAS_NO_MISC_PARTITION := true
 BOARD_HAS_NO_SELECT_BUTTON := true
 BOARD_CUSTOM_GRAPHICS:= ../../../device/hp/tenderloin/graphics.c
-BOARD_USES_RECOVERY_CHARGEMODE := true
 BOARD_CUSTOM_BOOTIMG_MK := device/hp/tenderloin/uboot-bootimg.mk
 
 # Multiboot stuff
