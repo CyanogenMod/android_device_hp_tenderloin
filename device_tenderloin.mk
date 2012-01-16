@@ -16,14 +16,14 @@
 
 ## (1) First, the most specific values, i.e. the aspects that are specific to GSM
 PRODUCT_PROPERTY_OVERRIDES += \
-    ro.sf.lcd_density=132 \
+    ro.sf.lcd_density=160 \
     ro.com.google.networklocation=1 \
     dalvik.vm.lockprof.threshold=500 \
     dalvik.vm.dexopt-flags=m=y
 
 PRODUCT_CHARACTERISTICS := tablet
 
-PRODUCT_AAPT_CONFIG := xlarge mdpi
+PRODUCT_AAPT_CONFIG := large mdpi
 
 PRODUCT_PACKAGES += \
 	make_ext4fs
