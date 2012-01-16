@@ -29,6 +29,7 @@
 #include <linux/input.h>
 #include <linux/uinput.h>
 #include <linux/hsuart.h>
+#include <sched.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/time.h>
@@ -563,6 +564,13 @@ int main(int argc, char** argv)
 	char recv_buf[RECV_BUF_SIZE];
 	fd_set fdset;
 	struct timeval seltmout;
+	struct sched_param sparam = { .sched_priority = 99 /* linux maximum, nonportable */};
+
+	/* We set ts server priority to RT so that there is no delay in
+	 * in obtaining input and we are NEVER bumped from CPU until we
+	 * give it up ourselves. */
+	if (sched_setscheduler(0 /* that's us */, SCHED_FIFO, &sparam))
+		perror("Cannot set RT priority, ignoring: ");
 	
 	uart_fd = open("/dev/ctp_uart", O_RDONLY|O_NONBLOCK);
 	if(uart_fd<=0)
