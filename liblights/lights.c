@@ -151,8 +151,19 @@ try_again:
         lseek(vdd_fd, 0, SEEK_SET);
         rc = write(vdd_fd, "0", 1);
 	LOGE_IF(rc != 1, "TSpower, failed to disable vdd");
+
+	/* Weird, but on 4G touchpads even after vdd is off there is still
+	 * stream of data from ctp that only disappears after we reset the
+	 * touchscreen, even though it's supposedly powered off already
+	 */
+        lseek(xres_fd, 0, SEEK_SET);
+        rc = write(xres_fd, "1", 1);
+	usleep(10000);
+        lseek(xres_fd, 0, SEEK_SET);
+        rc = write(xres_fd, "0", 1);
         /* XXX, should be correllated with LIFTOFF_TIMEOUT in ts driver */
         usleep(80000);
+
     }
 }
 
