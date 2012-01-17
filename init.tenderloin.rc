@@ -48,6 +48,7 @@ on post-fs
 
 on init
 
+    chmod 0666 /proc/net/xt_qtaguid/ctrl
     chmod 0660 /dev/ctp_uart
     # for Invense MPU3050
     chmod 0664 /dev/mpu
