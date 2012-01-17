@@ -17,7 +17,7 @@ debug.enabletr=false
 com.qc.hardware=true
 
 #c2d
-debug.composition.type=c2d
+debug.composition.type=cpu
 #ro.sf.compbypass.enable=1
 #debug.overlayui.enable=0
 
