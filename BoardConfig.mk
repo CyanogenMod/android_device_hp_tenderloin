@@ -4,7 +4,7 @@
 TARGET_SPECIFIC_HEADER_PATH := device/hp/tenderloin/include 
 
 # We have so much memory 3:1 split is detrimental to us.
-#TARGET_USES_2G_VM_SPLIT := true
+TARGET_USES_2G_VM_SPLIT := true
 
 TARGET_NO_BOOTLOADER := true
 TARGET_NO_KERNEL := false
