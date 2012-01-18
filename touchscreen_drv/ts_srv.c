@@ -251,7 +251,7 @@ void calc_point()
 		}
 		
 		// calculate new touch near the found candidate
-		if(newtp && tpc < 10) {
+		if(newtp && tpc < MAX_TOUCH) {
 			tweight=0;
 			isum=0;
 			jsum=0;
