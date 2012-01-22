@@ -67,6 +67,7 @@
 
 #define MAX_TOUCH 10
 #define MAX_CLIST 75
+#define MAX_DELTA 25 // this value is squared to prevent the need to use sqrt
 
 unsigned char cline[64];
 unsigned int cidx=0;
@@ -178,7 +179,7 @@ int avg_filter(struct touchpoint *t) {
 }
 #endif //AVG_FILTER
 
-void calc_point()
+int calc_point()
 {
 	int i,j;
 	int tweight=0;
@@ -186,19 +187,19 @@ void calc_point()
 	float isum=0, jsum=0;
 	float avgi, avgj;
 	float powered;
-	
+	static int previoustpc;
 	int clc=0;
 	struct candidate clist[MAX_CLIST];
 
     //Record values for processing later
-	for(tpc=0; tpc < MAX_TOUCH; tpc++) {
-		prev2tpoint[tpc].i = prevtpoint[tpc].i;
-		prev2tpoint[tpc].j = prevtpoint[tpc].j;
-		prevtpoint[tpc].i = tpoint[tpc].i;
-		prevtpoint[tpc].j = tpoint[tpc].j;
-		prevtpoint[tpc].pw = tpoint[tpc].pw;
+	for(i=0; i < MAX_TOUCH; i++) {
+		prev2tpoint[i].i = prevtpoint[i].i;
+		prev2tpoint[i].j = prevtpoint[i].j;
+		prev2tpoint[i].pw = prevtpoint[i].pw;
+		prevtpoint[i].i = tpoint[i].i;
+		prevtpoint[i].j = tpoint[i].j;
+		prevtpoint[i].pw = tpoint[i].pw;
 	}
-    tpc = 0;
 
 	// generate list of high values
 	for(i=0; i < 30; i++) {
@@ -288,25 +289,59 @@ void calc_point()
 		}
 	}
 
+	/* filter touches for impossibly large moves that indicate a liftoff and
+	 * re-touch */
+	for (k = 0; k < tpc; k++) {
+		if (tpoint[k].isValid) {
+			float smallest_delta = 1000; // set to impossibly large number
+			int smallest_delta_location;
+			for (l = 0; l < tpc; l++) {
+				if (tpoint[l].isValid) {
+					float deltai, deltaj, total_delta;
+					deltai = tpoint[k].i - prevtpoint[l].i;
+					deltaj = tpoint[k].j - prevtpoint[l].j;
+					total_delta = (deltai * deltai) + (deltaj * deltaj); // calculate hypotenuse
+					if (total_delta < smallest_delta) {
+						smallest_delta = total_delta;
+						smallest_delta_location = l;
+					}
+				}
+			}
+			if (smallest_delta > MAX_DELTA && previoustpc == 1 && tpc == 1) {
+				/* Previous code did not send any liftoffs unless all touches
+				 * were lifted. For now we send a liftoff without a tracking
+				 * ID when there are only 1 touch involved */
+				send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 0);
+				send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
+				send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
+#if DEBUG
+				printf("smallest_delta %lf\n", smallest_delta);
+#endif
+			}
+		}
+	}
+
 	//report touches
-	for (tpc = 0; tpc < MAX_TOUCH; tpc++) {
-		if (tpoint[tpc].isValid) {
+	for (k = 0; k < tpc; k++) {
+		if (tpoint[k].isValid) {
 #if AVG_FILTER
-			avg_filter(&tpoint[tpc]);
+			avg_filter(&tpoint[k]);
 #endif //AVG_FILTER
 			send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 1);
 #if USERSPACE_270_ROTATE
-			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, tpoint[tpc].i*768/29);
-			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, 1024-tpoint[tpc].j*1024/39);
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, tpoint[k].i*768/29);
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, 1024-tpoint[k].j*1024/39);
 #else
-			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, 768-tpoint[tpc].i*768/29);
-			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, 1024-tpoint[tpc].j*1024/39);
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, 768-tpoint[k].i*768/29);
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, 1024-tpoint[k].j*1024/39);
 #endif //USERSPACE_270_ROTATE
 			send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
-			tpoint[tpc].isValid = 0;
+			tpoint[k].isValid = 0;
         }
     }
 	send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
+	previoustpc = tpc; // store the touch count for the next run
+	return tpc; // return the touch count
 }
 #endif
 
@@ -355,7 +390,7 @@ void calc_point()
 }
 #endif
 
-int cline_valid(int extras);
+int cline_valid(unsigned int extras);
 void put_byte(unsigned char byte)
 {
 //	printf("Putc %d %d\n", cidx, byte);
@@ -368,7 +403,7 @@ void put_byte(unsigned char byte)
 	cline[cidx++] = byte;
 }
 
-int cline_valid(int extras)
+int cline_valid(unsigned int extras)
 {
 	if(cline[0] == 0xff && cline[1] == 0x43 && cidx == 44-extras)
 	{
@@ -383,14 +418,14 @@ int cline_valid(int extras)
 	return 0;
 }
 
-void consume_line()
+int consume_line()
 {
-	int i,j;
+	int i,j,ret=0;
 
 	if(cline[1] == 0x47)
 	{
 		//calculate the data points. all transfers complete
-		calc_point();
+		ret = calc_point();
 	}
 
 	if(cline[1] == 0x43)
@@ -414,11 +449,13 @@ void consume_line()
 			printf("%2.2X ",cline[i]);
 		printf("\n");	*/
 	cidx = 0;
+
+	return ret;
 }
 
-void snarf2(unsigned char* bytes, int size)
+int snarf2(unsigned char* bytes, int size)
 {
-	int i=0;
+	int i=0,ret=0;
 	while(i < size)
 	{
 		while(i < size)
@@ -436,21 +473,22 @@ void snarf2(unsigned char* bytes, int size)
 			break;
 
 //		printf("Cline went valid\n");
-		consume_line();
+		ret = consume_line();
 	}
 
 	if(cline_valid(0))
 	{
-		consume_line();
+		ret = consume_line();
 //		printf("was valid2\n");
 	}
+	return ret;
+	/* It's possible that this function might return a 0 when previously there
+	 * was a valid touch count, but in practice this doesn't appear to happen */
 }
 
 void open_uinput()
 {
     struct uinput_user_dev device;
-    struct input_event myevent;
-    int i,ret = 0;
 
     memset(&device, 0, sizeof device);
 
@@ -463,6 +501,7 @@ void open_uinput()
     device.id.version=1;
 
 #if WANT_SINGLETOUCH
+	int i;
     for (i=0; i < ABS_MAX; i++) {
         device.absmax[i] = -1;
         device.absmin[i] = -1;
@@ -557,11 +596,28 @@ void open_uinput()
 
 }
 
+void liftoff()
+{
+	// clears arrays and sends liftoff events - nothing is touching the screen
+	int i;
+	for(i=0; i<MAX_TOUCH; i++) {
+		tpoint[i].i = -10;
+		tpoint[i].j = -10;
+		prevtpoint[i].i = -10;
+		prevtpoint[i].j = -10;
+		prev2tpoint[i].i = -10;
+		prev2tpoint[i].j = -10;
+	}
+	send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 0);
+	send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
+	send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
+}
+
 int main(int argc, char** argv)
 {
 	struct hsuart_mode uart_mode;
-	int uart_fd, nbytes, i; 
-	char recv_buf[RECV_BUF_SIZE];
+	int uart_fd, nbytes;
+	unsigned char recv_buf[RECV_BUF_SIZE];
 	fd_set fdset;
 	struct timeval seltmout;
 	struct sched_param sparam = { .sched_priority = 99 /* linux maximum, nonportable */};
@@ -601,24 +657,10 @@ int main(int argc, char** argv)
 			printf("timeout! sending liftoff\n");
 #endif
 
-			int i;
-			for(i=0; i<MAX_TOUCH; i++) {
-				tpoint[i].i = -10;
-				tpoint[i].j = -10;
-				prevtpoint[i].i = -10;
-				prevtpoint[i].j = -10;
-				prev2tpoint[i].i = -10;
-				prev2tpoint[i].j = -10;
-			}
-//			send_uevent(uinput_fd, EV_ABS, ABS_MT_TOUCH_MAJOR, 0);
-			send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 0);
-
-            send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
-			send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
+			liftoff();
 
 			FD_ZERO(&fdset);
 			FD_SET(uart_fd, &fdset);
-
 			/* Now enter indefinite sleep iuntil input appears */
 			select(uart_fd+1, &fdset, NULL, NULL, NULL);
 			/* In case we were wrongly woken up check the event
@@ -632,12 +674,13 @@ int main(int argc, char** argv)
 			continue;
 #if DEBUG
 		printf("Received %d bytes\n", nbytes);
-		
+		int i;
 		for(i=0; i < nbytes; i++)
 			printf("%2.2X ",recv_buf[i]);
 		printf("\n");
 #endif
-		snarf2(recv_buf,nbytes);
+		if (!snarf2(recv_buf,nbytes))
+			liftoff(); // sometimes there is data, but no valid touches
 	}
 
 	return 0;
