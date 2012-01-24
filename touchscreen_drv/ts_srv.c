@@ -55,9 +55,6 @@
 /* Set to 1 to see raw data from the driver */
 #define RAW_DATA_DEBUG 0
 
-#define WANT_MULTITOUCH 1
-#define WANT_SINGLETOUCH 0
-
 #define AVG_FILTER 1
 
 #define USERSPACE_270_ROTATE 0
@@ -117,7 +114,6 @@ int dist(int x1, int y1, int x2, int y2)  {
 	return pow(x1 - x2, 2)+pow(y1 - y2, 2);
 }
 
-#if WANT_MULTITOUCH
 struct touchpoint tpoint[MAX_TOUCH];
 struct touchpoint prevtpoint[MAX_TOUCH];
 struct touchpoint prev2tpoint[MAX_TOUCH];
@@ -300,7 +296,8 @@ int calc_point()
 					float deltai, deltaj, total_delta;
 					deltai = tpoint[k].i - prevtpoint[l].i;
 					deltaj = tpoint[k].j - prevtpoint[l].j;
-					total_delta = (deltai * deltai) + (deltaj * deltaj); // calculate hypotenuse
+					// calculate squared hypotenuse
+					total_delta = (deltai * deltai) + (deltaj * deltaj);
 					if (total_delta < smallest_delta) {
 						smallest_delta = total_delta;
 						smallest_delta_location = l;
@@ -343,52 +340,6 @@ int calc_point()
 	previoustpc = tpc; // store the touch count for the next run
 	return tpc; // return the touch count
 }
-#endif
-
-#if WANT_SINGLETOUCH
-void calc_point()
-{
-	int i,j;
-	int tweight=0;
-	float xsum=0, ysum=0;
-	float avgx, avgy;
-	float powered;
-
-	for(i=0; i < 30; i++)
-	{
-		for(j=0; j < 40; j++)
-		{
-			if(matrix[i][j] < 3)
-				matrix[i][j] = 0;
-#if RAW_DATA_DEBUG
-			printf("%2.2X ", matrix[i][j]);
-#endif
-
-			powered = pow(matrix[i][j],1.5);
-			tweight += powered;
-			ysum += powered * j;
-			xsum += powered * i;
-		}
-#if RAW_DATA_DEBUG
-		printf("\n");
-#endif
-	}
-	avgx = xsum / (float)tweight;
-	avgy = ysum / (float)tweight;
-
-#if DEBUG
-	printf("Coords %lf, %lf, %d\n", avgx,avgy, tweight);
-#endif
-
-	/* Single touch signals */
-	send_uevent(uinput_fd, EV_ABS, ABS_X, avgx*768/29);
-	send_uevent(uinput_fd, EV_ABS, ABS_Y, 1024-avgy*1024/39);
-	send_uevent(uinput_fd, EV_ABS, ABS_PRESSURE, 1);
-	send_uevent(uinput_fd, EV_ABS, ABS_TOOL_WIDTH, 10);
-	send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 1);
-	send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
-}
-#endif
 
 int cline_valid(unsigned int extras);
 void put_byte(unsigned char byte)
@@ -500,29 +451,6 @@ void open_uinput()
     device.id.product=1;
     device.id.version=1;
 
-#if WANT_SINGLETOUCH
-	int i;
-    for (i=0; i < ABS_MAX; i++) {
-        device.absmax[i] = -1;
-        device.absmin[i] = -1;
-        device.absfuzz[i] = -1;
-        device.absflat[i] = -1;
-    }
-
-    device.absmin[ABS_X]=0;
-    device.absmax[ABS_X]=768;
-    device.absfuzz[ABS_X]=2;
-    device.absflat[ABS_X]=0;
-    device.absmin[ABS_Y]=0;
-    device.absmax[ABS_Y]=1024;
-    device.absfuzz[ABS_Y]=1;
-    device.absflat[ABS_Y]=0;
-    device.absmin[ABS_PRESSURE]=0;
-    device.absmax[ABS_PRESSURE]=255;
-    device.absfuzz[ABS_PRESSURE]=0;
-    device.absflat[ABS_PRESSURE]=0;
-#endif
-#if WANT_MULTITOUCH
 #if USERSPACE_270_ROTATE
     device.absmax[ABS_MT_POSITION_X]=768;
     device.absmax[ABS_MT_POSITION_Y]=1024;
@@ -536,8 +464,6 @@ void open_uinput()
     device.absflat[ABS_MT_POSITION_X]=0;
     device.absfuzz[ABS_MT_POSITION_Y]=1;
     device.absflat[ABS_MT_POSITION_Y]=0;
-#endif
-
 
     if (write(uinput_fd,&device,sizeof(device)) != sizeof(device))
     {
@@ -553,24 +479,9 @@ void open_uinput()
     if (ioctl(uinput_fd,UI_SET_EVBIT,EV_ABS) < 0)
             fprintf(stderr, "error evbit rel\n");
 
-#if WANT_SINGLETOUCH
-    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_X) < 0)
-            fprintf(stderr, "error x rel\n");
-
-    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_Y) < 0)
-            fprintf(stderr, "error y rel\n");
-
-    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_PRESSURE) < 0)
-            fprintf(stderr, "error pressure rel\n");
-
-    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_TOOL_WIDTH) < 0)
-            fprintf(stderr, "error tool rel\n");
-#endif
-
 //    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_TRACKING_ID) < 0)
 //            fprintf(stderr, "error trkid rel\n");
 
-#if WANT_MULTITOUCH
 /*    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_TOUCH_MAJOR) < 0)
             fprintf(stderr, "error tool rel\n");
 
@@ -582,12 +493,9 @@ void open_uinput()
 
     if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_POSITION_Y) < 0)
             fprintf(stderr, "error tool rel\n");
-#endif
 
-#if 1
     if (ioctl(uinput_fd,UI_SET_KEYBIT,BTN_TOUCH) < 0)
             fprintf(stderr, "error evbit rel\n");
-#endif
 
     if (ioctl(uinput_fd,UI_DEV_CREATE) < 0)
     {
