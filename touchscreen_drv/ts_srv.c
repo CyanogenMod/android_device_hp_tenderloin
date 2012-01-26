@@ -176,7 +176,15 @@ int avg_filter(struct touchpoint *t) {
 }
 #endif //AVG_FILTER
 
-int calc_point()
+void liftoff(void)
+{
+	// sends liftoff events - nothing is touching the screen
+	send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 0);
+	send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
+	send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
+}
+
+int calc_point(void)
 {
 	int i,j;
 	int tweight=0;
@@ -189,7 +197,7 @@ int calc_point()
 	struct candidate clist[MAX_CLIST];
 
     //Record values for processing later
-	for(i=0; i < MAX_TOUCH; i++) {
+	for(i=0; i < previoustpc; i++) {
 		prev2tpoint[i].i = prevtpoint[i].i;
 		prev2tpoint[i].j = prevtpoint[i].j;
 		prev2tpoint[i].pw = prevtpoint[i].pw;
@@ -288,35 +296,14 @@ int calc_point()
 
 	/* filter touches for impossibly large moves that indicate a liftoff and
 	 * re-touch */
-	for (k = 0; k < tpc; k++) {
-		if (tpoint[k].isValid) {
-			float smallest_delta = 1000; // set to impossibly large number
-			int smallest_delta_location;
-			for (l = 0; l < tpc; l++) {
-				if (tpoint[l].isValid) {
-					float deltai, deltaj, total_delta;
-					deltai = tpoint[k].i - prevtpoint[l].i;
-					deltaj = tpoint[k].j - prevtpoint[l].j;
-					// calculate squared hypotenuse
-					total_delta = (deltai * deltai) + (deltaj * deltaj);
-					if (total_delta < smallest_delta) {
-						smallest_delta = total_delta;
-						smallest_delta_location = l;
-					}
-				}
-			}
-			if (smallest_delta > MAX_DELTA && previoustpc == 1 && tpc == 1) {
-				/* Previous code did not send any liftoffs unless all touches
-				 * were lifted. For now we send a liftoff without a tracking
-				 * ID when there are only 1 touch involved */
-				send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 0);
-				send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
-				send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
-#if DEBUG
-				printf("smallest_delta %lf\n", smallest_delta);
-#endif
-			}
-		}
+	if (previoustpc == 1 && tpc == 1) {
+		float deltai, deltaj, total_delta;
+		deltai = tpoint[0].i - prevtpoint[0].i;
+		deltaj = tpoint[0].j - prevtpoint[0].j;
+		// calculate squared hypotenuse
+		total_delta = (deltai * deltai) + (deltaj * deltaj);
+		if (total_delta > MAX_DELTA)
+			liftoff();
 	}
 
 	//report touches
@@ -370,7 +357,7 @@ int cline_valid(unsigned int extras)
 	return 0;
 }
 
-int consume_line()
+int consume_line(void)
 {
 	int i,j,ret=0;
 
@@ -395,11 +382,6 @@ int consume_line()
 			matrix[cline[2] & 0x1F][i] = cline[i+3];
 	}
 
-//	printf("Received %d bytes\n", cidx-1);
-		
-/*		for(i=0; i < cidx; i++)
-			printf("%2.2X ",cline[i]);
-		printf("\n");	*/
 	cidx = 0;
 
 	return ret;
@@ -420,7 +402,7 @@ int snarf2(unsigned char* bytes, int size)
 	return ret;
 }
 
-void open_uinput()
+void open_uinput(void)
 {
     struct uinput_user_dev device;
 
@@ -487,9 +469,9 @@ void open_uinput()
 
 }
 
-void liftoff()
+void clear_arrays(void)
 {
-	// clears arrays and sends liftoff events - nothing is touching the screen
+	// clears arrays (for after a total liftoff occurs
 	int i;
 	for(i=0; i<MAX_TOUCH; i++) {
 		tpoint[i].i = -10;
@@ -499,9 +481,6 @@ void liftoff()
 		prev2tpoint[i].i = -10;
 		prev2tpoint[i].j = -10;
 	}
-	send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 0);
-	send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
-	send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
 }
 
 int main(int argc, char** argv)
@@ -548,6 +527,7 @@ int main(int argc, char** argv)
 			printf("timeout! sending liftoff\n");
 #endif
 
+			clear_arrays();
 			liftoff();
 
 			FD_ZERO(&fdset);
@@ -570,8 +550,11 @@ int main(int argc, char** argv)
 			printf("%2.2X ",recv_buf[i]);
 		printf("\n");
 #endif
-		if (!snarf2(recv_buf,nbytes))
-			liftoff(); // sometimes there is data, but no valid touches
+		if (!snarf2(recv_buf,nbytes)) {
+			// sometimes there is data, but no valid touches due to threshold
+			clear_arrays();
+			liftoff();
+		}
 	}
 
 	return 0;
