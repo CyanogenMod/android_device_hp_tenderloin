@@ -2,9 +2,7 @@
 
 export PATH=/system/xbin:/system/bin
 
-busybox mount / -o remount,rw
-mkdir /boot
-busybox mount /dev/block/mmcblk0p13 /boot
+busybox mount /boot -o remount,rw
 
 case "$1" in
     recovery)
@@ -20,5 +18,5 @@ esac
 # possibly we need to check if the target exists, but
 # currently moboot ignores invalid targets so we are good
 echo -n $CMD >/boot/moboot.next
-busybox umount /boot
 sync
+busybox umount /boot
