@@ -91,7 +91,8 @@ PRODUCT_PACKAGES += \
     dosfsck \
     bcattach \
     serial \
-    com.android.future.usb.accessory
+    com.android.future.usb.accessory \
+    rebootcmd
 
 # Keylayouts
 PRODUCT_COPY_FILES += \
