@@ -67,27 +67,9 @@
 #define MAX_DELTA 25 // this value is squared to prevent the need to use sqrt
 #define TOUCH_THRESHOLD 24 // threshold for what is considered a valid touch
 
-unsigned char cline[64];
-unsigned int cidx=0;
-unsigned char matrix[30][40]; 
-int uinput_fd;
-
-int send_uevent(int fd, __u16 type, __u16 code, __s32 value)
-{
-    struct input_event event;
-
-    memset(&event, 0, sizeof(event));
-    event.type = type;
-    event.code = code;
-    event.value = value;
-
-    if (write(fd, &event, sizeof(event)) != sizeof(event)) {
-        fprintf(stderr, "Error on send_event %d", sizeof(event));
-        return -1;
-    }
-
-    return 0;
-}
+#define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
+#define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
+#define isBetween(A, B, C) ( ((A-B) > 0) && ((A-C) < 0) )
 
 
 struct candidate {
@@ -100,24 +82,45 @@ struct touchpoint {
 	int pw;
 	float i;
 	float j;
-    unsigned short isValid;
+	unsigned short isValid;
 };
+
+struct touchpoint tpoint[MAX_TOUCH];
+struct touchpoint prevtpoint[MAX_TOUCH];
+struct touchpoint prev2tpoint[MAX_TOUCH];
+
+unsigned char cline[64];
+unsigned int cidx=0;
+unsigned char matrix[30][40];
+int uinput_fd;
+
+int send_uevent(int fd, __u16 type, __u16 code, __s32 value)
+{
+	struct input_event event;
+
+	memset(&event, 0, sizeof(event));
+	event.type = type;
+	event.code = code;
+	event.value = value;
+
+	if (write(fd, &event, sizeof(event)) != sizeof(event)) {
+		fprintf(stderr, "Error on send_event %d", sizeof(event));
+		return -1;
+	}
+
+	return 0;
+}
+
 
 int tpcmp(const void *v1, const void *v2)
 {
-    return ((*(struct candidate *)v2).pw - (*(struct candidate *)v1).pw);
+	return ((*(struct candidate *)v2).pw - (*(struct candidate *)v1).pw);
 }
-#define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
-#define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
-#define isBetween(A, B, C) ( ((A-B) > 0) && ((A-C) < 0) )
 
 int dist(int x1, int y1, int x2, int y2)  {
 	return pow(x1 - x2, 2)+pow(y1 - y2, 2);
 }
 
-struct touchpoint tpoint[MAX_TOUCH];
-struct touchpoint prevtpoint[MAX_TOUCH];
-struct touchpoint prev2tpoint[MAX_TOUCH];
 
 #if AVG_FILTER
 int isClose(struct touchpoint a, struct touchpoint b)
@@ -127,8 +130,8 @@ int isClose(struct touchpoint a, struct touchpoint b)
 	return 0;
 }
 
-//return 1 if b is closer
-//return 2 if c is closer
+// return 1 if b is closer
+// return 2 if c is closer
 int find_closest(struct touchpoint a, struct touchpoint b, struct touchpoint c)
 {
 	int diffB = fabs(a.i - b.i) + fabs(a.j - b.j);
@@ -157,8 +160,8 @@ int avg_filter(struct touchpoint *t) {
 			if(tp2_found < 0) {
 				tp2_found = i;
 			} else {
-                if (find_closest(*t, prev2tpoint[tp2_found], prev2tpoint[i]) == 2)
-                    tp2_found = i;
+				if (find_closest(*t, prev2tpoint[tp2_found], prev2tpoint[i]) == 2)
+					tp2_found = i;
 			}
 		}
 	}
@@ -170,11 +173,11 @@ int avg_filter(struct touchpoint *t) {
 		t->j = (t->j + prevtpoint[tp1_found].j + prev2tpoint[tp2_found].j) / 3.0;
 	}
 #if DEBUG
-    printf("|||| after: i=%f, j=%f\n", t->i, t->j);
+	printf("|||| after: i=%f, j=%f\n", t->i, t->j);
 #endif
 	return 0;
 }
-#endif //AVG_FILTER
+#endif // AVG_FILTER
 
 void liftoff(void)
 {
@@ -186,7 +189,7 @@ void liftoff(void)
 
 int calc_point(void)
 {
-	int i,j;
+	int i,j,k,l;
 	int tweight=0;
 	int tpc=0;
 	float isum=0, jsum=0;
@@ -196,7 +199,7 @@ int calc_point(void)
 	int clc=0;
 	struct candidate clist[MAX_CLIST];
 
-    //Record values for processing later
+	// Record values for processing later
 	for(i=0; i < previoustpc; i++) {
 		prev2tpoint[i].i = prevtpoint[i].i;
 		prev2tpoint[i].j = prevtpoint[i].j;
@@ -217,7 +220,7 @@ int calc_point(void)
 				clist[clc].pw = matrix[i][j];
 				clist[clc].i = i;
 				clist[clc].j = j;
-				//check if local maxima
+				// check if local maxima
 				if(i>0  && matrix[i-1][j] > matrix[i][j]) cvalid = 0;
 				if(i<29 && matrix[i+1][j] > matrix[i][j]) cvalid = 0;
 				if(j>0  && matrix[i][j-1] > matrix[i][j]) cvalid = 0;
@@ -240,10 +243,8 @@ int calc_point(void)
 	printf("%d %d %d \n", clist[0].pw, clist[1].pw, clist[2].pw);
 #endif
 
-	int k, l;
 	for(k=0; k < MIN(clc, 20); k++) {
 		int newtp=1;
-
 		int rad=3; // radius around candidate to use for calculation
 		int mini = clist[k].i - rad+1;
 		int maxi = clist[k].i + rad;
@@ -253,7 +254,7 @@ int calc_point(void)
 		// discard points close to already detected touches
 		for(l=0; l<tpc; l++) {
 			if(tpoint[l].i >= mini+1 && tpoint[l].i < maxi-1 && tpoint[l].j >= minj+1 && tpoint[l].j < maxj-1)
-                newtp=0;
+				newtp=0;
 		}
 		
 		// calculate new touch near the found candidate
@@ -306,12 +307,12 @@ int calc_point(void)
 			liftoff();
 	}
 
-	//report touches
+	// report touches
 	for (k = 0; k < tpc; k++) {
 		if (tpoint[k].isValid) {
 #if AVG_FILTER
 			avg_filter(&tpoint[k]);
-#endif //AVG_FILTER
+#endif // AVG_FILTER
 			send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 1);
 #if USERSPACE_270_ROTATE
 			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, tpoint[k].i*768/29);
@@ -319,65 +320,62 @@ int calc_point(void)
 #else
 			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, 768-tpoint[k].i*768/29);
 			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, 1024-tpoint[k].j*1024/39);
-#endif //USERSPACE_270_ROTATE
+#endif // USERSPACE_270_ROTATE
 			send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
 			tpoint[k].isValid = 0;
-        }
-    }
+		}
+	}
+
 	send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
 	previoustpc = tpc; // store the touch count for the next run
 	return tpc; // return the touch count
 }
 
-int cline_valid(unsigned int extras);
-void put_byte(unsigned char byte)
-{
-//	printf("Putc %d %d\n", cidx, byte);
-	if(cidx==0 && byte != 0xFF)
-		return;
-
-	//Sometimes a send is aborted by the touch screen. all we get is an out of place 0xFF
-	if(byte == 0xFF && !cline_valid(1))
-		cidx = 0;
-	cline[cidx++] = byte;
-}
 
 int cline_valid(unsigned int extras)
 {
-	if(cline[0] == 0xff && cline[1] == 0x43 && cidx == 44-extras)
-	{
-//		printf("cidx %d\n", cline[cidx-1]);
+	if(cline[0] == 0xff && cline[1] == 0x43 && cidx == 44-extras) {
+		//printf("cidx %d\n", cline[cidx-1]);
 		return 1;
 	}
-	if(cline[0] == 0xff && cline[1] == 0x47 && cidx > 4 && cidx == (cline[2]+4-extras))
-	{
-//		printf("cidx %d\n", cline[cidx-1]);
+	if(cline[0] == 0xff && cline[1] == 0x47 && cidx > 4 && cidx == (cline[2]+4-extras)) {
+		//printf("cidx %d\n", cline[cidx-1]);
 		return 1;
 	}
 	return 0;
+}
+
+void put_byte(unsigned char byte)
+{
+	//printf("Putc %d %d\n", cidx, byte);
+	if(cidx==0 && byte != 0xFF)
+		return;
+
+	// Sometimes a send is aborted by the touch screen. all we get is an out of place 0xFF
+	if(byte == 0xFF && !cline_valid(1))
+		cidx = 0;
+
+	cline[cidx++] = byte;
 }
 
 int consume_line(void)
 {
 	int i,j,ret=0;
 
-	if(cline[1] == 0x47)
-	{
-		//calculate the data points. all transfers complete
+	if(cline[1] == 0x47) {
+		// calculate the data points. all transfers complete
 		ret = calc_point();
 	}
 
-	if(cline[1] == 0x43)
-	{
-		//This is a start event. clear the matrix
-		if(cline[2] & 0x80)
-		{
+	if(cline[1] == 0x43) {
+		// This is a start event. clear the matrix
+		if(cline[2] & 0x80) {
 			for(i=0; i < 30; i++)
 				for(j=0; j < 40; j++)
 					matrix[i][j] = 0;
 		}
 
-		//Write the line into the matrix
+		// Write the line into the matrix
 		for(i=0; i < 40; i++)
 			matrix[cline[2] & 0x1F][i] = cline[i+3];
 	}
@@ -389,12 +387,10 @@ int consume_line(void)
 
 int snarf2(unsigned char* bytes, int size)
 {
-	int i=0,ret=0;
+	int i,ret=0;
 
-	while(i < size)
-	{
+	for(i=0; i < size; i++) {
 		put_byte(bytes[i]);
-		i++;
 		if(cline_valid(0))
 			ret += consume_line();
 	}
@@ -404,69 +400,65 @@ int snarf2(unsigned char* bytes, int size)
 
 void open_uinput(void)
 {
-    struct uinput_user_dev device;
+	struct uinput_user_dev device;
 
-    memset(&device, 0, sizeof device);
+	memset(&device, 0, sizeof device);
 
-    uinput_fd=open(UINPUT_LOCATION,O_WRONLY);
-    strcpy(device.name,"HPTouchpad");
+	uinput_fd=open(UINPUT_LOCATION,O_WRONLY);
+	strcpy(device.name,"HPTouchpad");
 
-    device.id.bustype=BUS_VIRTUAL;
-    device.id.vendor=1;
-    device.id.product=1;
-    device.id.version=1;
+	device.id.bustype=BUS_VIRTUAL;
+	device.id.vendor=1;
+	device.id.product=1;
+	device.id.version=1;
 
 #if USERSPACE_270_ROTATE
-    device.absmax[ABS_MT_POSITION_X]=768;
-    device.absmax[ABS_MT_POSITION_Y]=1024;
+	device.absmax[ABS_MT_POSITION_X]=768;
+	device.absmax[ABS_MT_POSITION_Y]=1024;
 #else
-    device.absmax[ABS_MT_POSITION_X]=1024;
-    device.absmax[ABS_MT_POSITION_Y]=768;
+	device.absmax[ABS_MT_POSITION_X]=1024;
+	device.absmax[ABS_MT_POSITION_Y]=768;
 #endif // USERSPACE_270_ROTATE
-    device.absmin[ABS_MT_POSITION_X]=0;
-    device.absmin[ABS_MT_POSITION_Y]=0;
-    device.absfuzz[ABS_MT_POSITION_X]=2;
-    device.absflat[ABS_MT_POSITION_X]=0;
-    device.absfuzz[ABS_MT_POSITION_Y]=1;
-    device.absflat[ABS_MT_POSITION_Y]=0;
+	device.absmin[ABS_MT_POSITION_X]=0;
+	device.absmin[ABS_MT_POSITION_Y]=0;
+	device.absfuzz[ABS_MT_POSITION_X]=2;
+	device.absflat[ABS_MT_POSITION_X]=0;
+	device.absfuzz[ABS_MT_POSITION_Y]=1;
+	device.absflat[ABS_MT_POSITION_Y]=0;
 
-    if (write(uinput_fd,&device,sizeof(device)) != sizeof(device))
-    {
-        fprintf(stderr, "error setup\n");
-    }
+	if (write(uinput_fd,&device,sizeof(device)) != sizeof(device))
+		fprintf(stderr, "error setup\n");
 
-    if (ioctl(uinput_fd,UI_SET_EVBIT,EV_KEY) < 0)
-        fprintf(stderr, "error evbit key\n");
+	if (ioctl(uinput_fd,UI_SET_EVBIT,EV_KEY) < 0)
+		fprintf(stderr, "error evbit key\n");
 
-    if (ioctl(uinput_fd,UI_SET_EVBIT, EV_SYN) < 0)
-        fprintf(stderr, "error evbit key\n");
+	if (ioctl(uinput_fd,UI_SET_EVBIT, EV_SYN) < 0)
+		fprintf(stderr, "error evbit key\n");
 
-    if (ioctl(uinput_fd,UI_SET_EVBIT,EV_ABS) < 0)
-            fprintf(stderr, "error evbit rel\n");
+	if (ioctl(uinput_fd,UI_SET_EVBIT,EV_ABS) < 0)
+		fprintf(stderr, "error evbit rel\n");
 
-//    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_TRACKING_ID) < 0)
-//            fprintf(stderr, "error trkid rel\n");
+	//if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_TRACKING_ID) < 0)
+		//fprintf(stderr, "error trkid rel\n");
 
-/*    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_TOUCH_MAJOR) < 0)
-            fprintf(stderr, "error tool rel\n");
+	/*
+	if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_TOUCH_MAJOR) < 0)
+		fprintf(stderr, "error tool rel\n");
 
-    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_WIDTH_MAJOR) < 0)
-            fprintf(stderr, "error tool rel\n");
-*/
-    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_POSITION_X) < 0)
-            fprintf(stderr, "error tool rel\n");
+	if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_WIDTH_MAJOR) < 0)
+		fprintf(stderr, "error tool rel\n");
+	*/
+	if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_POSITION_X) < 0)
+		fprintf(stderr, "error tool rel\n");
 
-    if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_POSITION_Y) < 0)
-            fprintf(stderr, "error tool rel\n");
+	if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_POSITION_Y) < 0)
+		fprintf(stderr, "error tool rel\n");
 
-    if (ioctl(uinput_fd,UI_SET_KEYBIT,BTN_TOUCH) < 0)
-            fprintf(stderr, "error evbit rel\n");
+	if (ioctl(uinput_fd,UI_SET_KEYBIT,BTN_TOUCH) < 0)
+		fprintf(stderr, "error evbit rel\n");
 
-    if (ioctl(uinput_fd,UI_DEV_CREATE) < 0)
-    {
-        fprintf(stderr, "error create\n");
-    }
-
+	if (ioctl(uinput_fd,UI_DEV_CREATE) < 0)
+		fprintf(stderr, "error create\n");
 }
 
 void clear_arrays(void)
@@ -497,10 +489,9 @@ int main(int argc, char** argv)
 	 * give it up ourselves. */
 	if (sched_setscheduler(0 /* that's us */, SCHED_FIFO, &sparam))
 		perror("Cannot set RT priority, ignoring: ");
-	
+
 	uart_fd = open("/dev/ctp_uart", O_RDONLY|O_NONBLOCK);
-	if(uart_fd<=0)
-	{
+	if(uart_fd<=0) {
 		printf("Could not open uart\n");
 		return 0;
 	}
@@ -513,8 +504,7 @@ int main(int argc, char** argv)
 
 	ioctl(uart_fd, HSUART_IOCTL_FLUSH, 0x9);
 
-	while(1)
-	{
+	while(1) {
 		FD_ZERO(&fdset);
 		FD_SET(uart_fd, &fdset);
 		seltmout.tv_sec = 0;
