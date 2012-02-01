@@ -16,7 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  * 02110-1301, USA.
  *
- * The code was written from scrath, the hard math and understanding the
+ * The code was written from scratch, the hard math and understanding the
  * device output by jonpry @ gmail
  * uinput bits and the rest by Oleg Drokin green@linuxhacker.ru
  * Multitouch detection by Rafael Brune mail@rbrune.de
@@ -54,6 +54,14 @@
 
 /* Set to 1 to see raw data from the driver */
 #define RAW_DATA_DEBUG 0
+// Removes values below threshold for easy reading, set to 0 to see everything.
+// A value of 2 should remove most unwanted output
+#define RAW_DATA_THRESHOLD 0
+
+// Set to 1 to see event logging
+#define EVENT_DEBUG 0
+// Set to 1 to enable tracking ID logging
+#define TRACK_ID_DEBUG 0
 
 #define AVG_FILTER 1
 
@@ -62,41 +70,189 @@
 #define RECV_BUF_SIZE 1540
 #define LIFTOFF_TIMEOUT 25000
 
-#define MAX_TOUCH 10
-#define MAX_CLIST 75
-#define MAX_DELTA 25 // this value is squared to prevent the need to use sqrt
-#define TOUCH_THRESHOLD 24 // threshold for what is considered a valid touch
+#define MAX_TOUCH 10 // Max touches that will be reported
 
+#define MAX_DELTA_FILTER 1 // Set to 1 to use max delta filtering
+// This value determines when a large distance change between one touch
+// and another will be reported as 2 separate touches instead of a swipe.
+// This distance is in pixels.
+#define MAX_DELTA 130
+// If we exceed MAX_DELTA, we'll check the previous touch point to see if
+// it was moving fairly far.  If the previous touch moved far enough and is
+// within the same direction / angle, we'll allow it to be a swipe.
+// This is the distance theshold that the previous touch must have traveled.
+// This value is in pixels.
+#define MIN_PREV_DELTA 40
+// This is the angle, plus or minus that the previous direction must have
+// been traveling.  This angle is an arctangent. (atan2)
+#define MAX_DELTA_ANGLE 0.25
+#define MAX_DELTA_DEBUG 0 // Set to 1 to see debug logging for max delta
+
+// Any touch above this threshold is immediately reported to the system
+#define TOUCH_INITIAL_THRESHOLD 32
+// Previous touches that have already been reported will continue to be
+// reported so long as they stay above this threshold
+#define TOUCH_CONTINUE_THRESHOLD 26
+// New touches above this threshold but below TOUCH_INITIAL_THRESHOLD will not
+// be reported unless the touch continues to appear.  This is designed to
+// filter out brief, low threshold touches that may not be valid.
+#define TOUCH_DELAY_THRESHOLD 28
+// Delay before a touch above TOUCH_DELAY_THRESHOLD but below
+// TOUCH_INITIAL_THRESHOLD will be reported.  We will wait and see if this
+// touch continues to show up in future buffers before reporting the event.
+#define TOUCH_DELAY 5
+// Threshold for end of a large area. This value needs to be set low enough
+// to filter out large touch areas and tends to be related to other touch
+// thresholds.
+#define LARGE_AREA_UNPRESS 22 //TOUCH_CONTINUE_THRESHOLD
+#define LARGE_AREA_FRINGE 5 // Threshold for large area fringe
+
+// Enables filtering of a single touch to make it easier to long press.
+// Keeps the initial touch point the same so long as it stays within
+// the radius (note it's not really a radius and is actually a square)
+#define DEBOUNCE_FILTER 1 // Set to 1 to enable the debouce filter
+#define DEBOUNCE_RADIUS 10 // Radius for debounce in pixels
+#define DEBOUNCE_DEBUG 0 // Set to 1 to enable debounce logging
+
+// This is used to help calculate ABS_TOUCH_MAJOR
+// This is roughly the value of 1024 / 40 or 768 / 30
+#define PIXELS_PER_POINT 25
+
+// This enables slots for the type B multi-touch protocol.
+// The kernel must support slots (ABS_MT_SLOT). The TouchPad 2.6.35 kernel
+// doesn't seem to handle liftoffs with protocol B properly so leave it off
+// for now.
+#define USE_B_PROTOCOL 0
+
+/** ------- end of user modifiable parameters ---- */
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 #define MAX(X,Y) ((X) > (Y) ? (X) : (Y))
 #define isBetween(A, B, C) ( ((A-B) > 0) && ((A-C) < 0) )
+// We square MAX_DELTA to prevent the need to use sqrt
+#define MAX_DELTA_SQ (MAX_DELTA * MAX_DELTA)
+#define MIN_PREV_DELTA_SQ (MIN_PREV_DELTA * MIN_PREV_DELTA)
 
+#define X_AXIS_POINTS  30
+#define Y_AXIS_POINTS  40
+#define X_AXIS_MINUS1 X_AXIS_POINTS - 1 // 29
+#define Y_AXIS_MINUS1 Y_AXIS_POINTS - 1 // 39
 
-struct candidate {
-	int pw;
-	int i;
-	int j;
-};
+#if USERSPACE_270_ROTATE
+#define X_RESOLUTION  768
+#define Y_RESOLUTION 1024
+#define X_LOCATION_VALUE ((float)X_RESOLUTION) / ((float)X_AXIS_MINUS1)
+#define Y_LOCATION_VALUE ((float)Y_RESOLUTION) / ((float)Y_AXIS_MINUS1)
+#else
+#define X_RESOLUTION 1024
+#define Y_RESOLUTION  768
+#define X_LOCATION_VALUE ((float)X_RESOLUTION) / ((float)Y_AXIS_MINUS1)
+#define Y_LOCATION_VALUE ((float)Y_RESOLUTION) / ((float)X_AXIS_MINUS1)
+#endif // USERSPACE_270_ROTATE
+
+#define X_RESOLUTION_MINUS1 X_RESOLUTION - 1
+#define Y_RESOLUTION_MINUS1 Y_RESOLUTION - 1
 
 struct touchpoint {
+	// Power or weight of the touch, used for calculating the center point.
 	int pw;
+	// These store the average of the locations in the digitizer matrix that
+	// make up the touch.  Used for calculating the center point.
 	float i;
 	float j;
-	unsigned short isValid;
+#if USE_B_PROTOCOL
+	// Slot used for the B protocol touch events.
+	int slot;
+#endif
+	// Tracking ID that is assigned to this touch.
+	int tracking_id;
+	// Index location of this touch in the previous set of touches.
+	int prev_loc;
+#if MAX_DELTA_FILTER
+	// Direction and distance between this touch and the previous touch.
+	float direction;
+	int distance;
+#endif
+	// Size of the touch area.
+	int touch_major;
+	// X and Y locations of the touch.  These values may have been changed by a
+	// filter.
+	int x;
+	int y;
+	// Unfiltered location of the touch.
+	int unfiltered_x;
+	int unfiltered_y;
+	// The highest value found in the digitizer matrix of this touch area.
+	int highest_val;
+	// Delay count for touches that do not have a very high highest_val.
+	int touch_delay;
 };
 
-struct touchpoint tpoint[MAX_TOUCH];
-struct touchpoint prevtpoint[MAX_TOUCH];
-struct touchpoint prev2tpoint[MAX_TOUCH];
+// This array contains the current touches (tpoint), previous touches
+// (prevtpoint) and the touches from 2 times ago (prev2tpoint)
+struct touchpoint tp[3][MAX_TOUCH];
+// These indexes locate the appropriate set of touches in tp
+int tpoint, prevtpoint, prev2tpoint;
 
+// Used for reading data from the digitizer
 unsigned char cline[64];
-unsigned int cidx=0;
-unsigned char matrix[30][40];
+// Index used for cline
+unsigned int cidx = 0;
+// Contains all of the data from the digitizer
+unsigned char matrix[X_AXIS_POINTS][Y_AXIS_POINTS];
+// Indicates if a point in the digitizer matrix has already been scanned.
+int invalid_matrix[X_AXIS_POINTS][Y_AXIS_POINTS];
+// File descriptor for uinput device
 int uinput_fd;
+#if USE_B_PROTOCOL
+// Indicates which slots are in use
+int slot_in_use[MAX_TOUCH];
+#endif
 
 int send_uevent(int fd, __u16 type, __u16 code, __s32 value)
 {
 	struct input_event event;
+
+#if EVENT_DEBUG
+	char ctype[20], ccode[20];
+	switch (type) {
+		case EV_ABS:
+			strcpy(ctype, "EV_ABS");
+			break;
+		case EV_KEY:
+			strcpy(ctype, "EV_KEY");
+			break;
+		case EV_SYN:
+			strcpy(ctype, "EV_SYN");
+			break;
+	}
+	switch (code) {
+		case ABS_MT_SLOT:
+			strcpy(ccode, "ABS_MT_SLOT");
+			break;
+		case ABS_MT_TRACKING_ID:
+			strcpy(ccode, "ABS_MT_TRACKING_ID");
+			break;
+		case ABS_MT_TOUCH_MAJOR:
+			strcpy(ccode, "ABS_MT_TOUCH_MAJOR");
+			break;
+		case ABS_MT_POSITION_X:
+			strcpy(ccode, "ABS_MT_POSITION_X");
+			break;
+		case ABS_MT_POSITION_Y:
+			strcpy(ccode, "ABS_MT_POSITION_Y");
+			break;
+		case SYN_MT_REPORT:
+			strcpy(ccode, "SYN_MT_REPORT");
+			break;
+		case SYN_REPORT:
+			strcpy(ccode, "SYN_REPORT");
+			break;
+		case BTN_TOUCH:
+			strcpy(ccode, "BTN_TOUCH");
+			break;
+	}
+	printf("event type: '%s' code: '%s' value: %i \n", ctype, ccode, value);
+#endif
 
 	memset(&event, 0, sizeof(event));
 	event.type = type;
@@ -111,235 +267,625 @@ int send_uevent(int fd, __u16 type, __u16 code, __s32 value)
 	return 0;
 }
 
-
-int tpcmp(const void *v1, const void *v2)
-{
-	return ((*(struct candidate *)v2).pw - (*(struct candidate *)v1).pw);
-}
-
-int dist(int x1, int y1, int x2, int y2)  {
-	return pow(x1 - x2, 2)+pow(y1 - y2, 2);
-}
-
-
 #if AVG_FILTER
-int isClose(struct touchpoint a, struct touchpoint b)
-{
-	if (isBetween(b.i, a.i+2.5, a.i-2.5) && isBetween(b.j, a.j+2.5, a.j-2.5))
-		return 1;
-	return 0;
-}
-
-// return 1 if b is closer
-// return 2 if c is closer
-int find_closest(struct touchpoint a, struct touchpoint b, struct touchpoint c)
-{
-	int diffB = fabs(a.i - b.i) + fabs(a.j - b.j);
-	int diffC = fabs(a.i - c.i) + fabs(a.j - c.j);
-
-	if (diffB < diffC)
-		return 1;
-	else
-		return 2;
-}
-
-int avg_filter(struct touchpoint *t) {
-	int tp1_found, tp2_found, i;
-	tp1_found = tp2_found = -1;
-
-	for(i=0; i<MAX_TOUCH; i++) {
-		if(isClose(*t, prevtpoint[i])) {
-			if(tp1_found < 0) {
-				tp1_found = i;
-			} else {
-				if (find_closest(*t, prevtpoint[tp1_found], prevtpoint[i]) == 2)
-					tp1_found = i;
-			}
-		}
-		if(isClose(*t, prev2tpoint[i])) {
-			if(tp2_found < 0) {
-				tp2_found = i;
-			} else {
-				if (find_closest(*t, prev2tpoint[tp2_found], prev2tpoint[i]) == 2)
-					tp2_found = i;
-			}
-		}
-	}
+void avg_filter(struct touchpoint *t) {
 #if DEBUG
-	printf("before: i=%f, j=%f", t->i, t->j);
-#endif 
-	if (tp1_found >= 0 && tp2_found >= 0) {
-		t->i = (t->i + prevtpoint[tp1_found].i + prev2tpoint[tp2_found].i) / 3.0;
-		t->j = (t->j + prevtpoint[tp1_found].j + prev2tpoint[tp2_found].j) / 3.0;
-	}
-#if DEBUG
-	printf("|||| after: i=%f, j=%f\n", t->i, t->j);
+	printf("before: x=%d, y=%d", t->x, t->y);
 #endif
-	return 0;
+	float total_div = 6.0;
+	int xsum = 4 * t->unfiltered_x + 2 *
+		tp[prevtpoint][t->prev_loc].unfiltered_x;
+	int ysum = 4 * t->unfiltered_y + 2 *
+		tp[prevtpoint][t->prev_loc].unfiltered_y;
+
+	if(tp[prevtpoint][t->prev_loc].prev_loc > -1) {
+		xsum +=
+			tp[prev2tpoint][tp[prevtpoint][t->prev_loc].prev_loc].unfiltered_x;
+		ysum +=
+			tp[prev2tpoint][tp[prevtpoint][t->prev_loc].prev_loc].unfiltered_y;
+		total_div += 1.0;
+	}
+	t->x = xsum / total_div;
+	t->y = ysum / total_div;
+#if DEBUG
+	printf("|||| after: x=%d, y=%d\n", t->x, t->y);
+#endif
 }
 #endif // AVG_FILTER
 
+#if USE_B_PROTOCOL
+void liftoff_slot(int slot) {
+	// Sends a liftoff indicator for a specific slot
+#if EVENT_DEBUG
+	printf("liftoff slot function, lifting off slot: %i\n", slot);
+#endif
+	// According to the Linux kernel documentation, this is the right events
+	// to send for protocol B, but the TouchPad 2.6.35 kernel doesn't seem to
+	// handle them correctly.
+	send_uevent(uinput_fd, EV_ABS, ABS_MT_SLOT, slot);
+	send_uevent(uinput_fd, EV_ABS, ABS_MT_TRACKING_ID, -1);
+}
+#endif // USE_B_PROTOCOL
+
 void liftoff(void)
 {
-	// sends liftoff events - nothing is touching the screen
-	send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 0);
+#if USE_B_PROTOCOL
+	// Send liftoffs for any slots that haven't been lifted off
+	int i;
+	for (i=0; i<MAX_TOUCH; i++) {
+		if (slot_in_use[i]) {
+			slot_in_use[i] = 0;
+			liftoff_slot(i);
+		}
+	}
+#endif
+	// Sends liftoff events - nothing is touching the screen
+#if EVENT_DEBUG
+	printf("liftoff function\n");
+#endif
+#if !USE_B_PROTOCOL
 	send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
+#endif
 	send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
+}
+
+void determine_area_loc_fringe(float *isum, float *jsum, int *tweight, int i,
+	int j, int cur_touch_id){
+	float powered;
+
+	// Set fringe point to used for this touch point
+	invalid_matrix[i][j] = cur_touch_id;
+
+	// Track touch values to help determine the pixel x, y location
+	powered = pow(matrix[i][j], 1.5);
+	*tweight += powered;
+	*isum += powered * i;
+	*jsum += powered * j;
+
+	// Check the nearby points to see if they are above LARGE_AREA_FRINGE
+	// but still decreasing in value to ensure that they are part of the same
+	// touch and not a nearby, pinching finger.
+	if (i > 0 && invalid_matrix[i-1][j] != cur_touch_id)
+	{
+		if (matrix[i-1][j] >= LARGE_AREA_FRINGE &&
+			matrix[i-1][j] < matrix[i][j])
+			determine_area_loc_fringe(isum, jsum, tweight, i - 1, j,
+				cur_touch_id);
+	}
+	if (i < X_AXIS_MINUS1 && invalid_matrix[i+1][j] != cur_touch_id)
+	{
+		if (matrix[i+1][j] >= LARGE_AREA_FRINGE &&
+			matrix[i+1][j] < matrix[i][j])
+			determine_area_loc_fringe(isum, jsum, tweight, i + 1, j,
+				cur_touch_id);
+	}
+	if (j > 0 && invalid_matrix[i][j-1] != cur_touch_id) {
+		if (matrix[i][j-1] >= LARGE_AREA_FRINGE &&
+			matrix[i][j-1] < matrix[i][j])
+			determine_area_loc_fringe(isum, jsum, tweight, i, j - 1,
+				cur_touch_id);
+	}
+	if (j < Y_AXIS_MINUS1 && invalid_matrix[i][j+1] != cur_touch_id)
+	{
+		if (matrix[i][j+1] >= LARGE_AREA_FRINGE &&
+			matrix[i][j+1] < matrix[i][j])
+			determine_area_loc_fringe(isum, jsum, tweight, i, j + 1,
+				cur_touch_id);
+	}
+	if (i > 0 && j > 0 && invalid_matrix[i-1][j-1] != cur_touch_id)
+	{
+		if (matrix[i-1][j-1] >= LARGE_AREA_FRINGE &&
+			matrix[i-1][j-1] < matrix[i][j])
+			determine_area_loc_fringe(isum, jsum, tweight, i - 1, j - 1,
+				cur_touch_id);
+	}
+	if (i < X_AXIS_MINUS1 && j > 0 && invalid_matrix[i+1][j-1] != cur_touch_id)
+	{
+		if (matrix[i+1][j-1] >= LARGE_AREA_FRINGE &&
+			matrix[i+1][j-1] < matrix[i][j])
+			determine_area_loc_fringe(isum, jsum, tweight, i + 1, j - 1,
+				cur_touch_id);
+	}
+	if (j < Y_AXIS_MINUS1 && i > 0 && invalid_matrix[i-1][j+1] != cur_touch_id)
+	{
+		if (matrix[i-1][j+1] >= LARGE_AREA_FRINGE &&
+			matrix[i-1][j+1] < matrix[i][j])
+			determine_area_loc_fringe(isum, jsum, tweight, i - 1, j + 1,
+				cur_touch_id);
+	}
+	if (j < Y_AXIS_MINUS1 && i < X_AXIS_MINUS1 &&
+		invalid_matrix[i+1][j+1] != cur_touch_id)
+	{
+		if (matrix[i+1][j+1] >= LARGE_AREA_FRINGE &&
+			matrix[i+1][j+1] < matrix[i][j])
+			determine_area_loc_fringe(isum, jsum, tweight, i + 1, j + 1,
+				cur_touch_id);
+	}
+}
+
+void determine_area_loc(float *isum, float *jsum, int *tweight, int i, int j,
+	int *mini, int *maxi, int *minj, int *maxj, int cur_touch_id,
+	int *highest_val){
+	float powered;
+
+	// Invalidate this touch point so that we don't process it later
+	invalid_matrix[i][j] = cur_touch_id;
+
+	// Track the size of the touch for TOUCH_MAJOR
+	if (i < *mini)
+		*mini = i;
+	if (i > *maxi)
+		*maxi = i;
+	if (j < *minj)
+		*minj = j;
+	if (j > *maxj)
+		*maxj = j;
+
+	// Track the highest value of the touch to determine which threshold
+	// applies.
+	if (matrix[i][j] > *highest_val)
+		*highest_val = matrix[i][j];
+
+	// Track touch values to help determine the pixel x, y location
+	powered = pow(matrix[i][j], 1.5);
+	*tweight += powered;
+	*isum += powered * i;
+	*jsum += powered * j;
+
+	// Check nearby points to see if they are above LARGE_AREA_UNPRESS
+	// or if they are above LARGE_AREA_FRINGE but the next nearby point is
+	// decreasing in value.  If the value is not decreasing and below
+	// LARGE_AREA_UNPRESS then we have 2 fingers pinched close together.
+	if (i > 0 && invalid_matrix[i-1][j] != cur_touch_id)
+	{
+		if (matrix[i-1][j] >= LARGE_AREA_UNPRESS)
+			determine_area_loc(isum, jsum, tweight, i - 1, j, mini, maxi, minj,
+			maxj, cur_touch_id, highest_val);
+		else if (matrix[i-1][j] >= LARGE_AREA_FRINGE &&
+			matrix[i-1][j] < matrix[i][j])
+			determine_area_loc_fringe(isum, jsum, tweight, i - 1, j,
+				cur_touch_id);
+	}
+	if (i < X_AXIS_MINUS1 && invalid_matrix[i+1][j] != cur_touch_id)
+	{
+		if (matrix[i+1][j] >= LARGE_AREA_UNPRESS)
+			determine_area_loc(isum, jsum, tweight, i + 1, j, mini, maxi, minj,
+			maxj, cur_touch_id, highest_val);
+		else if (matrix[i+1][j] >= LARGE_AREA_FRINGE &&
+			matrix[i+1][j] < matrix[i][j])
+			determine_area_loc_fringe(isum, jsum, tweight, i + 1, j,
+				cur_touch_id);
+	}
+	if (j > 0 && invalid_matrix[i][j-1] != cur_touch_id)
+	{
+		if (matrix[i][j-1] >= LARGE_AREA_UNPRESS)
+			determine_area_loc(isum, jsum, tweight, i, j - 1, mini, maxi, minj,
+				maxj, cur_touch_id, highest_val);
+		else if (matrix[i][j-1] >= LARGE_AREA_FRINGE &&
+			matrix[i][j-1] < matrix[i][j])
+			determine_area_loc_fringe(isum, jsum, tweight, i, j - 1,
+				cur_touch_id);
+	}
+	if (j < Y_AXIS_MINUS1 && invalid_matrix[i][j+1] != cur_touch_id)
+	{
+		if (matrix[i][j+1] >= LARGE_AREA_UNPRESS)
+			determine_area_loc(isum, jsum, tweight, i, j + 1, mini, maxi, minj,
+				maxj, cur_touch_id, highest_val);
+		else if (matrix[i][j+1] >= LARGE_AREA_FRINGE &&
+			matrix[i][j+1] < matrix[i][j])
+			determine_area_loc_fringe(isum, jsum, tweight, i, j + 1,
+				cur_touch_id);
+	}
+	if (i > 0 && j > 0 && invalid_matrix[i-1][j-1] != cur_touch_id)
+	{
+		if (matrix[i-1][j-1] >= LARGE_AREA_UNPRESS)
+			determine_area_loc(isum, jsum, tweight, i - 1, j - 1, mini, maxi,
+				minj, maxj, cur_touch_id, highest_val);
+		else if (matrix[i-1][j-1] >= LARGE_AREA_FRINGE &&
+			matrix[i-1][j-1] < matrix[i][j])
+			determine_area_loc_fringe(isum, jsum, tweight, i - 1, j - 1,
+				cur_touch_id);
+	}
+	if (i < X_AXIS_MINUS1 && j > 0 && invalid_matrix[i+1][j-1] != cur_touch_id)
+	{
+		if (matrix[i+1][j-1] >= LARGE_AREA_UNPRESS)
+			determine_area_loc(isum, jsum, tweight, i + 1, j - 1, mini, maxi,
+				minj, maxj, cur_touch_id, highest_val);
+		else if (matrix[i+1][j-1] >= LARGE_AREA_FRINGE &&
+			matrix[i+1][j-1] < matrix[i][j])
+			determine_area_loc_fringe(isum, jsum, tweight, i + 1, j - 1,
+				cur_touch_id);
+	}
+	if (j < Y_AXIS_MINUS1 && i > 0 && invalid_matrix[i-1][j+1] != cur_touch_id)
+	{
+		if (matrix[i-1][j+1] >= LARGE_AREA_UNPRESS)
+			determine_area_loc(isum, jsum, tweight, i - 1, j + 1, mini, maxi,
+				minj, maxj, cur_touch_id, highest_val);
+		else if (matrix[i-1][j+1] >= LARGE_AREA_FRINGE &&
+			matrix[i-1][j+1] < matrix[i][j])
+			determine_area_loc_fringe(isum, jsum, tweight, i - 1, j + 1,
+				cur_touch_id);
+	}
+	if (j < Y_AXIS_MINUS1 && i < X_AXIS_MINUS1 &&
+		invalid_matrix[i+1][j+1] != cur_touch_id)
+	{
+		if (matrix[i+1][j+1] >= LARGE_AREA_UNPRESS)
+			determine_area_loc(isum, jsum, tweight, i + 1, j + 1, mini, maxi,
+				minj, maxj, cur_touch_id, highest_val);
+		else if (matrix[i+1][j+1] >= LARGE_AREA_FRINGE &&
+			matrix[i+1][j+1] < matrix[i][j])
+			determine_area_loc_fringe(isum, jsum, tweight, i + 1, j + 1,
+				cur_touch_id);
+	}
+}
+
+void process_new_tpoint(struct touchpoint *t, int *tracking_id) {
+	// Handles setting up a brand new touch point
+	if (t->highest_val > TOUCH_DELAY_THRESHOLD) {
+		t->tracking_id = *tracking_id;
+		*tracking_id += 1;
+		if (t->highest_val <= TOUCH_INITIAL_THRESHOLD)
+			t->touch_delay = TOUCH_DELAY;
+	} else {
+		t->highest_val = 0;
+	}
 }
 
 int calc_point(void)
 {
-	int i,j,k,l;
-	int tweight=0;
-	int tpc=0;
-	float isum=0, jsum=0;
+	int i, j, k;
+	int tweight = 0;
+	int tpc = 0;
+	float isum = 0, jsum = 0;
 	float avgi, avgj;
-	float powered;
-	static int previoustpc;
-	int clc=0;
-	struct candidate clist[MAX_CLIST];
+	static int previoustpc, tracking_id = 0;
+#if DEBOUNCE_FILTER
+	int new_debounce_touch = 0;
+	static int initialx, initialy;
+#endif
 
-	// Record values for processing later
-	for(i=0; i < previoustpc; i++) {
-		prev2tpoint[i].i = prevtpoint[i].i;
-		prev2tpoint[i].j = prevtpoint[i].j;
-		prev2tpoint[i].pw = prevtpoint[i].pw;
-		prevtpoint[i].i = tpoint[i].i;
-		prevtpoint[i].j = tpoint[i].j;
-		prevtpoint[i].pw = tpoint[i].pw;
+	if (tp[tpoint][0].x < -20) {
+		// We had a total liftoff
+		previoustpc = 0;
+#if DEBOUNCE_FILTER
+		new_debounce_touch = 1;
+#endif
+	} else {
+		// Re-assign array indexes
+		prev2tpoint = prevtpoint;
+		prevtpoint = tpoint;
+		tpoint++;
+		if (tpoint > 2)
+			tpoint = 0;
 	}
 
-	// generate list of high values
-	for(i=0; i < 30; i++) {
-		for(j=0; j < 40; j++) {
+	// Scan the digitizer data and generate a list of touches
+	memset(&invalid_matrix, 0, sizeof(invalid_matrix));
+	for(i=0; i < X_AXIS_POINTS; i++) {
+		for(j=0; j < Y_AXIS_POINTS; j++) {
 #if RAW_DATA_DEBUG
-			printf("%2.2X ", matrix[i][j]);
+			if (matrix[i][j] < RAW_DATA_THRESHOLD)
+				printf("   ");
+			else
+				printf("%2.2X ", matrix[i][j]);
 #endif
-			if(matrix[i][j] > TOUCH_THRESHOLD && clc < MAX_CLIST) {
-				int cvalid=1;
-				clist[clc].pw = matrix[i][j];
-				clist[clc].i = i;
-				clist[clc].j = j;
-				// check if local maxima
-				if(i>0  && matrix[i-1][j] > matrix[i][j]) cvalid = 0;
-				if(i<29 && matrix[i+1][j] > matrix[i][j]) cvalid = 0;
-				if(j>0  && matrix[i][j-1] > matrix[i][j]) cvalid = 0;
-				if(j<39 && matrix[i][j+1] > matrix[i][j]) cvalid = 0; 
-				if(cvalid) clc++;
+			if (tpc < MAX_TOUCH && matrix[i][j] > TOUCH_CONTINUE_THRESHOLD &&
+				!invalid_matrix[i][j]) {
+
+				isum = 0;
+				jsum = 0;
+				tweight = 0;
+				int mini = i, maxi = i, minj = j, maxj = j;
+				int highest_val = matrix[i][j];
+				determine_area_loc(&isum, &jsum, &tweight, i, j, &mini,
+					&maxi, &minj, &maxj, tpc + 1, &highest_val);
+
+				avgi = isum / (float)tweight;
+				avgj = jsum / (float)tweight;
+				maxi = maxi - mini;
+				maxj = maxj - minj;
+
+				tp[tpoint][tpc].pw = tweight;
+				tp[tpoint][tpc].i = avgi;
+				tp[tpoint][tpc].j = avgj;
+				tp[tpoint][tpc].touch_major = MAX(maxi, maxj) *
+					PIXELS_PER_POINT;
+				tp[tpoint][tpc].tracking_id = -1;
+#if USE_B_PROTOCOL
+				tp[tpoint][tpc].slot = -1;
+#endif
+				tp[tpoint][tpc].prev_loc = -1;
+#if USERSPACE_270_ROTATE
+				tp[tpoint][tpc].x = tp[tpoint][tpc].i * X_LOCATION_VALUE;
+				tp[tpoint][tpc].y = Y_RESOLUTION_MINUS1 - tp[tpoint][tpc].j *
+					Y_LOCATION_VALUE;
+#else
+				tp[tpoint][tpc].x = X_RESOLUTION_MINUS1 - tp[tpoint][tpc].j *
+					X_LOCATION_VALUE;
+				tp[tpoint][tpc].y = Y_RESOLUTION_MINUS1 - tp[tpoint][tpc].i *
+					Y_LOCATION_VALUE;
+#endif // USERSPACE_270_ROTATE
+				// It is possible for x and y to be negative with the math
+				// above so we force them to 0 if they are negative.
+				if (tp[tpoint][tpc].x < 0)
+					tp[tpoint][tpc].x = 0;
+				if (tp[tpoint][tpc].y < 0)
+					tp[tpoint][tpc].y = 0;
+				tp[tpoint][tpc].unfiltered_x = tp[tpoint][tpc].x;
+				tp[tpoint][tpc].unfiltered_y = tp[tpoint][tpc].y;
+				tp[tpoint][tpc].highest_val = highest_val;
+				tp[tpoint][tpc].touch_delay = 0;
+				tpc++;
 			}
 		}
 #if RAW_DATA_DEBUG
-		printf("\n");
+		printf(" |\n"); // end of row
 #endif
 	}
-#if DEBUG
-	printf("%d clc\n", clc);
+#if RAW_DATA_DEBUG
+	printf("end of raw data\n"); // helps separate one frame from the next
 #endif
 
-	// sort candidate list by strength
-	//qsort(clist, clc, sizeof(clist[0]), tpcmp);
-
-#if DEBUG
-	printf("%d %d %d \n", clist[0].pw, clist[1].pw, clist[2].pw);
+#if USE_B_PROTOCOL
+	// Set all previously used slots to -1 so we know if we need to lift any
+	// of them off after matching
+	for (i=0; i<MAX_TOUCH; i++)
+		if(slot_in_use[i])
+			slot_in_use[i] = -1;
 #endif
 
-	for(k=0; k < MIN(clc, 20); k++) {
-		int newtp=1;
-		int rad=3; // radius around candidate to use for calculation
-		int mini = clist[k].i - rad+1;
-		int maxi = clist[k].i + rad;
-		int minj = clist[k].j - rad+1;
-		int maxj = clist[k].j + rad;
-		
-		// discard points close to already detected touches
-		for(l=0; l<tpc; l++) {
-			if(tpoint[l].i >= mini+1 && tpoint[l].i < maxi-1 && tpoint[l].j >= minj+1 && tpoint[l].j < maxj-1)
-				newtp=0;
-		}
-		
-		// calculate new touch near the found candidate
-		if(newtp && tpc < MAX_TOUCH) {
-			tweight=0;
-			isum=0;
-			jsum=0;
-			for(i=MAX(0, mini); i < MIN(30, maxi); i++) {
-				for(j=MAX(0, minj); j < MIN(40, maxj); j++) {
-					int dd = dist(i,j,clist[k].i,clist[k].j);
-					powered = matrix[i][j];
-					if(dd == 2 && 0.65f * matrix[clist[k].i][clist[k].j] < matrix[i][j] ) 
-						powered = 0.65f * matrix[clist[k].i][clist[k].j];
-					if(dd == 4 && 0.15f * matrix[clist[k].i][clist[k].j] < matrix[i][j] ) 
-						powered = 0.15f * matrix[clist[k].i][clist[k].j];
-					if(dd == 5 && 0.10f * matrix[clist[k].i][clist[k].j] < matrix[i][j] ) 
-						powered = 0.10f * matrix[clist[k].i][clist[k].j];
-					if(dd == 8 && 0.05f * matrix[clist[k].i][clist[k].j] < matrix[i][j] ) 
-						powered = 0.05f * matrix[clist[k].i][clist[k].j];
-					
-					powered = pow(powered, 1.5);
-					tweight += powered;
-					isum += powered * i;
-					jsum += powered * j;
+	// Match up tracking IDs
+	{
+		int smallest_distance[MAX_TOUCH], cur_distance;
+		int deltax, deltay;
+		int smallest_distance_loc[MAX_TOUCH];
+		// Find closest points for each touch
+		for (i=0; i<tpc; i++) {
+			smallest_distance[i] = 1000000;
+			smallest_distance_loc[i] = -1;
+			for (j=0; j<previoustpc; j++) {
+				if (tp[prevtpoint][j].highest_val) {
+					deltax = tp[tpoint][i].unfiltered_x -
+						tp[prevtpoint][j].unfiltered_x;
+					deltay = tp[tpoint][i].unfiltered_y -
+						tp[prevtpoint][j].unfiltered_y;
+					cur_distance = (deltax * deltax) + (deltay * deltay);
+					if(cur_distance < smallest_distance[i]) {
+						smallest_distance[i] = cur_distance;
+						smallest_distance_loc[i] = j;
+					}
 				}
 			}
-			avgi = isum / (float)tweight;
-			avgj = jsum / (float)tweight;
-			tpoint[tpc].pw = tweight;
-			tpoint[tpc].i = avgi;
-			tpoint[tpc].j = avgj;
-			tpoint[tpc].isValid = 1;
-			tpc++;
-#if DEBUG
-			printf("Coords %d %lf, %lf, %d\n", tpc, avgi, avgj, tweight);
+		}
+
+		// Remove mapping for touches which aren't closest
+		for (i=0; i<tpc; i++) {
+			for (j=i + 1; j<tpc; j++) {
+				if (smallest_distance_loc[i] > -1 &&
+				   smallest_distance_loc[i] == smallest_distance_loc[j]) {
+					if (smallest_distance[i] < smallest_distance[j])
+						smallest_distance_loc[j] = -1;
+					else
+						smallest_distance_loc[i] = -1;
+				}
+			}
+		}
+
+		// Assign ids to closest touches
+		for (i=0; i<tpc; i++) {
+			if (smallest_distance_loc[i] > -1) {
+#if MAX_DELTA_FILTER
+				// Filter for impossibly large changes in touches
+				if (smallest_distance[i] > MAX_DELTA_SQ) {
+					int need_lift = 1;
+					// Check to see if the previous point was moving quickly
+					if (tp[prevtpoint][smallest_distance_loc[i]].distance >
+						MIN_PREV_DELTA_SQ) {
+						// Check the direction of the previous point and see
+						// if we're continuing in roughly the same direction.
+						tp[tpoint][i].direction = atan2(
+						tp[tpoint][i].x -
+						tp[prevtpoint][smallest_distance_loc[i]].x,
+						tp[tpoint][i].y -
+						tp[prevtpoint][smallest_distance_loc[i]].y);
+						if (fabsf(tp[tpoint][i].direction -
+							tp[prevtpoint][smallest_distance_loc[i]].direction)
+							< MAX_DELTA_ANGLE) {
+#if MAX_DELTA_DEBUG
+							printf("direction is close enough, no liftoff\n");
+#endif
+							// No need to lift off
+							need_lift = 0;
+						}
+#if MAX_DELTA_DEBUG
+						else
+							printf("angle change too great, going to lift\n");
+#endif
+					}
+#if MAX_DELTA_DEBUG
+					else
+						printf("previous distance too low, going to lift\n");
+#endif
+					if (need_lift) {
+						//  This is an impossibly large change in touches
+#if TRACK_ID_DEBUG
+						printf("Over Delta %d - %d,%d - %d,%d -> %d,%d\n",
+							tp[prevtpoint][smallest_distance_loc[i]].
+							tracking_id,
+							smallest_distance_loc[i], i, tp[tpoint][i].x,
+							tp[tpoint][i].y,
+							tp[prevtpoint][smallest_distance_loc[i]].x,
+							tp[prevtpoint][smallest_distance_loc[i]].y);
+#endif
+#if USE_B_PROTOCOL
+#if EVENT_DEBUG || MAX_DELTA_DEBUG
+						printf("sending max delta liftoff for slot: %i\n",
+							tp[prevtpoint][smallest_distance_loc[i]].slot);
+#endif // EVENT_DEBUG || MAX_DELTA_DEBUG
+						liftoff_slot(
+							tp[prevtpoint][smallest_distance_loc[i]].slot);
+#endif // USE_B_PROTOCOL
+						process_new_tpoint(&tp[tpoint][i], &tracking_id);
+					}
+				} else
+#endif // MAX_DELTA_FILTER
+				{
+#if TRACK_ID_DEBUG
+					printf("Continue Map %d - %d,%d - %lf,%lf -> %lf,%lf\n",
+						tp[prevtpoint][smallest_distance_loc[i]].tracking_id,
+						smallest_distance_loc[i], i, tp[tpoint][i].i,
+						tp[tpoint][i].j,
+						tp[prevtpoint][smallest_distance_loc[i]].i,
+						tp[prevtpoint][smallest_distance_loc[i]].j);
+#endif
+					tp[tpoint][i].tracking_id =
+						tp[prevtpoint][smallest_distance_loc[i]].tracking_id;
+					tp[tpoint][i].prev_loc = smallest_distance_loc[i];
+					tp[tpoint][i].touch_delay =
+						tp[prevtpoint][smallest_distance_loc[i]].touch_delay;
+#if MAX_DELTA_FILTER
+					// Track distance and angle
+					tp[tpoint][i].distance = smallest_distance[i];
+					tp[tpoint][i].direction = atan2(
+						tp[tpoint][i].x -
+						tp[prevtpoint][smallest_distance_loc[i]].x,
+						tp[tpoint][i].y -
+						tp[prevtpoint][smallest_distance_loc[i]].y);
+#endif
+#if AVG_FILTER
+					avg_filter(&tp[tpoint][i]);
+#endif // AVG_FILTER
+				}
+#if USE_B_PROTOCOL
+				tp[tpoint][i].slot =
+					tp[prevtpoint][smallest_distance_loc[i]].slot;
+				slot_in_use[tp[prevtpoint][smallest_distance_loc[i]].slot] = 1;
+#endif
+			} else {
+				process_new_tpoint(&tp[tpoint][i], &tracking_id);
+#if TRACK_ID_DEBUG
+				printf("New Mapping - %lf,%lf - tracking ID: %i\n",
+					tp[tpoint][i].i, tp[tpoint][i].j,
+					tp[tpoint][i].tracking_id);
+#endif
+			}
+		}
+	}
+
+#if USE_B_PROTOCOL
+	// Assign unused slots to touches that don't have a slot yet
+	for (i=0; i<tpc; i++) {
+		if (tp[tpoint][i].slot < 0 && tp[tpoint][i].highest_val &&
+			!tp[tpoint][i].touch_delay) {
+			for (j=0; j<MAX_TOUCH; j++) {
+				if (slot_in_use[j] <= 0) {
+					if (slot_in_use[j] == -1) {
+#if EVENT_DEBUG
+						printf("lifting unused slot %i & reassigning it\n", j);
+#endif
+						liftoff_slot(j);
+					}
+					tp[tpoint][i].slot = j;
+					slot_in_use[j] = 1;
+#if TRACK_ID_DEBUG
+					printf("new slot [%i] trackID: %i slot: %i | %lf , %lf\n",
+						i, tp[tpoint][i].tracking_id, tp[tpoint][i].slot,
+						tp[tpoint][i].i, tp[tpoint][i].j);
+#endif
+					j = MAX_TOUCH;
+				}
+			}
+		}
+	}
+
+	// Lift off any previously used slots that haven't been reassigned
+	for (i=0; i<MAX_TOUCH; i++) {
+		if (slot_in_use[i] == -1) {
+#if EVENT_DEBUG
+			printf("lifting off slot %i - no longer in use\n", i);
+#endif
+			liftoff_slot(i);
+			slot_in_use[i] = 0;
+		}
+	}
+#endif // USE_B_PROTOCOL
+
+#if DEBOUNCE_FILTER
+	// The debounce filter only works on a single touch.
+	// We record the initial touchdown point, calculate a radius in
+	// pixels and re-center the point if we're still within the
+	// radius.  Once we leave the radius, we invalidate so that we
+	// don't debounce again even if we come back to the radius.
+	if (tpc == 1) {
+		if (new_debounce_touch) {
+			// We record the initial location of a new touch
+			initialx = tp[tpoint][0].x;
+			initialy = tp[tpoint][0].y;
+#if DEBOUNCE_DEBUG
+			printf("new touch recorded at %i, %i\n", initialx, initialy);
+#endif
+		} else if (initialx > -20) {
+			// See if the current touch is still inside the debounce
+			// radius
+			if (abs(initialx - tp[tpoint][0].x) <= DEBOUNCE_RADIUS
+				&& abs(initialy - tp[tpoint][0].y) <= DEBOUNCE_RADIUS) {
+				// Set the point to the original point - debounce!
+				tp[tpoint][0].x = initialx;
+				tp[tpoint][0].y = initialy;
+#if DEBOUNCE_DEBUG
+				printf("debouncing!!!\n");
+#endif
+			} else {
+				initialx = -100; // Invalidate
+#if DEBOUNCE_DEBUG
+				printf("done debouncing\n");
+#endif
+			}
+		}
+	}
 #endif
 
-		}
-	}
-
-	/* filter touches for impossibly large moves that indicate a liftoff and
-	 * re-touch */
-	if (previoustpc == 1 && tpc == 1) {
-		float deltai, deltaj, total_delta;
-		deltai = tpoint[0].i - prevtpoint[0].i;
-		deltaj = tpoint[0].j - prevtpoint[0].j;
-		// calculate squared hypotenuse
-		total_delta = (deltai * deltai) + (deltaj * deltaj);
-		if (total_delta > MAX_DELTA)
-			liftoff();
-	}
-
-	// report touches
+	// Report touches
 	for (k = 0; k < tpc; k++) {
-		if (tpoint[k].isValid) {
-#if AVG_FILTER
-			avg_filter(&tpoint[k]);
-#endif // AVG_FILTER
-			send_uevent(uinput_fd, EV_KEY, BTN_TOUCH, 1);
-#if USERSPACE_270_ROTATE
-			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, tpoint[k].i*768/29);
-			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, 1024-tpoint[k].j*1024/39);
-#else
-			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, 768-tpoint[k].i*768/29);
-			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, 1024-tpoint[k].j*1024/39);
-#endif // USERSPACE_270_ROTATE
+		if (tp[tpoint][k].highest_val && !tp[tpoint][k].touch_delay) {
+#if EVENT_DEBUG
+			printf("send event for tracking ID: %i\n",
+				tp[tpoint][k].tracking_id);
+#endif
+#if USE_B_PROTOCOL
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_SLOT, tp[tpoint][k].slot);
+#endif
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_TRACKING_ID,
+				tp[tpoint][k].tracking_id);
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_TOUCH_MAJOR,
+				tp[tpoint][k].touch_major);
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, tp[tpoint][k].x);
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, tp[tpoint][k].y);
+#if !USE_B_PROTOCOL
 			send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
-			tpoint[k].isValid = 0;
+#endif
+		} else if (tp[tpoint][k].touch_delay) {
+			// This touch didn't meet the threshold so we don't report it yet
+			tp[tpoint][k].touch_delay--;
 		}
 	}
-
-	send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
-	previoustpc = tpc; // store the touch count for the next run
-	return tpc; // return the touch count
+	if (tpc > 0) {
+		send_uevent(uinput_fd, EV_SYN, SYN_REPORT, 0);
+	}
+	previoustpc = tpc; // Store the touch count for the next run
+	if (tracking_id >  2147483000)
+		tracking_id = 0; // Reset tracking ID counter if it gets too big
+	return tpc; // Return the touch count
 }
 
 
 int cline_valid(unsigned int extras)
 {
-	if(cline[0] == 0xff && cline[1] == 0x43 && cidx == 44-extras) {
-		//printf("cidx %d\n", cline[cidx-1]);
+	if (cline[0] == 0xff && cline[1] == 0x43 && cidx == 44-extras) {
 		return 1;
 	}
-	if(cline[0] == 0xff && cline[1] == 0x47 && cidx > 4 && cidx == (cline[2]+4-extras)) {
-		//printf("cidx %d\n", cline[cidx-1]);
+	if (cline[0] == 0xff && cline[1] == 0x47 && cidx > 4 &&
+		cidx == (cline[2]+4-extras)) {
 		return 1;
 	}
 	return 0;
@@ -347,11 +893,11 @@ int cline_valid(unsigned int extras)
 
 void put_byte(unsigned char byte)
 {
-	//printf("Putc %d %d\n", cidx, byte);
 	if(cidx==0 && byte != 0xFF)
 		return;
 
-	// Sometimes a send is aborted by the touch screen. all we get is an out of place 0xFF
+	// Sometimes a send is aborted by the touch screen. all we get is an out of
+	// place 0xFF
 	if(byte == 0xFF && !cline_valid(1))
 		cidx = 0;
 
@@ -363,20 +909,20 @@ int consume_line(void)
 	int i,j,ret=0;
 
 	if(cline[1] == 0x47) {
-		// calculate the data points. all transfers complete
+		// Calculate the data points. all transfers complete
 		ret = calc_point();
 	}
 
 	if(cline[1] == 0x43) {
 		// This is a start event. clear the matrix
 		if(cline[2] & 0x80) {
-			for(i=0; i < 30; i++)
-				for(j=0; j < 40; j++)
+			for(i=0; i < X_AXIS_POINTS; i++)
+				for(j=0; j < Y_AXIS_POINTS; j++)
 					matrix[i][j] = 0;
 		}
 
 		// Write the line into the matrix
-		for(i=0; i < 40; i++)
+		for(i=0; i < Y_AXIS_POINTS; i++)
 			matrix[cline[2] & 0x1F][i] = cline[i+3];
 	}
 
@@ -408,29 +954,21 @@ void open_uinput(void)
 	strcpy(device.name,"HPTouchpad");
 
 	device.id.bustype=BUS_VIRTUAL;
-	device.id.vendor=1;
-	device.id.product=1;
-	device.id.version=1;
+	device.id.vendor = 1;
+	device.id.product = 1;
+	device.id.version = 1;
 
-#if USERSPACE_270_ROTATE
-	device.absmax[ABS_MT_POSITION_X]=768;
-	device.absmax[ABS_MT_POSITION_Y]=1024;
-#else
-	device.absmax[ABS_MT_POSITION_X]=1024;
-	device.absmax[ABS_MT_POSITION_Y]=768;
-#endif // USERSPACE_270_ROTATE
-	device.absmin[ABS_MT_POSITION_X]=0;
-	device.absmin[ABS_MT_POSITION_Y]=0;
-	device.absfuzz[ABS_MT_POSITION_X]=2;
-	device.absflat[ABS_MT_POSITION_X]=0;
-	device.absfuzz[ABS_MT_POSITION_Y]=1;
-	device.absflat[ABS_MT_POSITION_Y]=0;
+	device.absmax[ABS_MT_POSITION_X] = X_RESOLUTION;
+	device.absmax[ABS_MT_POSITION_Y] = Y_RESOLUTION;
+	device.absmin[ABS_MT_POSITION_X] = 0;
+	device.absmin[ABS_MT_POSITION_Y] = 0;
+	device.absfuzz[ABS_MT_POSITION_X] = 2;
+	device.absflat[ABS_MT_POSITION_X] = 0;
+	device.absfuzz[ABS_MT_POSITION_Y] = 1;
+	device.absflat[ABS_MT_POSITION_Y] = 0;
 
 	if (write(uinput_fd,&device,sizeof(device)) != sizeof(device))
 		fprintf(stderr, "error setup\n");
-
-	if (ioctl(uinput_fd,UI_SET_EVBIT,EV_KEY) < 0)
-		fprintf(stderr, "error evbit key\n");
 
 	if (ioctl(uinput_fd,UI_SET_EVBIT, EV_SYN) < 0)
 		fprintf(stderr, "error evbit key\n");
@@ -438,24 +976,25 @@ void open_uinput(void)
 	if (ioctl(uinput_fd,UI_SET_EVBIT,EV_ABS) < 0)
 		fprintf(stderr, "error evbit rel\n");
 
-	//if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_TRACKING_ID) < 0)
-		//fprintf(stderr, "error trkid rel\n");
+#if USE_B_PROTOCOL
+	if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_SLOT) < 0)
+		fprintf(stderr, "error slot rel\n");
+#endif
 
-	/*
+	if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_TRACKING_ID) < 0)
+		fprintf(stderr, "error trkid rel\n");
+
 	if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_TOUCH_MAJOR) < 0)
 		fprintf(stderr, "error tool rel\n");
 
-	if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_WIDTH_MAJOR) < 0)
-		fprintf(stderr, "error tool rel\n");
-	*/
+	//if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_WIDTH_MAJOR) < 0)
+	//	fprintf(stderr, "error tool rel\n");
+
 	if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_POSITION_X) < 0)
 		fprintf(stderr, "error tool rel\n");
 
 	if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_POSITION_Y) < 0)
 		fprintf(stderr, "error tool rel\n");
-
-	if (ioctl(uinput_fd,UI_SET_KEYBIT,BTN_TOUCH) < 0)
-		fprintf(stderr, "error evbit rel\n");
 
 	if (ioctl(uinput_fd,UI_DEV_CREATE) < 0)
 		fprintf(stderr, "error create\n");
@@ -463,26 +1002,42 @@ void open_uinput(void)
 
 void clear_arrays(void)
 {
-	// clears arrays (for after a total liftoff occurs
-	int i;
-	for(i=0; i<MAX_TOUCH; i++) {
-		tpoint[i].i = -10;
-		tpoint[i].j = -10;
-		prevtpoint[i].i = -10;
-		prevtpoint[i].j = -10;
-		prev2tpoint[i].i = -10;
-		prev2tpoint[i].j = -10;
+	// Clears array (for after a total liftoff occurs)
+	int i, j;
+	for (i=0; i<3; i++) {
+		for(j=0; j<MAX_TOUCH; j++) {
+			tp[i][j].pw = -1000;
+			tp[i][j].i = -1000;
+			tp[i][j].j = -1000;
+#if USE_B_PROTOCOL
+			tp[i][j].slot = -1;
+#endif
+			tp[i][j].tracking_id = -1;
+			tp[i][j].prev_loc = -1;
+#if MAX_DELTA_FILTER
+			tp[i][j].direction = 0;
+			tp[i][j].distance = 0;
+#endif
+			tp[i][j].touch_major = 0;
+			tp[i][j].x = -1000;
+			tp[i][j].y = -1000;
+			tp[i][j].unfiltered_x = -1000;
+			tp[i][j].unfiltered_y = -1000;
+			tp[i][j].highest_val = -1000;
+			tp[i][j].touch_delay = -1000;
+		}
 	}
 }
 
 int main(int argc, char** argv)
 {
 	struct hsuart_mode uart_mode;
-	int uart_fd, nbytes;
+	int uart_fd, nbytes, need_liftoff = 0;
 	unsigned char recv_buf[RECV_BUF_SIZE];
 	fd_set fdset;
 	struct timeval seltmout;
-	struct sched_param sparam = { .sched_priority = 99 /* linux maximum, nonportable */};
+	/* linux maximum priority is 99, nonportable */
+	struct sched_param sparam = { .sched_priority = 99 };
 
 	/* We set ts server priority to RT so that there is no delay in
 	 * in obtaining input and we are NEVER bumped from CPU until we
@@ -504,6 +1059,11 @@ int main(int argc, char** argv)
 
 	ioctl(uart_fd, HSUART_IOCTL_FLUSH, 0x9);
 
+	// Lift off in case of driver crash or in case the driver was shut off to
+	// save power by closing the uart.
+	liftoff();
+	clear_arrays();
+
 	while(1) {
 		FD_ZERO(&fdset);
 		FD_SET(uart_fd, &fdset);
@@ -511,26 +1071,32 @@ int main(int argc, char** argv)
 		/* 2x tmout */
 		seltmout.tv_usec = LIFTOFF_TIMEOUT;
 
-		if (0 == select(uart_fd+1, &fdset, NULL, NULL, &seltmout)) {
-			/* Timeout means liftoff, send event */
+		if (0 == select(uart_fd + 1, &fdset, NULL, NULL, &seltmout)) {
+			/* Timeout means no more data and probably need to lift off */
 #if DEBUG
-			printf("timeout! sending liftoff\n");
+			printf("timeout! no data coming from uart\n");
 #endif
 
-			clear_arrays();
-			liftoff();
+			if (need_liftoff) {
+#if EVENT_DEBUG
+				printf("timeout called liftoff\n");
+#endif
+				liftoff();
+				clear_arrays();
+				need_liftoff = 0;
+			}
 
 			FD_ZERO(&fdset);
 			FD_SET(uart_fd, &fdset);
 			/* Now enter indefinite sleep iuntil input appears */
-			select(uart_fd+1, &fdset, NULL, NULL, NULL);
+			select(uart_fd + 1, &fdset, NULL, NULL, NULL);
 			/* In case we were wrongly woken up check the event
 			 * count again */
 			continue;
 		}
-			
+
 		nbytes = read(uart_fd, recv_buf, RECV_BUF_SIZE);
-		
+
 		if(nbytes <= 0)
 			continue;
 #if DEBUG
@@ -541,10 +1107,17 @@ int main(int argc, char** argv)
 		printf("\n");
 #endif
 		if (!snarf2(recv_buf,nbytes)) {
-			// sometimes there is data, but no valid touches due to threshold
-			clear_arrays();
-			liftoff();
-		}
+			// Sometimes there is data, but no valid touches due to threshold
+			if (need_liftoff) {
+#if EVENT_DEBUG
+				printf("snarf2 called liftoff\n");
+#endif
+				liftoff();
+				clear_arrays();
+				need_liftoff = 0;
+			}
+		} else
+			need_liftoff = 1;
 	}
 
 	return 0;
