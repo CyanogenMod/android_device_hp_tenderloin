@@ -30,6 +30,8 @@
 #include <linux/i2c-dev.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 
 static pthread_once_t g_init = PTHREAD_ONCE_INIT;
 static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -42,6 +44,8 @@ char const *const LED_FILE = "/dev/lm8502";
 #define LM8502_START_ENGINE             9
 #define LM8502_STOP_ENGINE              3
 #define LM8502_WAIT_FOR_ENGINE_STOPPED  8
+
+#define TS_SOCKET_LOCATION "/dev/socket/tsdriver"
 
 /* LED engine programs */
 static const uint16_t notif_led_program_pulse[] = {
@@ -56,6 +60,24 @@ static const uint16_t notif_led_program_reset[] = {
 /** TS power stuff */
 static int vdd_fd, xres_fd, wake_fd, i2c_fd, ts_state;
 
+void send_ts_socket(char *send_data) {
+	// Connects to the touchscreen socket
+	struct sockaddr_un unaddr;
+	int ts_fd, len;
+
+	ts_fd = socket(AF_UNIX, SOCK_STREAM, 0);
+
+	if (ts_fd >= 0) {
+		unaddr.sun_family = AF_UNIX;
+		strcpy(unaddr.sun_path, TS_SOCKET_LOCATION);
+		len = strlen(unaddr.sun_path) + sizeof(unaddr.sun_family);
+		if (connect(ts_fd, (struct sockaddr *)&unaddr, len) >= 0) {
+			send(ts_fd, send_data, 1, 0);
+		}
+		close(ts_fd);
+	}
+}
+
 void touchscreen_power(int enable)
 {
     struct i2c_rdwr_ioctl_data i2c_ioctl_data;
@@ -65,7 +87,7 @@ void touchscreen_power(int enable)
 
     if (enable) {
 	int retry_count = 0;
-
+	send_ts_socket("O");
 try_again:
 	/* Set reset so the chip immediatelly sees it */
         lseek(xres_fd, 0, SEEK_SET);
@@ -163,7 +185,7 @@ try_again:
         rc = write(xres_fd, "0", 1);
         /* XXX, should be correllated with LIFTOFF_TIMEOUT in ts driver */
         usleep(80000);
-
+	send_ts_socket("C");
     }
 }
 
