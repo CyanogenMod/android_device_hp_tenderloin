@@ -75,6 +75,22 @@ PRODUCT_PACKAGES += \
     libgenlock \
     libQcomUI
 
+# QCOM OMX
+PRODUCT_PACKAGES += \
+	libstagefrighthw \
+	libOmxCore \
+	libmm-omxcore \
+	libdivxdrmdecrypt \
+	libOmxVdec
+
+# QCOM OMX Video Encoding/Tests
+#PRODUCT_PACKAGES += \
+#	mm-vdev-omx-test \
+#	mm-video-driver-test \
+#	libOmxVenc \
+#	mm-venc-omx-test720p \
+#	mm-video-encdrv-test
+
 # Audio
 PRODUCT_PACKAGES += \
     audio.a2dp.default \
