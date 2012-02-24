@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="Touchscreen Mode">
+        <ListPreference android:key="touchscreen_mode_preference"
+            android:entries="@array/touchscreen_modes"
+            android:entryValues="@array/touchscreen_mode_values"
+            android:dialogTitle="@string/touchscreen_mode_dialog_title" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

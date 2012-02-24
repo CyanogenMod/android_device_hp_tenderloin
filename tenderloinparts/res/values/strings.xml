@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HP TouchPad Settings</string>
+
+    <!-- Page Headers -->
+    <string name="touchscreen_title">TOUCHSCREEN</string>
+
+    <!-- Touchscreen mode -->
+    <string name="touchscreen_mode_dialog_title">Touchscreen optimization strategy</string>
+    <string name="touchscreen_mode_preference_title_finger">Finger</string>
+    <string name="touchscreen_mode_preference_title_stylus">Stylus</string>
+    <string name="touchscreen_mode_preference_summary_finger">Touchscreen optimized for finger input</string>
+    <string name="touchscreen_mode_preference_summary_stylus">Touchscreen optimized for stylus input</string>
+</resources>

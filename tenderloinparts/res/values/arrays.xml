@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="touchscreen_modes">
+        <item>Finger</item>
+        <item>Stylus</item>
+    </string-array>
+
+    <string-array name="touchscreen_mode_values">
+        <item>F</item>
+        <item>S</item>
+    </string-array>
+
+</resources>
