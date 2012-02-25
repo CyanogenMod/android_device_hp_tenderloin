@@ -20,6 +20,9 @@
  * device output by jonpry @ gmail
  * uinput bits and the rest by Oleg Drokin green@linuxhacker.ru
  * Multitouch detection by Rafael Brune mail@rbrune.de
+ * Max delta, debounce, hover debounce, settings, and socket code by
+ * Dees_Troy - dees_troy at yahoo
+ * Tracking ID code by Dees_Troy and jyxent (Jordan Patterson)
  *
  * Copyright (c) 2011 CyanogenMod Touchpad Project.
  *
@@ -135,6 +138,16 @@ int touch_delay_count = TOUCH_DELAY;
 #define DEBOUNCE_RADIUS 10 // Radius for debounce in pixels
 #define DEBOUNCE_DEBUG 0 // Set to 1 to enable debounce logging
 
+// Enables filtering after swiping to prevent the slight jitter that
+// sometimes happens while holding your finger still.  The radius is
+// really a square. We don't start debouncing a hover unless the touch point
+// stays within the radius for the number of cycles defined by
+// HOVER_DEBOUNCE_DELAY
+#define HOVER_DEBOUNCE_FILTER 1 // Set to 1 to enable hover debounce
+#define HOVER_DEBOUNCE_RADIUS 2 // Radius for hover debounce in pixels
+#define HOVER_DEBOUNCE_DELAY 30 // Count of delay before we start debouncing
+#define HOVER_DEBOUNCE_DEBUG 0 // Set to 1 to enable hover debounce logging
+
 // This is used to help calculate ABS_TOUCH_MAJOR
 // This is roughly the value of 1024 / 40 or 768 / 30
 #define PIXELS_PER_POINT 25
@@ -206,6 +219,12 @@ struct touchpoint {
 	int highest_val;
 	// Delay count for touches that do not have a very high highest_val.
 	int touch_delay;
+#if HOVER_DEBOUNCE_FILTER
+	// Location that we are tracking for hover debounce
+	int hover_x;
+	int hover_y;
+	int hover_delay;
+#endif
 };
 
 // This array contains the current touches (tpoint), previous touches
@@ -313,6 +332,48 @@ void avg_filter(struct touchpoint *t) {
 #endif
 }
 #endif // AVG_FILTER
+
+#if HOVER_DEBOUNCE_FILTER
+void hover_debounce(int i) {
+	int prev_loc = tp[tpoint][i].prev_loc;
+
+	tp[tpoint][i].hover_delay = tp[prevtpoint][prev_loc].hover_delay;
+	// Check to see if the current touch, previous touch, and prev2 touch are
+	// all within the HOVER_DEBOUNCE_RADIUS
+	if (abs(tp[tpoint][i].x - tp[prevtpoint][prev_loc].hover_x) <
+		HOVER_DEBOUNCE_RADIUS &&
+		abs(tp[tpoint][i].y - tp[prevtpoint][prev_loc].hover_y) <
+		HOVER_DEBOUNCE_RADIUS) {
+		if (!tp[tpoint][i].hover_delay) {
+			tp[tpoint][i].x = tp[prevtpoint][prev_loc].hover_x;
+			tp[tpoint][i].y = tp[prevtpoint][prev_loc].hover_y;
+#if HOVER_DEBOUNCE_DEBUG
+			printf("Debouncing tracking ID: %i\n", tp[tpoint][i].tracking_id);
+#endif
+		} else {
+			// We're still within the radius but haven't been in the radius
+			// long enough.
+			tp[tpoint][i].hover_delay--;
+#if HOVER_DEBOUNCE_DEBUG
+			printf("Hover delay of %i on tracking ID: %i\n",
+				tp[tpoint][i].hover_delay, tp[tpoint][i].tracking_id);
+#endif
+		}
+		if (tp[prevtpoint][prev_loc].hover_delay == 1) {
+			// Do not bring forward the hover points... we will hover from
+			// here.  This prevents some jerking backwards as we switch between
+			// hovering and not hovering.
+		} else {
+			// Bring forward the hover points from previous location.
+			tp[tpoint][i].hover_x = tp[prevtpoint][prev_loc].hover_x;
+			tp[tpoint][i].hover_y = tp[prevtpoint][prev_loc].hover_y;
+		}
+	} else {
+		// We have moved too far for hover debouce, reset the delay counter.
+		tp[tpoint][i].hover_delay = HOVER_DEBOUNCE_DELAY;
+	}
+}
+#endif // HOVER_DEBOUNCE_FILTER
 
 #if USE_B_PROTOCOL
 void liftoff_slot(int slot) {
@@ -636,6 +697,11 @@ int calc_point(void)
 				tp[tpoint][tpc].unfiltered_y = tp[tpoint][tpc].y;
 				tp[tpoint][tpc].highest_val = highest_val;
 				tp[tpoint][tpc].touch_delay = 0;
+#if HOVER_DEBOUNCE_FILTER
+				tp[tpoint][tpc].hover_x = tp[tpoint][tpc].x;
+				tp[tpoint][tpc].hover_y = tp[tpoint][tpc].y;
+				tp[tpoint][tpc].hover_delay = HOVER_DEBOUNCE_DELAY;
+#endif
 				tpc++;
 			}
 		}
@@ -772,10 +838,13 @@ int calc_point(void)
 						tp[prevtpoint][smallest_distance_loc[i]].x,
 						tp[tpoint][i].y -
 						tp[prevtpoint][smallest_distance_loc[i]].y);
-#endif
+#endif // MAX_DELTA_FILTER
 #if AVG_FILTER
 					avg_filter(&tp[tpoint][i]);
 #endif // AVG_FILTER
+#if HOVER_DEBOUNCE_FILTER
+					hover_debounce(i);
+#endif // HOVER_DEBOUNCE_FILTER
 				}
 #if USE_B_PROTOCOL
 				tp[tpoint][i].slot =
@@ -1046,6 +1115,11 @@ void clear_arrays(void)
 			tp[i][j].unfiltered_y = -1000;
 			tp[i][j].highest_val = -1000;
 			tp[i][j].touch_delay = -1000;
+#if HOVER_DEBOUNCE_FILTER
+			tp[i][j].hover_x = -1000;
+			tp[i][j].hover_y = -1000;
+			tp[i][j].hover_delay = HOVER_DEBOUNCE_DELAY;
+#endif
 		}
 	}
 }
