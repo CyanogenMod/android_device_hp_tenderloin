@@ -46,6 +46,8 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+#include "digitizer.h"
+
 #if 1
 // This is for Android
 #define UINPUT_LOCATION "/dev/uinput"
@@ -82,7 +84,7 @@
 
 #define RECV_BUF_SIZE 1540
 #define LIFTOFF_TIMEOUT 25000
-#define SOCKET_BUFFER_SIZE 1
+#define SOCKET_BUFFER_SIZE 10
 
 #define MAX_TOUCH 10 // Max touches that will be reported
 
@@ -1261,8 +1263,10 @@ void process_socket_buffer(char *buffer[], int buffer_len, int *uart_fd,
 #if DEBUG_SOCKET
 			printf("uart closed: %i\n", return_val);
 #endif
+			touchscreen_power(0);
 		}
 		if (buf == 79 /* 'O' */ && *uart_fd < 0) {
+			touchscreen_power(1);
 			open_uart(uart_fd);
 #if DEBUG_SOCKET
 			printf("uart opened at %i\n", *uart_fd);
@@ -1288,7 +1292,7 @@ void process_socket_buffer(char *buffer[], int buffer_len, int *uart_fd,
 
 			current_mode[0] = read_settings_file();
 			send_ret = send(accept_fd, (char*)current_mode,
-				sizeof(current_mode), 0);
+				sizeof(*current_mode), 0);
 #if DEBUG_SOCKET
 			if (send_ret <= 0)
 				printf("Unable to send data to socket\n");
@@ -1315,6 +1319,9 @@ int main(int argc, char** argv)
 	 * give it up ourselves. */
 	if (sched_setscheduler(0 /* that's us */, SCHED_FIFO, &sparam))
 		perror("Cannot set RT priority, ignoring: ");
+
+	init_digitizer_fd();
+	touchscreen_power(1);
 
 	open_uart(&uart_fd);
 

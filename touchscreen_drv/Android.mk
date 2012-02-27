@@ -7,7 +7,8 @@ include $(CLEAR_VARS)
 #LOCAL_C_INCLUDES:= uim.h
 
 LOCAL_SRC_FILES:= \
-	ts_srv.c
+	ts_srv.c \
+	digitizer.c
 LOCAL_CFLAGS:= -g -c -W -Wall -O2 -mtune=cortex-a9 -mfpu=neon -mfloat-abi=softfp -funsafe-math-optimizations -D_POSIX_SOURCE -I/home/green/touchpad/hp_tenderloin_kernel/include
 LOCAL_MODULE:=ts_srv
 LOCAL_MODULE_TAGS:= eng
