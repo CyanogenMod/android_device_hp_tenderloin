@@ -26,8 +26,6 @@
 #include <sys/types.h>
 #include <hardware/lights.h>
 
-#include <linux/i2c.h>
-#include <linux/i2c-dev.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -57,8 +55,7 @@ static const uint16_t notif_led_program_reset[] = {
     0x9c0f, 0x9c8f, 0x03ff, 0xc000
 };
 
-/** TS power stuff */
-static int vdd_fd, xres_fd, wake_fd, i2c_fd, ts_state;
+static int ts_state;
 
 void send_ts_socket(char *send_data) {
 	// Connects to the touchscreen socket
@@ -72,121 +69,10 @@ void send_ts_socket(char *send_data) {
 		strcpy(unaddr.sun_path, TS_SOCKET_LOCATION);
 		len = strlen(unaddr.sun_path) + sizeof(unaddr.sun_family);
 		if (connect(ts_fd, (struct sockaddr *)&unaddr, len) >= 0) {
-			send(ts_fd, send_data, 1, 0);
+			send(ts_fd, send_data, sizeof(*send_data), 0);
 		}
 		close(ts_fd);
 	}
-}
-
-void touchscreen_power(int enable)
-{
-    struct i2c_rdwr_ioctl_data i2c_ioctl_data;
-    struct i2c_msg i2c_msg;
-    __u8 i2c_buf[16];
-    int rc;
-
-    if (enable) {
-	int retry_count = 0;
-	send_ts_socket("O");
-try_again:
-	/* Set reset so the chip immediatelly sees it */
-        lseek(xres_fd, 0, SEEK_SET);
-        rc = write(xres_fd, "1", 1);
-	LOGE_IF(rc != 1, "TSpower, failed set xres");
-
-	/* Then power on */
-        lseek(vdd_fd, 0, SEEK_SET);
-        rc = write(vdd_fd, "1", 1);
-	LOGE_IF(rc != 1, "TSpower, failed to enable vdd");
-
-	/* Sleep some more for the voltage to stabilize */
-        usleep(50000);
-
-        lseek(wake_fd, 0, SEEK_SET);
-        rc = write(wake_fd, "1", 1);
-	LOGE_IF(rc != 1, "TSpower, failed to assert wake");
-
-        lseek(xres_fd, 0, SEEK_SET);
-        rc = write(xres_fd, "0", 1);
-	LOGE_IF(rc != 1, "TSpower, failed to reset xres");
-
-        usleep(50000);
-
-        lseek(wake_fd, 0, SEEK_SET);
-        rc = write(wake_fd, "0", 1);
-	LOGE_IF(rc != 1, "TSpower, failed to deassert wake");
-
-        usleep(50000);
-
-        i2c_ioctl_data.nmsgs = 1;
-        i2c_ioctl_data.msgs = &i2c_msg;
-
-        i2c_msg.addr = 0x67;
-        i2c_msg.flags = 0;
-        i2c_msg.buf = i2c_buf;
-
-        i2c_msg.len = 2;
-        i2c_buf[0] = 0x08; i2c_buf[1] = 0;
-        rc = ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
-	LOGE_IF( rc != 1, "TSPower, ioctl1 failed %d errno %d\n", rc, errno);
-	/* Ok, so the TS failed to wake, we need to retry a few times
-         * before totally giving up */
-	if ((rc != 1) && (retry_count++ < 3)) {
-		lseek(vdd_fd, 0, SEEK_SET);
-		rc = write(vdd_fd, "0", 1);
-		usleep(10000);
-		LOGE("TS wakeup retry #%d\n", retry_count);
-		goto try_again;
-	}
-
-        i2c_msg.len = 6;
-        i2c_buf[0] = 0x31; i2c_buf[1] = 0x01; i2c_buf[2] = 0x08;
-        i2c_buf[3] = 0x0C; i2c_buf[4] = 0x0D; i2c_buf[5] = 0x0A;
-        rc = ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
-	LOGE_IF( rc != 1, "TSPower, ioctl2 failed %d errno %d\n", rc, errno);
-
-        i2c_msg.len = 2;
-        i2c_buf[0] = 0x30; i2c_buf[1] = 0x0F;
-        rc = ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
-	LOGE_IF( rc != 1, "TSPower, ioctl3 failed %d errno %d\n", rc, errno);
-
-        i2c_buf[0] = 0x40; i2c_buf[1] = 0x02;
-        rc = ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
-	LOGE_IF( rc != 1, "TSPower, ioctl4 failed %d errno %d\n", rc, errno);
-
-        i2c_buf[0] = 0x41; i2c_buf[1] = 0x10;
-        rc = ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
-	LOGE_IF( rc != 1, "TSPower, ioctl5 failed %d errno %d\n", rc, errno);
-
-        i2c_buf[0] = 0x0A; i2c_buf[1] = 0x04;
-        rc = ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
-	LOGE_IF( rc != 1, "TSPower, ioctl6 failed %d errno %d\n", rc, errno);
-
-        i2c_buf[0] = 0x08; i2c_buf[1] = 0x03;
-        rc = ioctl(i2c_fd,I2C_RDWR,&i2c_ioctl_data);
-	LOGE_IF( rc != 1, "TSPower, ioctl7 failed %d errno %d\n", rc, errno);
-
-        lseek(wake_fd, 0, SEEK_SET);
-        rc = write(wake_fd, "1", 1);
-	LOGE_IF(rc != 1, "TSpower, failed to assert wake again");
-    } else {
-        lseek(vdd_fd, 0, SEEK_SET);
-        rc = write(vdd_fd, "0", 1);
-	LOGE_IF(rc != 1, "TSpower, failed to disable vdd");
-
-	/* Weird, but on 4G touchpads even after vdd is off there is still
-	 * stream of data from ctp that only disappears after we reset the
-	 * touchscreen, even though it's supposedly powered off already
-	 */
-        lseek(xres_fd, 0, SEEK_SET);
-        rc = write(xres_fd, "1", 1);
-	usleep(10000);
-        lseek(xres_fd, 0, SEEK_SET);
-        rc = write(xres_fd, "0", 1);
-        /* XXX, should be correllated with LIFTOFF_TIMEOUT in ts driver */
-        usleep(80000);
-	send_ts_socket("C");
-    }
 }
 
 static int write_int(char const *path, int value)
@@ -329,15 +215,15 @@ static int set_light_backlight(struct light_device_t *dev,
 	pthread_mutex_lock(&g_lock);
 	err = write_int(LCD_FILE, brightness);
 
-	/* TS power magic hack */
+	/* Tell touchscreen to turn on or off */
 	if (brightness > 0 && ts_state == 0) {
 		LOGI("Enabling touch screen");
 		ts_state = 1;
-		touchscreen_power(1);
+		send_ts_socket("O");
 	} else if (brightness == 0 && ts_state == 1) {
 		LOGI("Disabling touch screen");
 		ts_state = 0;
-		touchscreen_power(0);
+		send_ts_socket("C");
 	}
 
 	pthread_mutex_unlock(&g_lock);
@@ -350,7 +236,8 @@ static int close_lights(struct light_device_t *dev)
 	if (dev)
 		free(dev);
 
-    touchscreen_power(0);
+	ts_state = 0;
+	send_ts_socket("C");
 
 	return 0;
 }
@@ -382,16 +269,6 @@ static int open_lights(const struct hw_module_t *module, char const *name,
 	dev->set_light = set_light;
 
 	*device = (struct hw_device_t *)dev;
-
-	/* TS file descriptors. Ignore errors. */
-	vdd_fd = open("/sys/devices/platform/cy8ctma395/vdd", O_WRONLY);
-	LOGE_IF(vdd_fd < 0, "TScontrol: Cannot open vdd - %d", errno);
-	xres_fd = open("/sys/devices/platform/cy8ctma395/xres", O_WRONLY);
-	LOGE_IF(xres_fd < 0, "TScontrol: Cannot open xres - %d", errno);
-	wake_fd = open("/sys/user_hw/pins/ctp/wake/level", O_WRONLY);
-	LOGE_IF(wake_fd < 0, "TScontrol: Cannot open wake - %d", errno);
-	i2c_fd = open("/dev/i2c-5", O_RDWR);
-	LOGE_IF(i2c_fd < 0, "TScontrol: Cannot open i2c dev - %d", errno);
 
 	init_notification_led();
 
