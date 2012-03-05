@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Paramètres de l\'HP TouchPad</string>
+
+    <!-- Page Headers -->
+    <string name="touchscreen_title">ECRAN TACTILE</string>
+
+    <!-- Touchscreen mode -->
+    <string name="touchscreen_mode_title">Mode de l\'écran tactile</string>
+    <string name="touchscreen_mode_dialog_title">Stratégie d\'optimisation du capteur</string>
+    <string name="touchscreen_mode_preference_title_finger">Doigt</string>
+    <string name="touchscreen_mode_preference_title_stylus">Stylet</string>
+    <string name="touchscreen_mode_preference_summary_finger">Capteur tactile optimisé pour les doigts</string>
+    <string name="touchscreen_mode_preference_summary_stylus">Capteur tactile optimisé pour stylet</string>
+</resources>

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="touchscreen_modes">
-        <item>Finger</item>
-        <item>Stylus</item>
+        <item>@string/touchscreen_mode_preference_title_finger</item>
+        <item>@string/touchscreen_mode_preference_title_stylus</item>
     </string-array>
 
     <string-array name="touchscreen_mode_values">

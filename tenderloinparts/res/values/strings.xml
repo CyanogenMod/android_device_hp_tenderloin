@@ -6,6 +6,7 @@
     <string name="touchscreen_title">TOUCHSCREEN</string>
 
     <!-- Touchscreen mode -->
+    <string name="touchscreen_mode_title">Touchscreen Mode</string>
     <string name="touchscreen_mode_dialog_title">Touchscreen optimization strategy</string>
     <string name="touchscreen_mode_preference_title_finger">Finger</string>
     <string name="touchscreen_mode_preference_title_stylus">Stylus</string>
