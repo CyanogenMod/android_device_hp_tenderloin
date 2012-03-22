@@ -45,6 +45,8 @@ char const *const LED_FILE = "/dev/lm8502";
 
 #define TS_SOCKET_LOCATION "/dev/socket/tsdriver"
 
+#define TS_SOCKET_DEBUG 1
+
 /* LED engine programs */
 static const uint16_t notif_led_program_pulse[] = {
     0x9c0f, 0x9c8f, 0xe004, 0x4000, 0x047f, 0x4c00, 0x057f, 0x4c00,
@@ -69,6 +71,9 @@ void send_ts_socket(char *send_data) {
 		strcpy(unaddr.sun_path, TS_SOCKET_LOCATION);
 		len = strlen(unaddr.sun_path) + sizeof(unaddr.sun_family);
 		if (connect(ts_fd, (struct sockaddr *)&unaddr, len) >= 0) {
+#if TS_SOCKET_DEBUG
+                        LOGD("Send ts socket %i byte(s): '%s'\n", sizeof(*send_data), send_data);
+#endif
 			send(ts_fd, send_data, sizeof(*send_data), 0);
 		}
 		close(ts_fd);

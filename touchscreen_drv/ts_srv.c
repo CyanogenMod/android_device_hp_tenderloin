@@ -29,6 +29,8 @@
  *
  */
 
+#define LOG_TAG "ts_srv"
+#include <cutils/log.h>
 #include <linux/input.h>
 #include <linux/uinput.h>
 #include <linux/hsuart.h>
@@ -58,7 +60,7 @@
 
 #define TS_SOCKET_LOCATION "/dev/socket/tsdriver"
 // Set to 1 to enable socket debug information
-#define DEBUG_SOCKET 0
+#define DEBUG_SOCKET 1
 
 #define TS_SETTINGS_FILE "/data/tssettings"
 // Set to 1 to enable settings file debug information
@@ -293,7 +295,7 @@ int send_uevent(int fd, __u16 type, __u16 code, __s32 value)
 			strcpy(ccode, "BTN_TOUCH");
 			break;
 	}
-	printf("event type: '%s' code: '%s' value: %i \n", ctype, ccode, value);
+	LOGI("event type: '%s' code: '%s' value: %i \n", ctype, ccode, value);
 #endif
 
 	memset(&event, 0, sizeof(event));
@@ -302,7 +304,7 @@ int send_uevent(int fd, __u16 type, __u16 code, __s32 value)
 	event.value = value;
 
 	if (write(fd, &event, sizeof(event)) != sizeof(event)) {
-		fprintf(stderr, "Error on send_event %d", sizeof(event));
+		LOGE("Error on send_event %d", sizeof(event));
 		return -1;
 	}
 
@@ -312,7 +314,7 @@ int send_uevent(int fd, __u16 type, __u16 code, __s32 value)
 #if AVG_FILTER
 void avg_filter(struct touchpoint *t) {
 #if DEBUG
-	printf("before: x=%d, y=%d", t->x, t->y);
+	LOGD("before: x=%d, y=%d", t->x, t->y);
 #endif
 	float total_div = 6.0;
 	int xsum = 4 * t->unfiltered_x + 2 *
@@ -330,7 +332,7 @@ void avg_filter(struct touchpoint *t) {
 	t->x = xsum / total_div;
 	t->y = ysum / total_div;
 #if DEBUG
-	printf("|||| after: x=%d, y=%d\n", t->x, t->y);
+	LOGD("|||| after: x=%d, y=%d\n", t->x, t->y);
 #endif
 }
 #endif // AVG_FILTER
@@ -350,14 +352,14 @@ void hover_debounce(int i) {
 			tp[tpoint][i].x = tp[prevtpoint][prev_loc].hover_x;
 			tp[tpoint][i].y = tp[prevtpoint][prev_loc].hover_y;
 #if HOVER_DEBOUNCE_DEBUG
-			printf("Debouncing tracking ID: %i\n", tp[tpoint][i].tracking_id);
+			LOGD("Debouncing tracking ID: %i\n", tp[tpoint][i].tracking_id);
 #endif
 		} else {
 			// We're still within the radius but haven't been in the radius
 			// long enough.
 			tp[tpoint][i].hover_delay--;
 #if HOVER_DEBOUNCE_DEBUG
-			printf("Hover delay of %i on tracking ID: %i\n",
+			LOGD("Hover delay of %i on tracking ID: %i\n",
 				tp[tpoint][i].hover_delay, tp[tpoint][i].tracking_id);
 #endif
 		}
@@ -381,7 +383,7 @@ void hover_debounce(int i) {
 void liftoff_slot(int slot) {
 	// Sends a liftoff indicator for a specific slot
 #if EVENT_DEBUG
-	printf("liftoff slot function, lifting off slot: %i\n", slot);
+	LOGD("liftoff slot function, lifting off slot: %i\n", slot);
 #endif
 	// According to the Linux kernel documentation, this is the right events
 	// to send for protocol B, but the TouchPad 2.6.35 kernel doesn't seem to
@@ -405,7 +407,7 @@ void liftoff(void)
 #endif
 	// Sends liftoff events - nothing is touching the screen
 #if EVENT_DEBUG
-	printf("liftoff function\n");
+	LOGD("liftoff function\n");
 #endif
 #if !USE_B_PROTOCOL
 	send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
@@ -649,9 +651,9 @@ int calc_point(void)
 		for(j=0; j < Y_AXIS_POINTS; j++) {
 #if RAW_DATA_DEBUG
 			if (matrix[i][j] < RAW_DATA_THRESHOLD)
-				printf("   ");
+				LOGD("   ");
 			else
-				printf("%2.2X ", matrix[i][j]);
+				LOGD("%2.2X ", matrix[i][j]);
 #endif
 			if (tpc < MAX_TOUCH && matrix[i][j] > touch_continue_thresh &&
 				!invalid_matrix[i][j]) {
@@ -708,11 +710,11 @@ int calc_point(void)
 			}
 		}
 #if RAW_DATA_DEBUG
-		printf(" |\n"); // end of row
+		LOGD(" |\n"); // end of row
 #endif
 	}
 #if RAW_DATA_DEBUG
-	printf("end of raw data\n"); // helps separate one frame from the next
+	LOGD("end of raw data\n"); // helps separate one frame from the next
 #endif
 
 #if USE_B_PROTOCOL
@@ -781,24 +783,24 @@ int calc_point(void)
 							tp[prevtpoint][smallest_distance_loc[i]].direction)
 							< MAX_DELTA_ANGLE) {
 #if MAX_DELTA_DEBUG
-							printf("direction is close enough, no liftoff\n");
+							LOGD("direction is close enough, no liftoff\n");
 #endif
 							// No need to lift off
 							need_lift = 0;
 						}
 #if MAX_DELTA_DEBUG
 						else
-							printf("angle change too great, going to lift\n");
+							LOGD("angle change too great, going to lift\n");
 #endif
 					}
 #if MAX_DELTA_DEBUG
 					else
-						printf("previous distance too low, going to lift\n");
+						LOGD("previous distance too low, going to lift\n");
 #endif
 					if (need_lift) {
 						//  This is an impossibly large change in touches
 #if TRACK_ID_DEBUG
-						printf("Over Delta %d - %d,%d - %d,%d -> %d,%d\n",
+						LOGD("Over Delta %d - %d,%d - %d,%d -> %d,%d\n",
 							tp[prevtpoint][smallest_distance_loc[i]].
 							tracking_id,
 							smallest_distance_loc[i], i, tp[tpoint][i].x,
@@ -808,7 +810,7 @@ int calc_point(void)
 #endif
 #if USE_B_PROTOCOL
 #if EVENT_DEBUG || MAX_DELTA_DEBUG
-						printf("sending max delta liftoff for slot: %i\n",
+						LOGD("sending max delta liftoff for slot: %i\n",
 							tp[prevtpoint][smallest_distance_loc[i]].slot);
 #endif // EVENT_DEBUG || MAX_DELTA_DEBUG
 						liftoff_slot(
@@ -820,7 +822,7 @@ int calc_point(void)
 #endif // MAX_DELTA_FILTER
 				{
 #if TRACK_ID_DEBUG
-					printf("Continue Map %d - %d,%d - %lf,%lf -> %lf,%lf\n",
+					LOGD("Continue Map %d - %d,%d - %lf,%lf -> %lf,%lf\n",
 						tp[prevtpoint][smallest_distance_loc[i]].tracking_id,
 						smallest_distance_loc[i], i, tp[tpoint][i].i,
 						tp[tpoint][i].j,
@@ -856,7 +858,7 @@ int calc_point(void)
 			} else {
 				process_new_tpoint(&tp[tpoint][i], &tracking_id);
 #if TRACK_ID_DEBUG
-				printf("New Mapping - %lf,%lf - tracking ID: %i\n",
+				LOGD("New Mapping - %lf,%lf - tracking ID: %i\n",
 					tp[tpoint][i].i, tp[tpoint][i].j,
 					tp[tpoint][i].tracking_id);
 #endif
@@ -873,14 +875,14 @@ int calc_point(void)
 				if (slot_in_use[j] <= 0) {
 					if (slot_in_use[j] == -1) {
 #if EVENT_DEBUG
-						printf("lifting unused slot %i & reassigning it\n", j);
+						LOGD("lifting unused slot %i & reassigning it\n", j);
 #endif
 						liftoff_slot(j);
 					}
 					tp[tpoint][i].slot = j;
 					slot_in_use[j] = 1;
 #if TRACK_ID_DEBUG
-					printf("new slot [%i] trackID: %i slot: %i | %lf , %lf\n",
+					LOGD("new slot [%i] trackID: %i slot: %i | %lf , %lf\n",
 						i, tp[tpoint][i].tracking_id, tp[tpoint][i].slot,
 						tp[tpoint][i].i, tp[tpoint][i].j);
 #endif
@@ -894,7 +896,7 @@ int calc_point(void)
 	for (i=0; i<MAX_TOUCH; i++) {
 		if (slot_in_use[i] == -1) {
 #if EVENT_DEBUG
-			printf("lifting off slot %i - no longer in use\n", i);
+			LOGD("lifting off slot %i - no longer in use\n", i);
 #endif
 			liftoff_slot(i);
 			slot_in_use[i] = 0;
@@ -914,7 +916,7 @@ int calc_point(void)
 			initialx = tp[tpoint][0].x;
 			initialy = tp[tpoint][0].y;
 #if DEBOUNCE_DEBUG
-			printf("new touch recorded at %i, %i\n", initialx, initialy);
+			LOGD("new touch recorded at %i, %i\n", initialx, initialy);
 #endif
 		} else if (initialx > -20) {
 			// See if the current touch is still inside the debounce
@@ -925,12 +927,12 @@ int calc_point(void)
 				tp[tpoint][0].x = initialx;
 				tp[tpoint][0].y = initialy;
 #if DEBOUNCE_DEBUG
-				printf("debouncing!!!\n");
+				LOGD("debouncing!!!\n");
 #endif
 			} else {
 				initialx = -100; // Invalidate
 #if DEBOUNCE_DEBUG
-				printf("done debouncing\n");
+				LOGD("done debouncing\n");
 #endif
 			}
 		}
@@ -941,7 +943,7 @@ int calc_point(void)
 	for (k = 0; k < tpc; k++) {
 		if (tp[tpoint][k].highest_val && !tp[tpoint][k].touch_delay) {
 #if EVENT_DEBUG
-			printf("send event for tracking ID: %i\n",
+			LOGD("send event for tracking ID: %i\n",
 				tp[tpoint][k].tracking_id);
 #endif
 #if USE_B_PROTOCOL
@@ -1060,36 +1062,36 @@ void open_uinput(void)
 	device.absflat[ABS_MT_POSITION_Y] = 0;
 
 	if (write(uinput_fd,&device,sizeof(device)) != sizeof(device))
-		fprintf(stderr, "error setup\n");
+		LOGE("error setup\n");
 
 	if (ioctl(uinput_fd,UI_SET_EVBIT, EV_SYN) < 0)
-		fprintf(stderr, "error evbit key\n");
+		LOGE("error evbit key\n");
 
 	if (ioctl(uinput_fd,UI_SET_EVBIT,EV_ABS) < 0)
-		fprintf(stderr, "error evbit rel\n");
+		LOGE("error evbit rel\n");
 
 #if USE_B_PROTOCOL
 	if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_SLOT) < 0)
-		fprintf(stderr, "error slot rel\n");
+		LOGE("error slot rel\n");
 #endif
 
 	if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_TRACKING_ID) < 0)
-		fprintf(stderr, "error trkid rel\n");
+		LOGE("error trkid rel\n");
 
 	if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_TOUCH_MAJOR) < 0)
-		fprintf(stderr, "error tool rel\n");
+		LOGE("error tool rel\n");
 
 	//if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_WIDTH_MAJOR) < 0)
-	//	fprintf(stderr, "error tool rel\n");
+	//	LOGE("error tool rel\n");
 
 	if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_POSITION_X) < 0)
-		fprintf(stderr, "error tool rel\n");
+		LOGE("error tool rel\n");
 
 	if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_POSITION_Y) < 0)
-		fprintf(stderr, "error tool rel\n");
+		LOGE("error tool rel\n");
 
 	if (ioctl(uinput_fd,UI_DEV_CREATE) < 0)
-		fprintf(stderr, "error create\n");
+		LOGE("error create\n");
 }
 
 void clear_arrays(void)
@@ -1130,7 +1132,7 @@ void open_uart(int *uart_fd) {
 	struct hsuart_mode uart_mode;
 	*uart_fd = open("/dev/ctp_uart", O_RDONLY|O_NONBLOCK);
 	if(*uart_fd <= 0) {
-		printf("Could not open uart\n");
+		LOGE("Could not open uart\n");
 		exit(0);
 	}
 
@@ -1157,17 +1159,17 @@ void create_ts_socket(int *socket_fd) {
 			listen_fd = listen(*socket_fd, 3);
 #if DEBUG_SOCKET
 			if (listen_fd < 0)
-				printf("Error listening to socket\n");
+				LOGE("Error listening to socket\n");
 #endif
 		}
 #if DEBUG_SOCKET
 		else
-			printf("Error binding socket\n");
+			LOGE("Error binding socket\n");
 #endif
 	}
 #if DEBUG_SOCKET
 	else
-		printf("Error creating socket\n");
+		LOGE("Error creating socket\n");
 #endif
 }
 
@@ -1196,7 +1198,7 @@ int read_settings_file(void) {
 	fp = fopen(TS_SETTINGS_FILE, "r");
 	if (fp == NULL) {
 #if TS_SETTINGS_DEBUG
-		printf("Unable to fopen settings file for reading\n");
+		LOGE("Unable to fopen settings file for reading\n");
 #endif
 		set_ts_mode(0);
 		return 0;
@@ -1204,19 +1206,19 @@ int read_settings_file(void) {
 	setting = fgetc(fp);
 	if (setting == EOF) {
 #if TS_SETTINGS_DEBUG
-		printf("fgetc == EOF: %i\n", setting);
+		LOGD("fgetc == EOF: %i\n", setting);
 #endif
 		set_ts_mode(0);
 		ret_val = 0;
 	} else if (setting == 0) {
 #if TS_SETTINGS_DEBUG
-		printf("setting is: %i so setting finger mode\n", setting);
+		LOGD("setting is: %i so setting finger mode\n", setting);
 #endif
 		set_ts_mode(0);
 		ret_val = 0;
 	} else if (setting == 1) {
 #if TS_SETTINGS_DEBUG
-		printf("setting is: %i so setting stylus mode\n", setting);
+		LOGD("setting is: %i so setting stylus mode\n", setting);
 #endif
 		set_ts_mode(1);
 		ret_val = 1;
@@ -1231,16 +1233,16 @@ void write_settings_file(int setting) {
 	fp = fopen(TS_SETTINGS_FILE, "w");
 	if (fp == NULL) {
 #if TS_SETTINGS_DEBUG
-		printf("Unable to fopen settings file for writing\n");
+		LOGE("Unable to fopen settings file for writing\n");
 #endif
 		return;
 	}
 	setting = fputc(setting, fp);
 #if TS_SETTINGS_DEBUG
 	if (setting == EOF)
-		printf("fputc == EOF: %i\n", setting);
+		LOGD("fputc == EOF: %i\n", setting);
 	else
-		printf("Successfully wrote to setting %i to settings file\n", setting);
+		LOGD("Successfully wrote to setting %i to settings file\n", setting);
 #endif
 	fclose(fp);
 }
@@ -1261,7 +1263,7 @@ void process_socket_buffer(char *buffer[], int buffer_len, int *uart_fd,
 			return_val = close(*uart_fd);
 			*uart_fd = -1;
 #if DEBUG_SOCKET
-			printf("uart closed: %i\n", return_val);
+			LOGD("uart closed: %i\n", return_val);
 #endif
 			touchscreen_power(0);
 		}
@@ -1269,21 +1271,21 @@ void process_socket_buffer(char *buffer[], int buffer_len, int *uart_fd,
 			touchscreen_power(1);
 			open_uart(uart_fd);
 #if DEBUG_SOCKET
-			printf("uart opened at %i\n", *uart_fd);
+			LOGD("uart opened at %i\n", *uart_fd);
 #endif
 		}
 		if (buf == 70 /* 'F' */) {
 			set_ts_mode(0);
 			write_settings_file(0);
 #if DEBUG_SOCKET
-			printf("finger mode set\n");
+			LOGD("finger mode set\n");
 #endif
 		}
 		if (buf == 83 /* 'S' */) {
 			set_ts_mode(1);
 			write_settings_file(1);
 #if DEBUG_SOCKET
-			printf("stylus mode set\n");
+			LOGD("stylus mode set\n");
 #endif
 		}
 		if (buf == 77 /* 'M' */) {
@@ -1295,9 +1297,9 @@ void process_socket_buffer(char *buffer[], int buffer_len, int *uart_fd,
 				sizeof(*current_mode), 0);
 #if DEBUG_SOCKET
 			if (send_ret <= 0)
-				printf("Unable to send data to socket\n");
+				LOGE("Unable to send data to socket\n");
 			else
-				printf("Sent current mode of %i to socket\n",
+				LOGD("Sent current mode of %i to socket\n",
 					(int)current_mode[0]);
 #endif
 		}
@@ -1351,12 +1353,12 @@ int main(int argc, char** argv)
 		if (sel_ret == 0) {
 			/* Timeout means no more data and probably need to lift off */
 #if DEBUG
-			printf("timeout! no data coming from uart\n");
+			LOGE("timeout! no data coming from uart\n");
 #endif
 
 			if (need_liftoff) {
 #if EVENT_DEBUG
-				printf("timeout called liftoff\n");
+				LOGD("timeout called liftoff\n");
 #endif
 				liftoff();
 				clear_arrays();
@@ -1382,17 +1384,17 @@ int main(int argc, char** argv)
 			if(nbytes <= 0)
 				continue;
 #if DEBUG
-			printf("Received %d bytes\n", nbytes);
+			LOGD("Received %d bytes\n", nbytes);
 			int i;
 			for(i=0; i < nbytes; i++)
-				printf("%2.2X ",recv_buf[i]);
-			printf("\n");
+				LOGD("%2.2X ",recv_buf[i]);
+			LOGD("\n");
 #endif
 			if (!snarf2(recv_buf,nbytes)) {
 				// Sometimes there's data but no valid touches due to threshold
 				if (need_liftoff) {
 #if EVENT_DEBUG
-					printf("snarf2 called liftoff\n");
+					LOGD("snarf2 called liftoff\n");
 #endif
 					liftoff();
 					clear_arrays();
@@ -1411,9 +1413,12 @@ int main(int argc, char** argv)
 				int recv_ret;
 
 				recv_ret = recv(accept_fd, recv_str, SOCKET_BUFFER_SIZE, 0);
+
+                                recv_str[recv_ret]=0; // add string terminator
+
 				if (recv_ret > 0) {
 #if DEBUG_SOCKET
-					printf("Socket received %i byte(s): '%s'\n", recv_ret,
+					LOGD("Socket received %i byte(s): '%s'\n", recv_ret,
 						recv_str);
 #endif
 					process_socket_buffer((char **)&recv_str, recv_ret,
@@ -1422,13 +1427,13 @@ int main(int argc, char** argv)
 #if DEBUG_SOCKET
 				else {
 					if (recv_ret < 0)
-						printf("Receive error\n");
+						LOGE("Receive error\n");
 					else
-						printf("No actual data to receive\n");
+						LOGD("No actual data to receive\n");
 				}
 				close(accept_fd);
 			} else {
-				printf("Accept failed\n");
+				LOGE("Accept failed\n");
 #endif
 			}
 		}
