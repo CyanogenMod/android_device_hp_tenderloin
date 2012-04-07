@@ -31,6 +31,8 @@
  * M = return current Mode
  */
 
+#define LOG_TAG "ts_srv_set"
+#include <cutils/log.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
@@ -54,22 +56,22 @@ int receive_ts_mode(int ts_fd) {
 	FD_SET(ts_fd, &fdset);
 	sel_ret = select(ts_fd + 1, &fdset, NULL, NULL, &seltmout);
 	if (sel_ret == 0) {
-		printf("Unable to retrieve current mode - timeout\n");
+		LOGE("Unable to retrieve current mode - timeout\n");
 		return -40;
 	} else {
 		recv_ret = recv(ts_fd, recv_str, SOCKET_BUFFER_SIZE, 0);
 		if (recv_ret > 0) {
 			if ((int)recv_str[0] == 0)
-				printf("Finger mode\n");
+				LOGI("Finger mode\n");
 			else if ((int)recv_str[0] == 1)
-				printf("Stylus mode\n");
+				LOGI("Stylus mode\n");
 			else {
-				printf("Unknown mode '%i'\n", (int)recv_str[0]);
+				LOGI("Unknown mode '%i'\n", (int)recv_str[0]);
 				return -60;
 			}
 			return 0;
 		} else {
-			printf("Error receiving mode\n");
+			LOGE("Error receiving mode\n");
 			return -50;
 		}
 	}
@@ -90,14 +92,14 @@ int send_ts_socket(char *send_data) {
 			int send_ret;
 			send_ret = send(ts_fd, send_data, sizeof(*send_data), 0);
 			if (send_ret <= 0) {
-				printf("Unable to send data to socket\n");
+				LOGE("Unable to send data to socket\n");
 				return -30;
 			} else {
 				if ((strcmp(send_data, "F") == 0)) {
-					printf("Touchscreen set for finger mode\n");
+					LOGI("Touchscreen set for finger mode\n");
 					return 0;
 				} else if ((strcmp(send_data, "S") == 0)) {
-					printf("Touchscreen set for stylus mode\n");
+					LOGI("Touchscreen set for stylus mode\n");
 					return 0;
 				} else {
 					// Get the current mode
@@ -105,12 +107,12 @@ int send_ts_socket(char *send_data) {
 				}
 			}
 		} else {
-			printf("Unable to connect socket\n");
+			LOGE("Unable to connect socket\n");
 			return -20;
 		}
 		close(ts_fd);
 	} else {
-		printf("Unable to create socket\n");
+		LOGE("Unable to create socket\n");
 		return -10;
 	}
 }
