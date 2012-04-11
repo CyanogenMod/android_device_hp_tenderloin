@@ -1,0 +1,51 @@
+#!/system/bin/sh
+#
+# This script corrects the SDCARD= entry in /system/etc/vold.fstab
+# to match the minor device number for the /dev/store/media lvm volume
+# if it is not correct
+#
+
+if [ ! -e /dev/store/media ];
+then
+	echo "$0: /dev/store/media does not exist"
+	exit 1
+fi
+
+# get the minor device number for /dev/store/media
+MM=`/system/xbin/ls -lLn /dev/store/media | sed -e 's/ */	/g' | cut -f7`
+
+# get the existing vold.fstab SDCARD= value
+OSTR=`sed -rn -e 's/.*(SDCARD=.*)$/\1/p' /system/etc/vold.fstab`
+
+if [ -z "${OSTR}" ];
+then
+	echo "$0: Failed to read existing SDCARD= value"
+	exit 1
+fi
+
+if [ -n "${MM}" ];
+then
+	NSTR="SDCARD=/dev/block/dm-${MM}"
+
+	# just exit if no change needed
+	if [ "x${OSTR}" == "x${NSTR}" ];
+	then
+		exit 0
+	fi
+	
+	echo "$0: Setting vold.fstab media SDCARD=/dev/block/dm-${MM}"
+
+	# remount /system read-write
+	mount -o remount,rw /system
+
+	# make the change
+	sed -e "s/SDCARD=.*$/SDCARD=\/dev\/block\/dm-${MM}/" -i \
+		/system/etc/vold.fstab
+
+	# remount /system read-only
+	mount -o remount,ro /system
+else
+	echo "$0: Unable to determine media minor"
+	exit 1
+fi
+
