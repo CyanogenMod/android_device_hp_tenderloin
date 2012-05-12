@@ -62,9 +62,9 @@ int receive_ts_mode(int ts_fd) {
 		recv_ret = recv(ts_fd, recv_str, SOCKET_BUFFER_SIZE, 0);
 		if (recv_ret > 0) {
 			if ((int)recv_str[0] == 0)
-				LOGI("Finger mode\n");
+				printf("Finger mode\n");
 			else if ((int)recv_str[0] == 1)
-				LOGI("Stylus mode\n");
+				printf("Stylus mode\n");
 			else {
 				LOGI("Unknown mode '%i'\n", (int)recv_str[0]);
 				return -60;
