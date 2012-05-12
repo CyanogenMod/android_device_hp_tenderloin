@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Настройки HP TouchPad</string>
+
+    <!-- Page Headers -->
+    <string name="touchscreen_title">СЕНСОРНЫЙ ЭКРАН</string>
+
+    <!-- Touchscreen mode -->
+    <string name="touchscreen_mode_title">Режим работы</string>
+    <string name="touchscreen_mode_dialog_title">Оптимизировать сенсорный экран для работы пальцами или стилусом</string>
+    <string name="touchscreen_mode_preference_title_finger">Пальцами</string>
+    <string name="touchscreen_mode_preference_title_stylus">Стилусом</string>
+    <string name="touchscreen_mode_preference_summary_finger">Сенсорный экран оптимизирован для работы пальцами</string>
+    <string name="touchscreen_mode_preference_summary_stylus">Сенсорный экран оптимизирован для работы стилусом</string>
+</resources>
