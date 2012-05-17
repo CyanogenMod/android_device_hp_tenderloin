@@ -26,7 +26,7 @@
 
 #camera
 /dev/pmem_smipool       0660    system      audio
-/dev/msm_camera/*       0660    system      system
+/dev/msm_camera/*       0660    system      audio
 
 #graphics
 /dev/msm_rotator        0660    system      graphics
