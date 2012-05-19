@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Configurações HP TouchPad</string>
+    <string name="touchscreen_title">Tela Sensível ao Toque</string>
+    <string name="touchscreen_mode_title">Modo da Tela Sensível ao Toque</string>
+    <string name="touchscreen_mode_dialog_title">Estratégia de otimização da tela sensível ao toque</string>
+    <string name="touchscreen_mode_preference_title_finger">Dedo</string>
+    <string name="touchscreen_mode_preference_title_stylus">Stylus</string>
+    <string name="touchscreen_mode_preference_summary_finger">Tela sensível ao toque está otimizada para uso com dedo</string>
+    <string name="touchscreen_mode_preference_summary_stylus">Tela sensível ao toque está otimizada para uso com stylus</string>
+</resources>
