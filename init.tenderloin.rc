@@ -146,6 +146,9 @@ on boot
     insmod /system/lib/modules/ntfs.ko
     insmod /system/lib/modules/tun.ko
 
+    # compat-wireless modules needed for ath6kl
+    insmod /system/lib/modules/compat.ko
+    insmod /system/lib/modules/cfg80211.ko
 
     # change permissions for i2c-2 device
 	chmod 0660 /dev/i2c-2
@@ -157,7 +160,7 @@ on property:persist.service.adb.enable=1
 on property:persist.service.adb.enable=0
     stop adbd
 
-service wpa_supplicant /system/bin/wpa_supplicant -Dar6000 -iwlan0 -c/data/misc/wifi/wpa_supplicant.conf
+service wpa_supplicant /system/bin/wpa_supplicant -Dnl80211 -iwlan0 -c/data/misc/wifi/wpa_supplicant.conf
 	#   we will start as root and wpa_supplicant will switch to user wifi
 	#   after setting up the capabilities required for WEXT
 	#   user wifi
