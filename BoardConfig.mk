@@ -121,7 +121,6 @@ BOARD_CUSTOM_GRAPHICS:= ../../../device/hp/tenderloin/graphics.c
 BOARD_CUSTOM_BOOTIMG_MK := device/hp/tenderloin/uboot-bootimg.mk
 
 # Multiboot stuff
-TARGET_RECOVERY_PRE_COMMAND := "/system/bin/rebootcmd recovery"
-TARGET_ALTOS_PRE_COMMAND := "/system/bin/rebootcmd altos"
+TARGET_RECOVERY_PRE_COMMAND := "/system/bin/rebootcmd"
 
 ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0

@@ -39,7 +39,7 @@ PRODUCT_COPY_FILES += \
 
 # Dualboot Magic
 PRODUCT_COPY_FILES += \
-    device/hp/tenderloin/boot_webos:system/bin/boot_webos
+    device/hp/tenderloin/moboot_control:system/bin/moboot_control
 
 # media minor check boot script
 PRODUCT_COPY_FILES += \

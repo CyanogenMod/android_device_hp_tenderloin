@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#define RUNCMD "/system/bin/boot_webos"
+#define RUNCMD "/system/bin/moboot_control"
 
 int main(int argc, char**argv, char *envp[])
 {
