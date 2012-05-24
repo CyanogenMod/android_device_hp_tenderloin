@@ -139,6 +139,10 @@ PRODUCT_COPY_FILES += \
 	device/hp/tenderloin/prebuilt/audio/usr/share/alsa/alsa.conf:system/usr/share/alsa/alsa.conf \
 	device/hp/tenderloin/prebuilt/audio/usr/share/alsa/cards/aliases.conf:system/usr/share/alsa/cards/aliases.conf
 
+# Camera
+PRODUCT_PACKAGES += \
+    camera.msm8660
+
 # Sensors, misc
 PRODUCT_PACKAGES += \
     librs_jni \

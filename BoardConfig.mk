@@ -79,7 +79,7 @@ BOARD_FIRST_CAMERA_FRONT_FACING := true
 BOARD_CAMERA_USE_ENCODEDATA := true
 
 BOARD_OVERLAY_FORMAT_YCbCr_420_SP := true
-USE_CAMERA_STUB := true
+USE_CAMERA_STUB := false
 
 # tenderloin- these kernel settings are temporary to complete build
 BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.hardware=qcom
