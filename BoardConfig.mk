@@ -68,6 +68,9 @@ BOARD_ADRENO_DECIDE_TEXTURE_TARGET := true
 # Webkit workaround
 TARGET_FORCE_CPU_UPLOAD := true
 
+# Enable WEBGL in WebKit
+ENABLE_WEBGL := true
+
 BOARD_USES_QCOM_LIBS := true
 BOARD_USES_QCOM_LIBRPC := true
 BOARD_USE_QCOM_PMEM := true
