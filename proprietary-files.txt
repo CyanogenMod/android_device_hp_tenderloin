@@ -13,6 +13,7 @@ lib/egl/libEGL_adreno200.so
 lib/egl/libq3dtools_adreno200.so
 lib/egl/libGLESv2_adreno200.so
 lib/egl/libGLESv1_CM_adreno200.so
+lib/egl/libGLES_android.so
 lib/egl/eglsubAndroid.so
 lib/liboemcamera.so
 lib/libsc-a2xx.so
@@ -30,6 +31,11 @@ etc/firmware/q6.b01
 etc/firmware/q6.mdt
 etc/firmware/yamato_pfp.fw
 etc/firmware/yamato_pm4.fw
+etc/firmware/a225_pfp.fw
+etc/firmware/a225_pm4.fw
+etc/firmware/a225p5_pm4.fw
+etc/firmware/a300_pfp.fw
+etc/firmware/a300_pm4.fw
 etc/firmware/wm8958_enh_eq.wfw
 etc/firmware/q6.b02
 etc/firmware/q6.b03
