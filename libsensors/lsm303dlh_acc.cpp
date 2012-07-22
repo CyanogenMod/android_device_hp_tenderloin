@@ -68,7 +68,7 @@ int Lsm303dlhGSensor::enable(int32_t handle, int en)
         err = -errno;
     }
 
-    LOGE_IF(err < 0, "Error setting enable of LSM303DLH accelerometer (%s)"
+    ALOGE_IF(err < 0, "Error setting enable of LSM303DLH accelerometer (%s)"
             , strerror(-err));
 
     if (!err) {
@@ -100,7 +100,7 @@ int Lsm303dlhGSensor::setDelay(int32_t handle, int64_t ns)
 
 		close(fd);
 
-        LOGE_IF(err < 0,
+        ALOGE_IF(err < 0,
                 "Error setting delay of LSM303DLH accelerometer (%s)",
                 strerror(-err)); } 
     return err;
@@ -128,7 +128,7 @@ int Lsm303dlhGSensor::readEvents(sensors_event_t* data, int count)
             count--;
             numEventReceived++;
         } else {
-            LOGE("LSM303DLH_ACC: unknown event (type=%d, code=%d)",
+            ALOGE("LSM303DLH_ACC: unknown event (type=%d, code=%d)",
                     type, event->code);
         }
         mInputReader.next();
@@ -162,12 +162,12 @@ int Lsm303dlhGSensor::isEnabled()
         if(amt > 0) {
             return (buffer[0] == '1');
         } else {
-            LOGE("LSM303DLH_ACC: isEnable() failed to read (%s)",
+            ALOGE("LSM303DLH_ACC: isEnable() failed to read (%s)",
                     strerror(errno));
             return 0;
         }
     } else {
-        LOGE("LSM303DLH_ACC: isEnabled failed to open %s",
+        ALOGE("LSM303DLH_ACC: isEnabled failed to open %s",
                 LSM303DLH_ACC_ENABLE_FILE);
         return 0;
     }

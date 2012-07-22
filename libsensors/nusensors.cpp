@@ -32,6 +32,7 @@
 #include "lsm303dlh_acc.h"
 #include "lsm303dlh_mag.h"
 #include "LightSensor.h"
+
 /*****************************************************************************/
 
 struct sensors_poll_context_t {
@@ -94,7 +95,7 @@ sensors_poll_context_t::sensors_poll_context_t()
 
     int wakeFds[2];
     int result = pipe(wakeFds);
-    LOGE_IF(result<0, "error creating wake pipe (%s)", strerror(errno));
+    ALOGE_IF(result<0, "error creating wake pipe (%s)", strerror(errno));
     fcntl(wakeFds[0], F_SETFL, O_NONBLOCK);
     fcntl(wakeFds[1], F_SETFL, O_NONBLOCK);
     mWritePipeFd = wakeFds[1];
@@ -114,13 +115,13 @@ sensors_poll_context_t::~sensors_poll_context_t() {
 
 int sensors_poll_context_t::activate(int handle, int enabled) {
     int index = handleToDriver(handle);
-LOGD("sensor activation called: handle=%d, enabled=%d********************************", handle, enabled);
+ALOGD("sensor activation called: handle=%d, enabled=%d********************************", handle, enabled);
     if (index < 0) return index;
     int err =  mSensors[index]->enable(handle, enabled);
     if (enabled && !err) {
         const char wakeMessage(WAKE_MESSAGE);
         int result = write(mWritePipeFd, &wakeMessage, 1);
-        LOGE_IF(result<0, "error sending wake message (%s)", strerror(errno));
+        ALOGE_IF(result<0, "error sending wake message (%s)", strerror(errno));
     }
 
     return err;
@@ -160,14 +161,14 @@ int sensors_poll_context_t::pollEvents(sensors_event_t* data, int count)
             // anything to return
             n = poll(mPollFds, numFds, nbEvents ? 0 : -1);
             if (n<0) {
-                LOGE("poll() failed (%s)", strerror(errno));
+                ALOGE("poll() failed (%s)", strerror(errno));
                 return -errno;
             }
             if (mPollFds[wake].revents & POLLIN) {
                 char msg;
                 int result = read(mPollFds[wake].fd, &msg, 1);
-                LOGE_IF(result<0, "error reading from wake pipe (%s)", strerror(errno));
-                LOGE_IF(msg != WAKE_MESSAGE, "unknown message on wake queue (0x%02x)", int(msg));
+                ALOGE_IF(result<0, "error reading from wake pipe (%s)", strerror(errno));
+                ALOGE_IF(msg != WAKE_MESSAGE, "unknown message on wake queue (0x%02x)", int(msg));
                 mPollFds[wake].revents = 0;
             }
         }

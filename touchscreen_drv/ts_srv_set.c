@@ -56,7 +56,7 @@ int receive_ts_mode(int ts_fd) {
 	FD_SET(ts_fd, &fdset);
 	sel_ret = select(ts_fd + 1, &fdset, NULL, NULL, &seltmout);
 	if (sel_ret == 0) {
-		LOGE("Unable to retrieve current mode - timeout\n");
+		ALOGE("Unable to retrieve current mode - timeout\n");
 		return -40;
 	} else {
 		recv_ret = recv(ts_fd, recv_str, SOCKET_BUFFER_SIZE, 0);
@@ -66,12 +66,12 @@ int receive_ts_mode(int ts_fd) {
 			else if ((int)recv_str[0] == 1)
 				printf("Stylus mode\n");
 			else {
-				LOGI("Unknown mode '%i'\n", (int)recv_str[0]);
+				ALOGI("Unknown mode '%i'\n", (int)recv_str[0]);
 				return -60;
 			}
 			return 0;
 		} else {
-			LOGE("Error receiving mode\n");
+			ALOGE("Error receiving mode\n");
 			return -50;
 		}
 	}
@@ -92,14 +92,14 @@ int send_ts_socket(char *send_data) {
 			int send_ret;
 			send_ret = send(ts_fd, send_data, sizeof(*send_data), 0);
 			if (send_ret <= 0) {
-				LOGE("Unable to send data to socket\n");
+				ALOGE("Unable to send data to socket\n");
 				return -30;
 			} else {
 				if ((strcmp(send_data, "F") == 0)) {
-					LOGI("Touchscreen set for finger mode\n");
+					ALOGI("Touchscreen set for finger mode\n");
 					return 0;
 				} else if ((strcmp(send_data, "S") == 0)) {
-					LOGI("Touchscreen set for stylus mode\n");
+					ALOGI("Touchscreen set for stylus mode\n");
 					return 0;
 				} else {
 					// Get the current mode
@@ -107,12 +107,12 @@ int send_ts_socket(char *send_data) {
 				}
 			}
 		} else {
-			LOGE("Unable to connect socket\n");
+			ALOGE("Unable to connect socket\n");
 			return -20;
 		}
 		close(ts_fd);
 	} else {
-		LOGE("Unable to create socket\n");
+		ALOGE("Unable to create socket\n");
 		return -10;
 	}
 }

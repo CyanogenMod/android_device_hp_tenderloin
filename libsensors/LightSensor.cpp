@@ -105,11 +105,11 @@ int LightSensor::enable(int32_t handle, int en)
                 buf_enable[0] = '0';
             }
             if(!(err = write(fd, buf_enable, sizeof(buf_enable)))) {
-                LOGE("LightSensor: unable to write to %s", 
+                ALOGE("LightSensor: unable to write to %s", 
                         ISL29023_ENABLE_FILE);
             }
             if(!(err = write(fd_mode, buf_mode, sizeof(buf_mode)))) {
-                LOGE("LightSensor: unable to write to %s", 
+                ALOGE("LightSensor: unable to write to %s", 
                         ISL29023_MODE_FILE);
             }
             
@@ -164,7 +164,7 @@ int LightSensor::readEvents(sensors_event_t* data, int count)
                 mPreviousLight = mPendingEvent.light;
             }
         } else {
-            LOGE("LightSensor: unknown event (type=%d, code=%d)",
+            ALOGE("LightSensor: unknown event (type=%d, code=%d)",
                     type, event->code);
         }
         mInputReader.next();
