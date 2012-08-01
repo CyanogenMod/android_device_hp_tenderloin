@@ -14,7 +14,7 @@
 ######################
 
 # Mounts the first usable partition of the specified device
-dev_mount sdcard /mnt/sdcard auto SDCARD=/dev/block/dm-6
+dev_mount sdcard /storage/sdcard0 auto SDCARD=/dev/block/dm-6
 
 # for mounting usb storage
 dev_mount usbdisk /mnt/usbdisk auto /devices/platform/msm_hsusb_host.0
