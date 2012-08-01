@@ -38,10 +38,11 @@ on init
     mount ext3 /dev/block/mmcblk0p13 /boot remount ro wait noatime barrier=1
 
 
-	export EXTERNAL_STORAGE /mnt/sdcard
-	mkdir /mnt/sdcard 0000 system system
-	# for backwards compatibility
-	symlink /mnt/sdcard /sdcard
+    export EXTERNAL_STORAGE /storage/sdcard0
+    mkdir /storage/sdcard0 0000 system system
+    # for backwards compatibility
+    symlink /storage/sdcard0 /mnt/sdcard
+    symlink /mnt/sdcard /sdcard
 
 on post-fs
 	# camera calibration
