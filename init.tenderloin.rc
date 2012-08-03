@@ -39,6 +39,7 @@ on init
 
 
     export EXTERNAL_STORAGE /storage/sdcard0
+    mkdir /storage 0000 system system
     mkdir /storage/sdcard0 0000 system system
     # for backwards compatibility
     symlink /storage/sdcard0 /mnt/sdcard
