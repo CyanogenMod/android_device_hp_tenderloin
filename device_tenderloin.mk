@@ -224,7 +224,8 @@ PRODUCT_TAGS += dalvik.gc.type-precise
 PRODUCT_LOCALES += en_US mdpi
 
 PRODUCT_COPY_FILES += \
-    device/hp/tenderloin/media_profiles.xml:/system/etc/media_profiles.xml \
+    device/hp/tenderloin/configs/media_profiles.xml:system/etc/media_profiles.xml \
+    device/hp/tenderloin/configs/media_codecs.xml:system/etc/media_codecs.xml \
     device/hp/tenderloin/vold.fstab:system/etc/vold.fstab \
     device/hp/tenderloin/makemulti.sh:makemulti.sh \
     device/hp/tenderloin/prebuilt/boot/moboot.splash.CyanogenMod.tga:moboot.splash.CyanogenMod.tga
