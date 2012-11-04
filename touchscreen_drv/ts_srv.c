@@ -1268,8 +1268,8 @@ void process_socket_buffer(char *buffer[], int buffer_len, int *uart_fd,
 			touchscreen_power(0);
 		}
 		if (buf == 79 /* 'O' */ && *uart_fd < 0) {
-			touchscreen_power(1);
 			open_uart(uart_fd);
+			touchscreen_power(1);
 #if DEBUG_SOCKET
 			ALOGD("uart opened at %i\n", *uart_fd);
 #endif
@@ -1322,10 +1322,10 @@ int main(int argc, char** argv)
 	if (sched_setscheduler(0 /* that's us */, SCHED_FIFO, &sparam))
 		perror("Cannot set RT priority, ignoring: ");
 
+	open_uart(&uart_fd);
 	init_digitizer_fd();
 	touchscreen_power(1);
 
-	open_uart(&uart_fd);
 
 	open_uinput();
 
