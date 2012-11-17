@@ -1,6 +1,6 @@
-# mount point	fstype		device			[device2]
+# mount point   fstype          device                  [device2]
 /boot           ext3            /dev/block/mmcblk0p13
 /cache          ext4            /dev/store/cm-cache
 /data           ext4            /dev/store/cm-data
 /system         ext4            /dev/store/cm-system
-/sdcard		vfat		/dev/store/media
+/sdcard         vfat            /dev/store/media

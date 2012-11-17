@@ -111,8 +111,9 @@ TARGET_KERNEL_CONFIG := tenderloin_android_defconfig
 
 # Define Prebuilt kernel locations
 TARGET_PREBUILT_KERNEL := device/hp/tenderloin/prebuilt/boot/kernel
-
+BOARD_CUSTOM_RECOVERY_KEYMAPPING := ../../device/hp/tenderloin/recovery/recovery_ui.c
 TARGET_RECOVERY_INITRC := device/hp/tenderloin/recovery/init.rc
+BOARD_HAS_NO_SELECT_BUTTON := false
 
 # tenderloin - these partition sizes are temporary to complete build
 TARGET_USERIMAGES_USE_EXT4 := true
