@@ -99,6 +99,10 @@ BOARD_USES_UBOOT_MULTIIMAGE := true
 # use dosfsck from dosfstools
 BOARD_USES_CUSTOM_FSCK_MSDOS := true
 
+# kernel has no ext4_lazyinit
+# (esp. important for make_ext4fs in recovery)
+BOARD_NO_EXT4_LAZYINIT := true
+
 # Define kernel config for inline building
 TARGET_KERNEL_CONFIG := tenderloin_android_defconfig
 
