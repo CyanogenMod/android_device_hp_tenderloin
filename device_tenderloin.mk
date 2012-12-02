@@ -88,11 +88,14 @@ PRODUCT_PACKAGES += \
 	libdivxdrmdecrypt \
 	libOmxVdec
 
-# QCOM OMX Video Encoding/Tests
+# QCOM OMX Video Encoding
+PRODUCT_PACKAGES += \
+	libOmxVenc
+
+# QCOM OMX Video Tests
 #PRODUCT_PACKAGES += \
 #	mm-vdev-omx-test \
 #	mm-video-driver-test \
-#	libOmxVenc \
 #	mm-venc-omx-test720p \
 #	mm-video-encdrv-test
 
