@@ -21,6 +21,7 @@
 #define MSMFB_IOCTL_MAGIC 'm'
 #define MSMFB_GRP_DISP          _IOW(MSMFB_IOCTL_MAGIC, 1, unsigned int)
 #define MSMFB_BLIT              _IOW(MSMFB_IOCTL_MAGIC, 2, unsigned int)
+#define MSMFB_OVERLAY_COMMIT    _IOW(MSMFB_IOCTL_MAGIC, 163, unsigned int)
 #define MSMFB_SUSPEND_SW_REFRESHER _IOW(MSMFB_IOCTL_MAGIC, 128, unsigned int)
 #define MSMFB_RESUME_SW_REFRESHER _IOW(MSMFB_IOCTL_MAGIC, 129, unsigned int)
 #define MSMFB_CURSOR _IOW(MSMFB_IOCTL_MAGIC, 130, struct fb_cursor)
@@ -231,7 +232,10 @@ struct msmfb_data {
 	int id;
 	uint32_t flags;
 	uint32_t priv;
+#if 0
+	// disable to match our kernel
 	uint32_t iova;
+#endif
 };
 
 #define MSMFB_NEW_REQUEST -1
@@ -239,9 +243,12 @@ struct msmfb_data {
 struct msmfb_overlay_data {
 	uint32_t id;
 	struct msmfb_data data;
+#if 0
+	// disable to match our kernel
 	uint32_t version_key;
 	struct msmfb_data plane1_data;
 	struct msmfb_data plane2_data;
+#endif
 };
 
 struct msmfb_img {
@@ -278,7 +285,10 @@ struct mdp_overlay {
 	uint32_t flags;
 	uint32_t id;
 	uint32_t user_data[8];
+#if 0
+	// disable to match our kernel
 	struct dpp_ctrl dpp;
+#endif
 };
 
 struct msmfb_overlay_3d {
