@@ -1,0 +1,10 @@
+<resources>
+    <!-- Workspace grid size defaults and maximums -->
+    <integer name="cell_count_x">8</integer>
+    <integer name="cell_count_y">7</integer>
+    <integer name="config_maxWorkspaceColumns">11</integer>
+    <integer name="config_maxWorkspaceRows">10</integer>
+
+    <!-- Allow tablets to set grid size in settings and have an effect in the Workspace -->
+    <bool name="config_workspaceTabletGrid">true</bool>
+</resources>
