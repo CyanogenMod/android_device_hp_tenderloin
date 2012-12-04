@@ -58,8 +58,6 @@ on boot
 service ueventd /sbin/ueventd
     critical
 
-service tsdriver /sbin/ts_srv
-
 service recovery /sbin/recovery
 
 service adbd /sbin/adbd recovery
