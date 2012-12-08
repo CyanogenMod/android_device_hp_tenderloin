@@ -1217,23 +1217,23 @@ void QualcommCameraHardware::initDefaultParameters()
     ALOGI("initDefaultParameters E");
 
     /* Set the default dimensions */
-	mDimension.picture_width = DEFAULT_PICTURE_WIDTH;
-	mDimension.picture_height = DEFAULT_PICTURE_HEIGHT;
+    mDimension.picture_width = DEFAULT_PICTURE_WIDTH;
+    mDimension.picture_height = DEFAULT_PICTURE_HEIGHT;
     mDimension.ui_thumbnail_width =
         thumbnail_sizes[DEFAULT_THUMBNAIL_SETTING].width;
     mDimension.ui_thumbnail_height =
         thumbnail_sizes[DEFAULT_THUMBNAIL_SETTING].height;
 
-	/* Update dimensions. Otherwise CAMERA_PARM_ZOOM_RATIO will fail */
+    /* Update dimensions. Otherwise CAMERA_PARM_ZOOM_RATIO will fail */
     bool ret = native_set_parms(CAMERA_PARM_DIMENSION,
                                sizeof(cam_ctrl_dimension_t), &mDimension);
 
     hasAutoFocusSupport();
     //Disable DIS for Web Camera
-    if( !mCfgControl.mm_camera_is_supported(CAMERA_PARM_VIDEO_DIS)){
+    if (!mCfgControl.mm_camera_is_supported(CAMERA_PARM_VIDEO_DIS)) {
         ALOGV("DISABLE DIS");
         mDisEnabled = 0;
-    }else {
+    } else {
         ALOGV("Enable DIS");
     }
     // Initialize constant parameter strings. This will happen only once in the
@@ -1297,7 +1297,7 @@ void QualcommCameraHardware::initDefaultParameters()
                 continuous_af, sizeof(continuous_af) / sizeof(str_map));
         }
 
-        if( mCfgControl.mm_camera_query_parms(CAMERA_PARM_ZOOM_RATIO, (void **)&zoomRatios, (uint32_t *) &mMaxZoom) == MM_CAMERA_SUCCESS)
+        if (mCfgControl.mm_camera_query_parms(CAMERA_PARM_ZOOM_RATIO, (void **)&zoomRatios, (uint32_t *) &mMaxZoom) == MM_CAMERA_SUCCESS)
         {
             zoomSupported = true;
             if( mMaxZoom >0) {
@@ -1430,8 +1430,8 @@ void QualcommCameraHardware::initDefaultParameters()
     mParameters.set(CameraParameters::KEY_SUPPORTED_PREVIEW_SIZES,
                     preview_size_values.string());
 
-    //mParameters.set(CameraParameters::KEY_SUPPORTED_VIDEO_SIZES,
-    //                preview_size_values.string());
+    mParameters.set(CameraParameters::KEY_SUPPORTED_VIDEO_SIZES,
+                    preview_size_values.string());
 
     mParameters.set(CameraParameters::KEY_SUPPORTED_PICTURE_SIZES,
                     picture_size_values.string());
@@ -4469,19 +4469,17 @@ status_t QualcommCameraHardware::setVpeParameters()
     bool ret = true;
 
     ALOGV("videoWidth = %d, videoHeight = %d", videoWidth, videoHeight);
-
-    int rotation = (mRotation + sensor_rotation) % 360;
-    rotCtrl.rotation = (rotation == 0) ? ROT_NONE :
-                       ((rotation == 90) ? ROT_CLOCKWISE_90 :
-                  ((rotation == 180) ? ROT_CLOCKWISE_180 : ROT_CLOCKWISE_270));
+    rotCtrl.rotation = (mRotation == 0) ? ROT_NONE :
+                       ((mRotation == 90) ? ROT_CLOCKWISE_90 :
+                  ((mRotation == 180) ? ROT_CLOCKWISE_180 : ROT_CLOCKWISE_270));
 
     if( ((videoWidth == 1280 && videoHeight == 720) || (videoWidth == 800 && videoHeight == 480))
-        && (rotation == 90 || rotation == 270) ){
+        && (mRotation == 90 || mRotation == 270) ){
         /* Due to a limitation at video core to support heights greater than 720, adding this check.
          * This is a temporary hack, need to be removed once video core support is available
          */
         ALOGI("video resolution (%dx%d) with rotation (%d) is not supported, setting rotation to NONE",
-            videoWidth, videoHeight, rotation);
+            videoWidth, videoHeight, mRotation);
         rotCtrl.rotation = ROT_NONE;
     }
     ALOGV("rotCtrl.rotation = %d", rotCtrl.rotation);
@@ -5127,6 +5125,20 @@ status_t QualcommCameraHardware::setRecordSize(const CameraParameters& params)
                 previewHeight = videoHeight;
                 mParameters.setPreviewSize(previewWidth, previewHeight);
             }
+
+            //Validate record size
+            int isValid = 0;
+            for (size_t i = 0; i <  PREVIEW_SIZE_COUNT; ++i) {
+                if (videoWidth == preview_sizes[i].width
+                   && videoHeight == preview_sizes[i].height) {
+                    isValid = 1;
+                }
+            }
+            if (!isValid) {
+                videoWidth = DEFAULT_VIDEO_WIDTH;
+                videoHeight = DEFAULT_VIDEO_HEIGHT;
+            }
+
             if( (mCurrentTarget != TARGET_MSM7630)
                 && (mCurrentTarget != TARGET_QSD8250)
                  && (mCurrentTarget != TARGET_MSM8660) ) {
@@ -5169,6 +5181,7 @@ status_t QualcommCameraHardware::setPreviewSize(const CameraParameters& params)
         }
     }
     ALOGE("Invalid preview size requested: %dx%d", width, height);
+    mParameters.setPreviewSize(previewWidth, previewHeight);
     return BAD_VALUE;
 }
 status_t QualcommCameraHardware::setPreviewFpsRange(const CameraParameters& params)
@@ -5923,7 +5936,6 @@ status_t QualcommCameraHardware::setRotation(const CameraParameters& params)
     if (rotation != NOT_FOUND) {
         if (rotation == 0 || rotation == 90 || rotation == 180
             || rotation == 270) {
-          rotation = (rotation + sensor_rotation)%360;
           mParameters.set(CameraParameters::KEY_ROTATION, rotation);
           mRotation = rotation;
         } else {
@@ -6514,7 +6526,7 @@ bool QualcommCameraHardware::storePreviewFrameForPostview(void) {
              mOverlayLock.lock();
              if (mOverlay != NULL){
                  mOverlay->setFd(mPostViewHeap->mHeap->getHeapID());
-                 if( zoomCropInfo.w !=0 && zoomCropInfo.h !=0) {
+                 if (zoomCropInfo.w !=0 && zoomCropInfo.h !=0) {
                      ALOGD("zoomCropInfo non-zero, setting crop ");
                      mOverlay->setCrop(zoomCropInfo.x, zoomCropInfo.y,
                                zoomCropInfo.w, zoomCropInfo.h);
@@ -6696,6 +6708,9 @@ extern "C" void HAL_getCameraInfo(int cameraId, struct CameraInfo* cameraInfo)
 
     property_get("ro.board.platform",mDeviceName," ");
 
+    /* Update camera info if needed */
+    if (HAL_numOfCameras < 1) HAL_getNumberOfCameras();
+
     for(i = 0; i < HAL_numOfCameras; i++) {
         if(i == cameraId) {
             ALOGI("Found a matching camera info for ID %d", cameraId);
@@ -6713,7 +6728,6 @@ extern "C" void HAL_getCameraInfo(int cameraId, struct CameraInfo* cameraInfo)
                 cameraInfo->orientation = ((APP_ORIENTATION - HAL_cameraInfo[i].sensor_mount_angle) + 360)%360;
 
             ALOGI("%s: orientation = %d", __FUNCTION__, cameraInfo->orientation);
-            sensor_rotation = HAL_cameraInfo[i].sensor_mount_angle;
             cameraInfo->mode = 0;
             if(HAL_cameraInfo[i].modes_supported & CAMERA_MODE_2D)
                 cameraInfo->mode |= CAMERA_SUPPORT_MODE_2D;
@@ -6731,6 +6745,10 @@ extern "C" sp<CameraHardwareInterface> HAL_openCameraHardware(int cameraId)
 {
     int i;
     ALOGI("openCameraHardware: call createInstance");
+
+    /* Update camera info if needed */
+    if (HAL_numOfCameras < 1) HAL_getNumberOfCameras();
+
     for(i = 0; i < HAL_numOfCameras; i++) {
         if(i == cameraId) {
             ALOGI("openCameraHardware:Valid camera ID %d", cameraId);

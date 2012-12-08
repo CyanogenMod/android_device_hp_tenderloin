@@ -48,16 +48,11 @@ using android::IMemoryHeap;
 using android::CameraParameters;
 
 using android::CameraInfo;
-#ifndef BOARD_USE_FROYO_LIBCAMERA
 using android::HAL_getCameraInfo;
 using android::HAL_getNumberOfCameras;
 using android::HAL_openCameraHardware;
-#endif
 using android::CameraHardwareInterface;
 
-#ifdef BOARD_USE_FROYO_LIBCAMERA
-extern "C" android::sp<android::CameraHardwareInterface> openCameraHardware(int id);
-#endif
 static sp<CameraHardwareInterface> gCameraHals[MAX_CAMERAS_SUPPORTED];
 static unsigned int gCamerasOpen = 0;
 //static android::Mutex gCameraDeviceLock;
@@ -194,7 +189,7 @@ static void wrap_queue_buffer_hook(void *data, void* buffer)
     if(window == 0)
         return;
 
-    heap =  gCameraHals[dev->cameraid]->getPreviewHeap();
+    heap = gCameraHals[dev->cameraid]->getPreviewHeap();
     if(heap == 0)
         return;
 
@@ -217,8 +212,63 @@ static void wrap_queue_buffer_hook(void *data, void* buffer)
     if (0 == dev->gralloc->lock(dev->gralloc, *buf_handle,
                                 GRALLOC_USAGE_SW_WRITE_MASK,
                                 0, 0, width, height, &vaddr)) {
-        // the code below assumes YUV, not RGB
+
+        /* Our cam sensor is configured in normal (not mirror mode)
+         * but the Android expects the front cameras to be working
+         * in mirror mode, so in result we have a preview rotated
+         * by 180 degrees. For some reason this issue not appears
+         * in ICS so we put the frame as it is there.
+         * On JB we're flipping the frame horizontally and vertically
+         * to compensate this rotation.
+         * To flip horizontally the YUV420SP frame we are reverting
+         * the order of data in the rows (horizontally) and the order
+         * of rows (vertically).
+         */
+#ifdef ANDROID_ICS
         memcpy(vaddr, frame, width * height * 3 / 2);
+#else
+        /*
+         * The YUV420 Semi-Planar frame is constructed as follows:
+         *
+         * - the Y values are stored in one plane:
+         * |-------------------------------|   _
+         * | Y0 | Y1 | Y2 | Y3 | ...       |   |
+         * | ...                           | height
+         * |                               |   |
+         * |-------------------------------|   -
+         * <------------ width ------------>
+         *
+         * - the U and V values (sub-sampled by 2) are stored in another plane:
+         * |-------------------------------|   _
+         * | U0 | V0 | U2 | V2 | ....      |   |
+         * | ...                           | height/2
+         * |                               |   |
+         * |-------------------------------|   -
+         * <------------ width ------------>
+         */
+
+        uint8_t *buff = (uint8_t *)vaddr;
+        int pos_in = 0, pos_out = 0;
+
+        //swap Y plane
+        for (int y = 0; y < height; ++y)
+        {
+            pos_in = y * width;
+            pos_out = (height - y) * width;
+            for (int x = 0; x < width; ++x)
+                buff[pos_in + x] = frame[pos_out + width - x];
+        }
+
+        //swap UV plane
+        pos_out = pos_in + width + width * height/2;
+        for (int y = 0; y < height/2; ++y)
+        {
+            pos_in += width;
+            pos_out -= width;
+            for (int x = 0; x < width; ++x)
+                buff[pos_in + x] = frame[pos_out + width - x];
+        }
+#endif
         ALOGV("%s: copy frame to gralloc buffer", __FUNCTION__);
     } else {
         ALOGE("%s: could not lock gralloc buffer", __FUNCTION__);
@@ -909,18 +959,6 @@ char* camera_get_parameters(struct camera_device * device)
 
     CameraHAL_FixupParams(camParams);
 
-#ifdef HTC_FFC
-    if (dev->cameraid == 1) {
-#ifdef REVERSE_FFC
-        /* Change default parameters for the front camera */
-        camParams.set("front-camera-mode", "reverse"); // default is "mirror"
-#endif
-    } else {
-        camParams.set("front-camera-mode", "mirror");
-    }
-#endif
-    camParams.set("orientation", "landscape");
-
     params_str8 = camParams.flatten();
     params = (char*) malloc(sizeof(char) * (params_str8.length()+1));
     strcpy(params, params_str8.string());
@@ -1101,21 +1139,6 @@ int camera_device_open(const hw_module_t* module, const char* name,
             goto fail;
         }
 
-#ifdef HTC_FFC
-#define HTC_SWITCH_CAMERA_FILE_PATH "/sys/android_camera2/htcwc"
-
-        char htc_buffer[16];
-        int htc_fd;
-
-        if (access(HTC_SWITCH_CAMERA_FILE_PATH, W_OK) == 0) {
-            ALOGI("Switching to HTC Camera: %d", cameraid);
-            snprintf(htc_buffer, sizeof(htc_buffer), "%d", cameraid);
-            htc_fd = open(HTC_SWITCH_CAMERA_FILE_PATH, O_WRONLY);
-            write(htc_fd, htc_buffer, strlen(htc_buffer));
-            close(htc_fd);
-        }
-#endif
-
         memset(priv_camera_device, 0, sizeof(*priv_camera_device));
         memset(camera_ops, 0, sizeof(*camera_ops));
 
@@ -1155,11 +1178,7 @@ int camera_device_open(const hw_module_t* module, const char* name,
 
         priv_camera_device->cameraid = cameraid;
 
-#ifdef BOARD_USE_FROYO_LIBCAMERA
-        camera = openCameraHardware(cameraid);
-#else
         camera = HAL_openCameraHardware(cameraid);
-#endif
         if(camera == NULL)
         {
             ALOGE("Couldn't create instance of CameraHal class");
@@ -1191,58 +1210,20 @@ fail:
 
 int camera_get_number_of_cameras(void)
 {
-#ifdef BOARD_USE_FROYO_LIBCAMERA
-    int num_cameras = 1; //FIXME
-#ifdef HTC_FFC
-    if (access(HTC_SWITCH_CAMERA_FILE_PATH, W_OK) == 0) {
-        num_cameras = 2;
-    }
-#endif
-#else
     int num_cameras = HAL_getNumberOfCameras();
-#endif
     ALOGI("%s: number:%i", __FUNCTION__, num_cameras);
-
     return num_cameras;
 }
-
-#if defined(BOARD_USE_FROYO_LIBCAMERA)
-#ifndef FIRST_CAMERA_FACING
-#define FIRST_CAMERA_FACING CAMERA_FACING_BACK
-#endif
-#ifndef FIRST_CAMERA_ORIENTATION
-#define FIRST_CAMERA_ORIENTATION 90
-#endif
-static const CameraInfo sCameraInfo[] = {
-    {
-        FIRST_CAMERA_FACING,
-        FIRST_CAMERA_ORIENTATION,  /* orientation */
-        1, /* CAMERA_MODE_2D */
-    },
-    {
-        CAMERA_FACING_FRONT,
-        270, /* orientation */
-        1, /* CAMERA_MODE_2D */
-    }
-};
-#endif
 
 int camera_get_camera_info(int camera_id, struct camera_info *info)
 {
     int rv = 0;
-
     CameraInfo cameraInfo;
 
-#ifdef BOARD_USE_FROYO_LIBCAMERA
-    memcpy(info, &sCameraInfo[camera_id], sizeof(struct camera_info));
-#else
     android::HAL_getCameraInfo(camera_id, &cameraInfo);
-
     info->facing = cameraInfo.facing;
     info->orientation = cameraInfo.orientation;
-#endif
 
     ALOGI("%s: id:%i faceing:%i orientation: %i", __FUNCTION__,camera_id, info->facing, info->orientation);
-
     return rv;
 }
