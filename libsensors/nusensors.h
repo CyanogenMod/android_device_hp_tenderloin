@@ -57,9 +57,9 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
 #define EVENT_TYPE_ACCEL_Z          ABS_Z
 #define EVENT_TYPE_ACCEL_STATUS     ABS_WHEEL
 
-#define EVENT_TYPE_MAGV_X           ABS_HAT0X
-#define EVENT_TYPE_MAGV_Y           ABS_HAT0Y
-#define EVENT_TYPE_MAGV_Z           ABS_BRAKE
+#define EVENT_TYPE_MAGV_X           ABS_X
+#define EVENT_TYPE_MAGV_Y           ABS_Y
+#define EVENT_TYPE_MAGV_Z           ABS_Z
 
 #define EVENT_TYPE_LIGHT            ABS_MISC
 
@@ -74,9 +74,9 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
 #define CONVERT_A_Z                 (CONVERT_A)
 
 // conversion of magnetic data to uT units
-#define CONVERT_M (1.0f/16.0f)
-#define CONVERT_M_X (-CONVERT_M)
-#define CONVERT_M_Y (-CONVERT_M)
+#define CONVERT_M (1.0f/10.0f)
+#define CONVERT_M_X (CONVERT_M)
+#define CONVERT_M_Y (CONVERT_M)
 #define CONVERT_M_Z (CONVERT_M)
 
 #define SENSOR_STATE_MASK           (0x7FFF)
