@@ -159,12 +159,20 @@ static void wrap_set_crop_hook(void *data,
                                uint32_t w, uint32_t h)
 {
     priv_camera_device_t* dev = NULL;
+    preview_stream_ops* window = NULL;
     ALOGV("%s+++: %p", __FUNCTION__,data);
 
     if(!data)
         return;
 
     dev = (priv_camera_device_t*) data;
+
+    window = dev->window;
+
+    if (window == 0)
+        return;
+
+    window->set_crop(window, x, y, w, h);
 }
 
 //QiSS ME for preview

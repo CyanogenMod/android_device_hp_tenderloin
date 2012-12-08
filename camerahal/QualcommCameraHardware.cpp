@@ -4169,14 +4169,14 @@ void QualcommCameraHardware::receivePreviewFrame(struct msm_frame *frame)
             if (crop->in1_w != 0 || crop->in1_h != 0) {
                 zoomCropInfo.x = (crop->out1_w - crop->in1_w + 1) / 2 - 1;
                 zoomCropInfo.y = (crop->out1_h - crop->in1_h + 1) / 2 - 1;
-                zoomCropInfo.w = crop->in1_w;
-                zoomCropInfo.h = crop->in1_h;
+                zoomCropInfo.w = zoomCropInfo.x + crop->in1_w;
+                zoomCropInfo.h = zoomCropInfo.y + crop->in1_h;
                 /* There can be scenarios where the in1_wXin1_h and
                  * out1_wXout1_h are same. In those cases, reset the
                  * x and y to zero instead of negative for proper zooming
                  */
-                if(zoomCropInfo.x < 0) zoomCropInfo.x = 0;
-                if(zoomCropInfo.y < 0) zoomCropInfo.y = 0;
+                if (zoomCropInfo.x < 0) zoomCropInfo.x = 0;
+                if (zoomCropInfo.y < 0) zoomCropInfo.y = 0;
                 mOverlay->setCrop(zoomCropInfo.x, zoomCropInfo.y,
                     zoomCropInfo.w, zoomCropInfo.h);
                 /* Set mResetOverlayCrop to true, so that when there is
@@ -4196,7 +4196,7 @@ void QualcommCameraHardware::receivePreviewFrame(struct msm_frame *frame)
                  * multiple calls, reset once.
                  */
                 if(mResetOverlayCrop == true){
-                    mOverlay->setCrop(0, 0,previewWidth, previewHeight);
+                    mOverlay->setCrop(0, 0, zoomCropInfo.w, zoomCropInfo.h);
                     mResetOverlayCrop = false;
                 }
             }
@@ -4982,8 +4982,8 @@ bool QualcommCameraHardware::receiveRawPicture()
                 cropY = (mCrop.out1_h - mCrop.in1_h + 1) / 2 - 1;
                 if(cropX < 0) cropX = 0;
                 if(cropY < 0) cropY = 0;
-                cropW = mCrop.in1_w;
-                cropH = mCrop.in1_h;
+                cropW = cropX + mCrop.in1_w;
+                cropH = cropY + mCrop.in1_h;
                 mOverlay->setCrop(cropX, cropY, cropW, cropH);
                 mResetOverlayCrop = true;
             } else {
