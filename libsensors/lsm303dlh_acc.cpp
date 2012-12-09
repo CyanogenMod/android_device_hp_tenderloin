@@ -50,7 +50,7 @@ int Lsm303dlhGSensor::enable(int32_t handle, int en)
 {
     int err = 0;
 
-    int newState = en ? 1 : 0;
+    unsigned int newState = en ? 1 : 0;
 
     // don't set enable state if it's already valid
     if(mEnabled == newState) {
@@ -61,7 +61,7 @@ int Lsm303dlhGSensor::enable(int32_t handle, int en)
     int fd = open(LSM303DLH_ACC_ENABLE_FILE, O_WRONLY);
     if(fd >= 0) {
         char buffer[20];
-        int bytes = sprintf(buffer, "%d\n", newState);
+        int bytes = sprintf(buffer, "%u\n", newState);
         err = write(fd, buffer, bytes);
         err = err < 0 ? -errno : 0;
     } else {
@@ -87,11 +87,13 @@ int Lsm303dlhGSensor::setDelay(int32_t handle, int64_t ns)
         if (ns < 0)
             return -EINVAL;
 
+        unsigned long delay = ns / 1000000; //nano to mili
+
         // ok we need to set our enabled state
         int fd = open(LSM303DLH_ACC_DELAY_FILE, O_WRONLY);
         if(fd >= 0) {
             char buffer[20];
-            int bytes = sprintf(buffer, "%d\n", 100/*ns / (100 * 100)*/);
+            int bytes = sprintf(buffer, "%lu\n", delay);
             err = write(fd, buffer, bytes);
             err = err < 0 ? -errno : 0;
         } else {
