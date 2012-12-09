@@ -34,7 +34,7 @@ static const struct sensor_t sSensorList[] = {
         { "LSM303DLH 3-axis Accelerometer",
                 "ST Microelectronics",
                 1, SENSORS_HANDLE_BASE+ID_A,
-                SENSOR_TYPE_ACCELEROMETER, 2.0f*GRAVITY_EARTH, (2.0f*GRAVITY_EARTH)/2048.0f, 0.5f, 10000000/*10ms*/, { } },
+                SENSOR_TYPE_ACCELEROMETER, 2.0f*GRAVITY_EARTH, (2.0f*GRAVITY_EARTH)/2048.0f, 0.5f, 10000/*10ms*/, { } },
         { "LSM303DLH Magnetometer",
                 "ST Microelectronics",
                 1, SENSORS_HANDLE_BASE+ID_M,

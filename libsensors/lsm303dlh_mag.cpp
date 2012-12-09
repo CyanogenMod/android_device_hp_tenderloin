@@ -51,7 +51,7 @@ int Lsm303dlhMagSensor::enable(int32_t handle, int en)
 {
     int err = 0;
 
-    int newState = en ? 1 : 0;
+    unsigned int newState = en ? 1 : 0;
 
     // don't set enable state if it's already valid
     if(mEnabled == newState) {
@@ -62,9 +62,10 @@ int Lsm303dlhMagSensor::enable(int32_t handle, int en)
     int fd = open(LSM303DLH_MAG_ENABLE_FILE, O_WRONLY);
     if(fd >= 0) {
         char buffer[20];
-        int bytes = sprintf(buffer, "%d\n", newState);
+        int bytes = sprintf(buffer, "%u\n", newState);
         err = write(fd, buffer, bytes);
         err = err < 0 ? -errno : 0;
+        close(fd);
     } else {
         err = -errno;
     }
@@ -94,9 +95,10 @@ int Lsm303dlhMagSensor::setDelay(int32_t handle, int64_t ns)
         int fd = open(LSM303DLH_MAG_DELAY_FILE, O_WRONLY);
         if(fd >= 0) {
             char buffer[20];
-            int bytes = sprintf(buffer, "%d\n", delay);
+            int bytes = sprintf(buffer, "%lu\n", delay);
             err = write(fd, buffer, bytes);
             err = err < 0 ? -errno : 0;
+            close(fd);
         } else {
             err = -errno;
         }
