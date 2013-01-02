@@ -955,6 +955,7 @@ int calc_point(void)
 				tp[tpoint][k].touch_major);
 			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_X, tp[tpoint][k].x);
 			send_uevent(uinput_fd, EV_ABS, ABS_MT_POSITION_Y, tp[tpoint][k].y);
+			send_uevent(uinput_fd, EV_ABS, ABS_MT_PRESSURE, tp[tpoint][k].pw);
 #if !USE_B_PROTOCOL
 			send_uevent(uinput_fd, EV_SYN, SYN_MT_REPORT, 0);
 #endif
@@ -1061,6 +1062,11 @@ void open_uinput(void)
 	device.absfuzz[ABS_MT_POSITION_Y] = 1;
 	device.absflat[ABS_MT_POSITION_Y] = 0;
 
+	device.absmax[ABS_MT_PRESSURE] = 2000;
+	device.absmin[ABS_MT_PRESSURE] = 250;
+	device.absfuzz[ABS_MT_PRESSURE] = 0;
+	device.absflat[ABS_MT_PRESSURE] = 0;
+
 	if (write(uinput_fd,&device,sizeof(device)) != sizeof(device))
 		ALOGE("error setup\n");
 
@@ -1079,6 +1085,9 @@ void open_uinput(void)
 		ALOGE("error trkid rel\n");
 
 	if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_TOUCH_MAJOR) < 0)
+		ALOGE("error tool rel\n");
+
+	if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_PRESSURE) < 0)
 		ALOGE("error tool rel\n");
 
 	//if (ioctl(uinput_fd,UI_SET_ABSBIT,ABS_MT_WIDTH_MAJOR) < 0)
