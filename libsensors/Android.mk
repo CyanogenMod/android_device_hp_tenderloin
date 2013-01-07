@@ -35,9 +35,23 @@ LOCAL_SRC_FILES := \
 	SensorBase.cpp \
 	lsm303dlh_acc.cpp \
 	lsm303dlh_mag.cpp \
-	LightSensor.cpp
-				
-LOCAL_SHARED_LIBRARIES := liblog libcutils
+	LightSensor.cpp \
+	MPLSensor.cpp
+
+LOCAL_CFLAGS += -DCONFIG_MPU_SENSORS_MPU3050=1
+
+LOCAL_C_INCLUDES += hardware/invensense/mlsdk/platform/include
+LOCAL_C_INCLUDES += hardware/invensense/mlsdk/platform/include/linux
+LOCAL_C_INCLUDES += hardware/invensense/mlsdk/platform/linux
+LOCAL_C_INCLUDES += hardware/invensense/mlsdk/mllite
+LOCAL_C_INCLUDES += hardware/invensense/mlsdk/mldmp
+LOCAL_C_INCLUDES += hardware/invensense/mlsdk/external/aichi
+LOCAL_C_INCLUDES += hardware/invensense/mlsdk/external/akmd
+
+LOCAL_SHARED_LIBRARIES := liblog libcutils libutils libdl libmllite libmlplatform
+LOCAL_CPPFLAGS+=-DLINUX=1
+LOCAL_LDFLAGS:=-rdynamic
+
 LOCAL_PRELINK_MODULE := false
 
 include $(BUILD_SHARED_LIBRARY)

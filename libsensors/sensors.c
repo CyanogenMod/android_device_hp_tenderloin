@@ -40,10 +40,17 @@ static const struct sensor_t sSensorList[] = {
                 1, SENSORS_HANDLE_BASE+ID_M,
                 SENSOR_TYPE_MAGNETIC_FIELD, 400.0f, 0.1f, 0.5f, 10000/*10ms*/, { } },
         { "ISL29023 Light sensor",
-          "Intersil",
-          1, SENSORS_HANDLE_BASE+ID_L,
-          SENSOR_TYPE_LIGHT, 3000.0f, 1.0f, 0.75f, 0, { } },
-
+                "Intersil",
+                1, SENSORS_HANDLE_BASE+ID_L,
+                SENSOR_TYPE_LIGHT, 3000.0f, 1.0f, 0.75f, 0, { } },
+        { "MPL Gyroscope",
+                "Invensense",
+                1, SENSORS_HANDLE_BASE+ID_GY,
+                SENSOR_TYPE_GYROSCOPE, 2000.0f*RAD_P_DEG, 32.8f*RAD_P_DEG, 0.5f, 10000/*10ms*/, { } },
+        { "MPL Temperature sensor",
+                "Invensense",
+                1, SENSORS_HANDLE_BASE+ID_T,
+                SENSOR_TYPE_AMBIENT_TEMPERATURE, 80.0f, 0.5f, 0.0f, 10000/*10ms*/, {} },
 };
 
 static int open_sensors(const struct hw_module_t* module, const char* name,

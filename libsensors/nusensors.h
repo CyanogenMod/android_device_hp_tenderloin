@@ -40,6 +40,8 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
 #define ID_A  (0)
 #define ID_M  (1)
 #define ID_L  (3)
+#define ID_GY (4)
+#define ID_T  (5)
 
 /*****************************************************************************/
 
@@ -80,6 +82,8 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
 #define CONVERT_M_Z (CONVERT_M)
 
 #define SENSOR_STATE_MASK           (0x7FFF)
+
+#define RAD_P_DEG                   (3.14159f/180.0f)
 
 /*****************************************************************************/
 
