@@ -64,6 +64,7 @@ int Lsm303dlhGSensor::enable(int32_t handle, int en)
         int bytes = sprintf(buffer, "%u\n", newState);
         err = write(fd, buffer, bytes);
         err = err < 0 ? -errno : 0;
+        close(fd);
     } else {
         err = -errno;
     }
@@ -96,11 +97,10 @@ int Lsm303dlhGSensor::setDelay(int32_t handle, int64_t ns)
             int bytes = sprintf(buffer, "%lu\n", delay);
             err = write(fd, buffer, bytes);
             err = err < 0 ? -errno : 0;
+            close(fd);
         } else {
             err = -errno;
         }
-
-		close(fd);
 
         LOGE_IF(err < 0,
                 "Error setting delay of LSM303DLH accelerometer (%s)",
