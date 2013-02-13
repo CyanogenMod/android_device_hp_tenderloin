@@ -1,13 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="touchscreen_modes">
+    <string-array name="touchscreen_modes" translatable="false">
         <item>@string/touchscreen_mode_preference_title_finger</item>
         <item>@string/touchscreen_mode_preference_title_stylus</item>
     </string-array>
 
-    <string-array name="touchscreen_mode_values">
+    <string-array name="touchscreen_mode_values" translatable="false">
         <item>F</item>
         <item>S</item>
     </string-array>
 
+    <string-array name="preview_modes" translatable="false">
+        <item>@string/preview_mode_preference_title_mirrored</item>
+        <item>@string/preview_mode_preference_title_normal</item>
+        <item>@string/preview_mode_preference_title_rear</item>
+    </string-array>
+
+    <string-array name="preview_mode_summaries" translatable="false">
+        <item>@string/preview_mode_preference_summary_mirrored</item>
+        <item>@string/preview_mode_preference_summary_normal</item>
+        <item>@string/preview_mode_preference_summary_rear</item>
+    </string-array>
+
+    <string-array name="preview_mode_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string-array name="rotation_mode_values" translatable="false">
+        <item>0</item>
+        <item>90</item>
+        <item>180</item>
+        <item>270</item>
+    </string-array>
 </resources>
