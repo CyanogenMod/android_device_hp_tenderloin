@@ -100,6 +100,8 @@ typedef struct priv_camera_device {
     int preview_height;
     sp<Overlay> overlay;
     gralloc_module_t const *gralloc;
+    int preview_mode;
+    int rotation;
 } priv_camera_device_t;
 
 static struct {
@@ -133,6 +135,25 @@ static void dump_msg(const char *tag, int msg_type)
 #endif
 }
 
+static int read_mode_from_config(const char *entry)
+{
+    int mode = 0;
+    FILE *fp = fopen("/data/misc/camera/config.txt", "r");
+    if (fp) {
+        char buff[80], *tmp;
+        while (fgets(buff, sizeof(buff), fp) != NULL) {
+            if ((tmp = strstr(buff, entry)) != NULL) {
+                tmp += strlen(entry) + 1;
+                mode = atoi(tmp);
+                break;
+            }
+        }
+        fclose(fp);
+    }
+    ALOGI("Returning param %s mode %d\n", entry, mode);
+    return mode;
+}
+
 /*******************************************************************
  * overlay hook
  *******************************************************************/
@@ -161,12 +182,12 @@ static void wrap_set_crop_hook(void *data,
 
     dev = (priv_camera_device_t*) data;
 
-	window = dev->window;
+    window = dev->window;
 
-	if (window == 0)
-		return;
+    if (window == 0)
+        return;
 
-	window->set_crop(window, x, y, w, h);
+    window->set_crop(window, x, y, w, h);
 }
 
 //QiSS ME for preview
@@ -226,46 +247,50 @@ static void wrap_queue_buffer_hook(void *data, void* buffer)
 #ifdef ANDROID_ICS
         memcpy(vaddr, frame, width * height * 3 / 2);
 #else
-        /*
-         * The YUV420 Semi-Planar frame is constructed as follows:
-         *
-         * - the Y values are stored in one plane:
-         * |-------------------------------|   _
-         * | Y0 | Y1 | Y2 | Y3 | ...       |   |
-         * | ...                           | height
-         * |                               |   |
-         * |-------------------------------|   -
-         * <------------ width ------------>
-         *
-         * - the U and V values (sub-sampled by 2) are stored in another plane:
-         * |-------------------------------|   _
-         * | U0 | V0 | U2 | V2 | ....      |   |
-         * | ...                           | height/2
-         * |                               |   |
-         * |-------------------------------|   -
-         * <------------ width ------------>
-         */
+        if (dev->preview_mode != 0) {
+            memcpy(vaddr, frame, width * height * 3 / 2);
+        } else {
+            /*
+             * The YUV420 Semi-Planar frame is constructed as follows:
+             *
+             * - the Y values are stored in one plane:
+             * |-------------------------------|   _
+             * | Y0 | Y1 | Y2 | Y3 | ...       |   |
+             * | ...                           | height
+             * |                               |   |
+             * |-------------------------------|   -
+             * <------------ width ------------>
+             *
+             * - the U and V values (sub-sampled by 2) are stored in another plane:
+             * |-------------------------------|   _
+             * | U0 | V0 | U2 | V2 | ....      |   |
+             * | ...                           | height/2
+             * |                               |   |
+             * |-------------------------------|   -
+             * <------------ width ------------>
+             */
 
-        uint8_t *buff = (uint8_t *)vaddr;
-        int pos_in = 0, pos_out = 0;
+            uint8_t *buff = (uint8_t *)vaddr;
+            int pos_in = 0, pos_out = 0;
 
-        //swap Y plane
-        for (int y = 0; y < height; ++y)
-        {
-            pos_in = y * width;
-            pos_out = (height - y) * width;
-            for (int x = 0; x < width; ++x)
-                buff[pos_in + x] = frame[pos_out + width - x];
-        }
+            //swap Y plane
+            for (int y = 0; y < height; ++y)
+            {
+                pos_in = y * width;
+                pos_out = (height - y) * width;
+                for (int x = 0; x < width; ++x)
+                    buff[pos_in + x] = frame[pos_out + width - x];
+            }
 
-        //swap UV plane
-        pos_out = pos_in + width + width * height/2;
-        for (int y = 0; y < height/2; ++y)
-        {
-            pos_in += width;
-            pos_out -= width;
-            for (int x = 0; x < width; ++x)
-                buff[pos_in + x] = frame[pos_out + width - x];
+            //swap UV plane
+            pos_out = pos_in + width + width * height/2;
+            for (int y = 0; y < height/2; ++y)
+            {
+                pos_in += width;
+                pos_out -= width;
+                for (int x = 0; x < width; ++x)
+                    buff[pos_in + x] = frame[pos_out + width - x];
+            }
         }
 #endif
         ALOGV("%s: copy frame to gralloc buffer", __FUNCTION__);
@@ -958,6 +983,10 @@ char* camera_get_parameters(struct camera_device * device)
 
     CameraHAL_FixupParams(camParams);
 
+    if (dev->rotation != 0) {
+        camParams.set("rotation", dev->rotation);
+    }
+
     params_str8 = camParams.flatten();
     params = (char*) malloc(sizeof(char) * (params_str8.length()+1));
     strcpy(params, params_str8.string());
@@ -1147,6 +1176,9 @@ int camera_device_open(const hw_module_t* module, const char* name,
         priv_camera_device->base.common.close = camera_device_close;
         priv_camera_device->base.ops = camera_ops;
 
+        priv_camera_device->preview_mode = read_mode_from_config("preview_mode");
+        priv_camera_device->rotation = read_mode_from_config("rotation_mode");
+
         camera_ops->set_preview_window = camera_set_preview_window;
         camera_ops->set_callbacks = camera_set_callbacks;
         camera_ops->enable_msg_type = camera_enable_msg_type;
@@ -1222,6 +1254,10 @@ int camera_get_camera_info(int camera_id, struct camera_info *info)
     android::HAL_getCameraInfo(camera_id, &cameraInfo);
     info->facing = cameraInfo.facing;
     info->orientation = cameraInfo.orientation;
+
+    if (read_mode_from_config("preview_mode") == 2) {
+        info->facing = CAMERA_FACING_BACK;
+    }
 
     ALOGI("%s: id:%i faceing:%i orientation: %i", __FUNCTION__,camera_id, info->facing, info->orientation);
     return rv;
