@@ -1,0 +1,332 @@
+<mixer>
+  <!-- These are the initial mixer settings -->
+  <path name="init">
+  <ctl name="Earpiece Volume" value="1" />
+  <ctl name="Earpiece Switch" value="1" />
+  <ctl name="Speaker Volume" value="63,57" />
+  <ctl name="Speaker Switch" value="1,1" />
+  <ctl name="Speaker Volume" value="63,63" />
+  <ctl name="Speaker Switch" value="1,1" />
+  <ctl name="Headphone Volume" value="63,45" />
+  <ctl name="Headphone Switch" value="1,1" />
+  <ctl name="Headphone Volume" value="63,63" />
+  <ctl name="Headphone Switch" value="1,1" />
+
+  <ctl name="LINEOUT1 Mixer Output Switch" value="1" /> <!-- line1mix_id -->
+  <ctl name="LINEOUT1N Switch" value="1" /> <!-- dsp.line1outn_id -->
+  <ctl name="LINEOUT1P Switch" value="1" /> <!-- dsp.line1outp_id -->
+
+  <ctl name="LINEOUT2 Mixer Output Switch" value="1" /> <!-- line2mix_id -->
+  <ctl name="LINEOUT2N Switch" value="1" /> <!-- dsp.line2outn_id -->
+  <ctl name="LINEOUT2P Switch" value="1" /> <!-- dsp.line2outp_id -->
+
+  <ctl name="Left Output Mixer DAC Switch" value="1" /> <!-- leftdacmix_id -->
+  <ctl name="Right Output Mixer DAC Switch" value="1" /> <!-- rightdacmix_id -->
+  <ctl name="AIF2ADC HPF Switch" value="1,1" /> <!-- aif2adc_id -->
+  <ctl name="AIF2ADC Volume" value="96,96" /> <!-- aif2adcvol_id -->
+  <ctl name="AIF2ADCR Source" value="Left" /> <!-- aif2adcr_id -->
+  <ctl name="AIF2DAC2L Mixer Left Sidetone Switch" value="1" /> <!-- aif2dacl_id -->
+  <ctl name="DAC2 Left Sidetone Volume" value="12" /> <!-- dac2vol_id -->
+
+  <ctl name="IN1L PGA IN1LN Switch" value="1" /> <!-- in1pgan_id -->
+  <ctl name="IN1L PGA IN1LP Switch" value="1" /> <!-- in1pgap_id -->
+  <ctl name="MIXINL Output Record Volume" value="1" /> <!-- mixinl_id -->
+  <ctl name="IN1L Switch" value="1" /> <!-- in1l_id -->
+  <ctl name="IN1L Volume" value="27" /> <!-- in1lvol_id -->
+  <ctl name="IN1L ZC Switch" value="0" /> <!-- in1lzc_id -->
+
+  <ctl name="MIXINL IN1L Switch" value="1" /> <!-- mixinl1_id -->
+  <ctl name="MIXINL IN1L Volume" value="0" /> <!-- mixinlvol_id -->
+  <ctl name="Output Volume" value="59,59" /> <!-- dsp.outvol_id -->
+  <ctl name="DAC1L Mixer AIF1.1 Switch" value="1" /> <!-- dac1aifl_id -->
+  <ctl name="DAC1R Mixer AIF1.1 Switch" value="1" /> <!-- dac1aifr_id -->
+
+  <ctl name="DAC1 Switch" value="1,1" /> <!-- dac1_id -->
+  <ctl name="DAC2 Switch" value="1,1" /> <!-- dac2_id -->
+  </path>
+
+  <!-- fixup for misread values? -->
+  <ctl name="Count" ignore="1" />
+  <ctl name="Stream" ignore="1" />
+  <ctl name="Record" ignore="1" />
+  <ctl name="Voice" ignore="1" />
+  <ctl name="Volume" ignore="1" />
+  <ctl name="VoiceVolume" ignore="1" />
+  <ctl name="VoiceMute" ignore="1" />
+  <ctl name="Voice Call" ignore="1" />
+  <ctl name="Device_Volume" ignore="1" />
+  <ctl name="Reset" ignore="1" />
+  <ctl name="ANC" ignore="1" />
+  <ctl name="Sound Device Loopback" ignore="1" />
+  <ctl name="phone_rx" ignore="1" />
+  <ctl name="phone_tx" ignore="1" />
+  <ctl name="bt_sco_rx" ignore="1" />
+  <ctl name="bt_sco_tx" ignore="1" />
+  <ctl name="AIF1DAC1 EQ1 Volume" ignore="1" />
+  <ctl name="AIF1DAC1 EQ2 Volume" ignore="1" />
+  <ctl name="AIF1DAC1 EQ3 Volume" ignore="1" />
+  <ctl name="AIF1DAC1 EQ4 Volume" ignore="1" />
+  <ctl name="AIF1DAC1 EQ5 Volume" ignore="1" />
+  <ctl name="AIF1DAC2 EQ1 Volume" ignore="1" />
+  <ctl name="AIF1DAC2 EQ2 Volume" ignore="1" />
+  <ctl name="AIF1DAC2 EQ3 Volume" ignore="1" />
+  <ctl name="AIF1DAC2 EQ4 Volume" ignore="1" />
+  <ctl name="AIF1DAC2 EQ5 Volume" ignore="1" />
+  <ctl name="AIF2 EQ1 Volume" ignore="1" />
+  <ctl name="AIF2 EQ2 Volume" ignore="1" />
+  <ctl name="AIF2 EQ3 Volume" ignore="1" />
+  <ctl name="AIF2 EQ4 Volume" ignore="1" />
+  <ctl name="AIF2 EQ5 Volume" ignore="1" />
+  <ctl name="IN1R Volume" ignore="1" />
+  <ctl name="IN1R Switch" ignore="1" />
+  <ctl name="IN1R ZC Switch" ignore="1" />
+  <ctl name="IN2L Volume" ignore="1" />
+  <ctl name="IN2L Switch" ignore="1" />
+  <ctl name="IN2L ZC Switch" ignore="1" />
+  <ctl name="IN2R Volume" ignore="1" />
+  <ctl name="IN2R Switch" ignore="1" />
+  <ctl name="IN2R ZC Switch" ignore="1" />
+  <ctl name="MIXINL IN2L Volume" ignore="1" />
+  <ctl name="MIXINL IN1LP Volume" ignore="1" />
+  <ctl name="MIXINL Direct Voice Volume" ignore="1" />
+  <ctl name="MIXINR IN2R Volume" ignore="1" />
+  <ctl name="MIXINR IN1R Volume" ignore="1" />
+  <ctl name="MIXINR Output Record Volume" ignore="1" />
+  <ctl name="MIXINR IN1RP Volume" ignore="1" />
+  <ctl name="MIXINR Direct Voice Volume" ignore="1" />
+  <ctl name="Left Output Mixer IN2RN Volume" ignore="1" />
+  <ctl name="Left Output Mixer IN2LN Volume" ignore="1" />
+  <ctl name="Left Output Mixer IN2LP Volume" ignore="1" />
+  <ctl name="Left Output Mixer IN1L Volume" ignore="1" />
+  <ctl name="Left Output Mixer IN1R Volume" ignore="1" />
+  <ctl name="Left Output Mixer Right Input Volume" ignore="1" />
+  <ctl name="Left Output Mixer Left Input Volume" ignore="1" />
+  <ctl name="Left Output Mixer DAC Volume" ignore="1" />
+  <ctl name="Right Output Mixer IN2LN Volume" ignore="1" />
+  <ctl name="Right Output Mixer IN2RN Volume" ignore="1" />
+  <ctl name="Right Output Mixer IN1L Volume" ignore="1" />
+  <ctl name="Right Output Mixer IN1R Volume" ignore="1" />
+  <ctl name="Right Output Mixer IN2RP Volume" ignore="1" />
+  <ctl name="Right Output Mixer Left Input Volume" ignore="1" />
+  <ctl name="Right Output Mixer Right Input Volume" ignore="1" />
+  <ctl name="Right Output Mixer DAC Volume" ignore="1" />
+  <ctl name="Output Switch" ignore="1" />
+  <ctl name="Output ZC Switch" ignore="1" />
+  <ctl name="Earpiece Switch" ignore="1" />
+  <ctl name="Earpiece Volume" ignore="1" />
+  <ctl name="SPKL Input Volume" ignore="1" />
+  <ctl name="SPKL IN1LP Volume" ignore="1" />
+  <ctl name="SPKL Output Volume" ignore="1" />
+  <ctl name="SPKR Input Volume" ignore="1" />
+  <ctl name="SPKR IN1RP Volume" ignore="1" />
+  <ctl name="SPKR Output Volume" ignore="1" />
+  <ctl name="Speaker Mixer Volume" ignore="1" />
+  <ctl name="Speaker Volume" ignore="1" />
+  <ctl name="Speaker Switch" ignore="1" />
+  <ctl name="Speaker ZC Switch" ignore="1" />
+  <ctl name="Speaker Boost Volume" ignore="1" />
+  <ctl name="Speaker Reference" ignore="1" />
+  <ctl name="Speaker Mode" ignore="1" />
+  <ctl name="Headphone Volume" ignore="1" />
+  <ctl name="Headphone Switch" ignore="1" />
+  <ctl name="Headphone ZC Switch" ignore="1" />
+  <ctl name="LINEOUT1 Volume" ignore="1" />
+  <ctl name="LINEOUT2 Volume" ignore="1" />
+  <ctl name="AIF1ADC1 Volume" ignore="1" />
+  <ctl name="AIF1ADC2 Volume" ignore="1" />
+  <ctl name="AIF1ADCL Source" ignore="1" />
+  <ctl name="AIF1ADCR Source" ignore="1" />
+  <ctl name="AIF2ADCL Source" ignore="1" />
+  <ctl name="AIF1DACL Source" ignore="1" />
+  <ctl name="AIF1DACR Source" ignore="1" />
+  <ctl name="AIF2DACL Source" ignore="1" />
+  <ctl name="AIF2DACR Source" ignore="1" />
+  <ctl name="AIF1DAC1 Volume" ignore="1" />
+  <ctl name="AIF1DAC2 Volume" ignore="1" />
+  <ctl name="AIF2DAC Volume" ignore="1" />
+  <ctl name="AIF1 Boost Volume" ignore="1" />
+  <ctl name="AIF2 Boost Volume" ignore="1" />
+  <ctl name="AIF1DAC1 EQ Switch" ignore="1" />
+  <ctl name="AIF1DAC2 EQ Switch" ignore="1" />
+  <ctl name="AIF2 EQ Switch" ignore="1" />
+  <ctl name="AIF1DAC1 DRC Switch" ignore="1" />
+  <ctl name="AIF1ADC1L DRC Switch" ignore="1" />
+  <ctl name="AIF1ADC1R DRC Switch" ignore="1" />
+  <ctl name="AIF1DAC2 DRC Switch" ignore="1" />
+  <ctl name="AIF1ADC2L DRC Switch" ignore="1" />
+  <ctl name="AIF1ADC2R DRC Switch" ignore="1" />
+  <ctl name="AIF2DAC DRC Switch" ignore="1" />
+  <ctl name="AIF2ADCL DRC Switch" ignore="1" />
+  <ctl name="AIF2ADCR DRC Switch" ignore="1" />
+  <ctl name="DAC1 Right Sidetone Volume" ignore="1" />
+  <ctl name="DAC1 Left Sidetone Volume" ignore="1" />
+  <ctl name="DAC2 Right Sidetone Volume" ignore="1" />
+  <ctl name="Sidetone HPF Mux" ignore="1" />
+  <ctl name="Sidetone HPF Switch" ignore="1" />
+  <ctl name="AIF1ADC1 HPF Mode" ignore="1" />
+  <ctl name="AIF1ADC1 HPF Switch" ignore="1" />
+  <ctl name="AIF1ADC2 HPF Mode" ignore="1" />
+  <ctl name="AIF1ADC2 HPF Switch" ignore="1" />
+  <ctl name="AIF2ADC HPF Mode" ignore="1" />
+  <ctl name="ADC OSR" ignore="1" />
+  <ctl name="DAC OSR" ignore="1" />
+  <ctl name="DAC1 Volume" ignore="1" />
+  <ctl name="DAC2 Volume" ignore="1" />
+  <ctl name="SPKL DAC2 Volume" ignore="1" />
+  <ctl name="SPKL DAC1 Volume" ignore="1" />
+  <ctl name="SPKR DAC2 Volume" ignore="1" />
+  <ctl name="SPKR DAC1 Volume" ignore="1" />
+  <ctl name="AIF1DAC1 3D Stereo Volume" ignore="1" />
+  <ctl name="AIF1DAC1 3D Stereo Switch" ignore="1" />
+  <ctl name="AIF1DAC2 3D Stereo Volume" ignore="1" />
+  <ctl name="AIF1DAC2 3D Stereo Switch" ignore="1" />
+  <ctl name="AIF2DAC 3D Stereo Volume" ignore="1" />
+  <ctl name="AIF2DAC 3D Stereo Switch" ignore="1" />
+  <ctl name="Force Route Switch" ignore="1" />
+  <ctl name="AIF3 Boost Volume" ignore="1" />
+  <ctl name="AIF1DAC1 MBC Switch" ignore="1" />
+  <ctl name="AIF1DAC2 MBC Switch" ignore="1" />
+  <ctl name="AIF2DAC MBC Switch" ignore="1" />
+  <ctl name="AIF1DAC1 VSS Switch" ignore="1" />
+  <ctl name="AIF1DAC2 VSS Switch" ignore="1" />
+  <ctl name="AIF2DAC VSS Switch" ignore="1" />
+  <ctl name="AIF1DAC1 HPF1 Switch" ignore="1" />
+  <ctl name="AIF1DAC2 HPF1 Switch" ignore="1" />
+  <ctl name="AIF2DAC HPF1 Switch" ignore="1" />
+  <ctl name="AIF1DAC1 HPF2 Switch" ignore="1" />
+  <ctl name="AIF1DAC2 HPF2 Switch" ignore="1" />
+  <ctl name="AIF2DAC HPF2 Switch" ignore="1" />
+  <ctl name="AIF1DAC1 Enhanced EQ Switch" ignore="1" />
+  <ctl name="AIF1DAC2 Enhanced EQ Switch" ignore="1" />
+  <ctl name="AIF2DAC Enhanced EQ Switch" ignore="1" />
+  <ctl name="Enhanced EQ Mode" ignore="1" />
+  <ctl name="VocPath" ignore="1" />
+  <ctl name="ADCR Mux" ignore="1" />
+  <ctl name="ADCL Mux" ignore="1" />
+  <ctl name="AIF3ADC Mux" ignore="1" />
+  <ctl name="AIF2DACR Mux" ignore="1" />
+  <ctl name="AIF2DACL Mux" ignore="1" />
+  <ctl name="Mono PCM Out Mux" ignore="1" />
+  <ctl name="SPKR DAC2 Switch" ignore="1" />
+  <ctl name="SPKR Input Switch" ignore="1" />
+  <ctl name="SPKR IN1RP Switch" ignore="1" />
+  <ctl name="SPKR Output Switch" ignore="1" />
+  <ctl name="SPKR DAC1 Switch" ignore="1" />
+  <ctl name="SPKL DAC2 Switch" ignore="1" />
+  <ctl name="SPKL Input Switch" ignore="1" />
+  <ctl name="SPKL IN1LP Switch" ignore="1" />
+  <ctl name="SPKL Output Switch" ignore="1" />
+  <ctl name="SPKL DAC1 Switch" ignore="1" />
+  <ctl name="Right Headphone Mux" ignore="1" />
+  <ctl name="Left Headphone Mux" ignore="1" />
+  <ctl name="AIF2ADC Mux" ignore="1" />
+  <ctl name="AIF2DAC Mux" ignore="1" />
+  <ctl name="AIF1DAC Mux" ignore="1" />
+  <ctl name="DAC1R Mixer Right Sidetone Switch" ignore="1" />
+  <ctl name="DAC1R Mixer Left Sidetone Switch" ignore="1" />
+  <ctl name="DAC1R Mixer AIF2 Switch" ignore="1" />
+  <ctl name="DAC1R Mixer AIF1.2 Switch" ignore="1" />
+  <ctl name="DAC1L Mixer Right Sidetone Switch" ignore="1" />
+  <ctl name="DAC1L Mixer Left Sidetone Switch" ignore="1" />
+  <ctl name="DAC1L Mixer AIF2 Switch" ignore="1" />
+  <ctl name="DAC1L Mixer AIF1.2 Switch" ignore="1" />
+  <ctl name="Right Sidetone" ignore="1" />
+  <ctl name="Left Sidetone" ignore="1" />
+  <ctl name="AIF2DAC2R Mixer Right Sidetone Switch" ignore="1" />
+  <ctl name="AIF2DAC2R Mixer Left Sidetone Switch" ignore="1" />
+  <ctl name="AIF2DAC2R Mixer AIF2 Switch" ignore="1" />
+  <ctl name="AIF2DAC2R Mixer AIF1.2 Switch" ignore="1" />
+  <ctl name="AIF2DAC2R Mixer AIF1.1 Switch" ignore="1" />
+  <ctl name="AIF2DAC2L Mixer Right Sidetone Switch" ignore="1" />
+  <ctl name="AIF2DAC2L Mixer AIF2 Switch" ignore="1" />
+  <ctl name="AIF2DAC2L Mixer AIF1.2 Switch" ignore="1" />
+  <ctl name="AIF2DAC2L Mixer AIF1.1 Switch" ignore="1" />
+  <ctl name="AIF1ADC2R Mixer DMIC Switch" ignore="1" />
+  <ctl name="AIF1ADC2R Mixer AIF2 Switch" ignore="1" />
+  <ctl name="AIF1ADC2L Mixer DMIC Switch" ignore="1" />
+  <ctl name="AIF1ADC2L Mixer AIF2 Switch" ignore="1" />
+  <ctl name="AIF1ADC1R Mixer ADC/DMIC Switch" ignore="1" />
+  <ctl name="AIF1ADC1R Mixer AIF2 Switch" ignore="1" />
+  <ctl name="AIF1ADC1L Mixer ADC/DMIC Switch" ignore="1" />
+  <ctl name="AIF1ADC1L Mixer AIF2 Switch" ignore="1" />
+  <ctl name="LINEOUT2 Mixer IN2R Switch" ignore="1" />
+  <ctl name="LINEOUT2 Mixer IN2L Switch" ignore="1" />
+  <ctl name="LINEOUT1 Mixer IN1R Switch" ignore="1" />
+  <ctl name="LINEOUT1 Mixer IN1L Switch" ignore="1" />
+  <ctl name="SPKR Boost Direct Voice Switch" ignore="1" />
+  <ctl name="SPKR Boost SPKL Switch" ignore="1" />
+  <ctl name="SPKR Boost SPKR Switch" ignore="1" />
+  <ctl name="SPKL Boost Direct Voice Switch" ignore="1" />
+  <ctl name="SPKL Boost SPKL Switch" ignore="1" />
+  <ctl name="SPKL Boost SPKR Switch" ignore="1" />
+  <ctl name="Earpiece Mixer Direct Voice Switch" ignore="1" />
+  <ctl name="Earpiece Mixer Left Output Switch" ignore="1" />
+  <ctl name="Earpiece Mixer Right Output Switch" ignore="1" />
+  <ctl name="Right Output Mixer Left Input Switch" ignore="1" />
+  <ctl name="Right Output Mixer Right Input Switch" ignore="1" />
+  <ctl name="Right Output Mixer IN2LN Switch" ignore="1" />
+  <ctl name="Right Output Mixer IN2RN Switch" ignore="1" />
+  <ctl name="Right Output Mixer IN1L Switch" ignore="1" />
+  <ctl name="Right Output Mixer IN1R Switch" ignore="1" />
+  <ctl name="Right Output Mixer IN2RP Switch" ignore="1" />
+  <ctl name="Left Output Mixer Right Input Switch" ignore="1" />
+  <ctl name="Left Output Mixer Left Input Switch" ignore="1" />
+  <ctl name="Left Output Mixer IN2RN Switch" ignore="1" />
+  <ctl name="Left Output Mixer IN2LN Switch" ignore="1" />
+  <ctl name="Left Output Mixer IN2LP Switch" ignore="1" />
+  <ctl name="Left Output Mixer IN1R Switch" ignore="1" />
+  <ctl name="Left Output Mixer IN1L Switch" ignore="1" />
+  <ctl name="MIXINR IN2R Switch" ignore="1" />
+  <ctl name="MIXINR IN1R Switch" ignore="1" />
+  <ctl name="MIXINL IN2L Switch" ignore="1" />
+  <ctl name="IN2R PGA IN2RP Switch" ignore="1" />
+  <ctl name="IN2R PGA IN2RN Switch" ignore="1" />
+  <ctl name="IN2L PGA IN2LP Switch" ignore="1" />
+  <ctl name="IN2L PGA IN2LN Switch" ignore="1" />
+  <ctl name="IN1R PGA IN1RP Switch" ignore="1" />
+  <ctl name="IN1R PGA IN1RN Switch" ignore="1" />
+
+  <path name="speaker-enable">
+	<ctl name="PCM Playback Sink" value="0,0,0" /> <!-- dsp.pcm_playback_id -->
+	<ctl name="speaker_stereo_rx" value="0" /> <!-- dsp.speaker_stereo_rx_id -->
+	<ctl name="PCM Playback Sink" value="0,0,1" /> <!-- dsp.pcm_playback_id -->
+	<ctl name="speaker_stereo_rx" value="1" /> <!-- dsp.speaker_stereo_rx_id -->
+	<ctl name="LINEOUT1N Switch" value="1" /> <!-- dsp.line1outn_id -->
+	<ctl name="LINEOUT1P Switch" value="1" /> <!-- dsp.line1outp_id -->
+	<ctl name="LINEOUT2N Switch" value="1" /> <!-- dsp.line2outn_id -->
+	<ctl name="LINEOUT2P Switch" value="1" /> <!-- dsp.line2outp_id -->
+	<ctl name="Output Volume" value="59,59" /> <!-- dsp.outvol_id -->
+  </path>
+  <path name="speaker-disable">
+	<ctl name="PCM Playback Sink" value="0,0,0" /> <!-- dsp.pcm_playback_id -->
+	<ctl name="speaker_stereo_rx" value="0" /> <!-- dsp.speaker_stereo_rx_id -->
+  </path>
+
+  <path name="headphone-enable">
+	<ctl name="PCM Playback Sink" value="0,0,0" /> <!-- dsp.pcm_playback_id -->
+	<ctl name="speaker_stereo_rx" value="0" /> <!-- dsp.speaker_stereo_rx_id -->
+	<ctl name="PCM Playback Sink" value="0,0,1" /> <!-- dsp.pcm_playback_id -->
+	<ctl name="speaker_stereo_rx" value="1" /> <!-- dsp.speaker_stereo_rx_id -->
+	<ctl name="Output Volume" value="117,117" /> <!-- dsp.outvol_id -->
+	<ctl name="LINEOUT1N Switch" value="0" /> <!-- dsp.line1outn_id -->
+	<ctl name="LINEOUT1P Switch" value="0" /> <!-- dsp.line1outp_id -->
+	<ctl name="LINEOUT2N Switch" value="0" /> <!-- dsp.line2outn_id -->
+	<ctl name="LINEOUT2P Switch" value="0" /> <!-- dsp.line2outp_id -->
+  </path>
+  <path name="headphone-disable">
+	<ctl name="PCM Playback Sink" value="0,0,0" /> <!-- dsp.pcm_playback_id -->
+	<ctl name="speaker_stereo_rx" value="0" /> <!-- dsp.speaker_stereo_rx_id -->
+  </path>
+
+  <path name="mic-enable">
+	<ctl name="PCM Capture Source" value="0,1,0" /> <!-- dsp.pcm_capture_id -->
+	<ctl name="speaker_mono_tx" value="0" /> <!-- dsp.speaker_mono_tx_id -->
+	<ctl name="PCM Capture Source" value="0,1,1" /> <!-- dsp.pcm_capture_id -->
+	<ctl name="speaker_mono_tx" value="1" /> <!-- dsp.speaker_mono_tx_id -->
+  </path>
+  <path name="mic-disable">
+	<ctl name="PCM Capture Source" value="0,1,0" /> <!-- dsp.pcm_capture_id -->
+	<ctl name="speaker_mono_tx" value="0" /> <!-- dsp.speaker_mono_tx_id -->
+  </path>
+
+</mixer>
