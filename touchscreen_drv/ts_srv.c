@@ -1180,6 +1180,8 @@ void create_ts_socket(int *socket_fd) {
 	else
 		ALOGE("Error creating socket\n");
 #endif
+	// change perms to 0666 (438 decimal)
+	chmod(TS_SOCKET_LOCATION, 438);
 }
 
 void set_ts_mode(int mode){
