@@ -17,11 +17,9 @@
     <!-- Camera mode -->
     <string name="camera_mode_title">Camera Profile</string>
     <string name="preview_mode_dialog_title">Camera Profile</string>
-    <string name="preview_mode_preference_title_mirrored">Front Android Camera</string>
-    <string name="preview_mode_preference_title_normal">Front WebOS Camera</string>
+    <string name="preview_mode_preference_title_normal">Front Camera</string>
     <string name="preview_mode_preference_title_rear">Rear Camera</string>
-    <string name="preview_mode_preference_summary_mirrored">Front Camera with mirrored preview (Android default)</string>
-    <string name="preview_mode_preference_summary_normal">Front Camera without mirrored preview (WebOS default)</string>
+    <string name="preview_mode_preference_summary_normal">Front Camera (default)</string>
     <string name="preview_mode_preference_summary_rear">Rear Camera</string>
 
     <!-- Image rotation -->

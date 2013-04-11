@@ -11,13 +11,11 @@
     </string-array>
 
     <string-array name="preview_modes" translatable="false">
-        <item>@string/preview_mode_preference_title_mirrored</item>
         <item>@string/preview_mode_preference_title_normal</item>
         <item>@string/preview_mode_preference_title_rear</item>
     </string-array>
 
     <string-array name="preview_mode_summaries" translatable="false">
-        <item>@string/preview_mode_preference_summary_mirrored</item>
         <item>@string/preview_mode_preference_summary_normal</item>
         <item>@string/preview_mode_preference_summary_rear</item>
     </string-array>
@@ -25,7 +23,6 @@
     <string-array name="preview_mode_values" translatable="false">
         <item>0</item>
         <item>1</item>
-        <item>2</item>
     </string-array>
 
     <string-array name="rotation_mode_values" translatable="false">

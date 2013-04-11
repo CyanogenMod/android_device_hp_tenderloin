@@ -232,67 +232,7 @@ static void wrap_queue_buffer_hook(void *data, void* buffer)
     if (0 == dev->gralloc->lock(dev->gralloc, *buf_handle,
                                 GRALLOC_USAGE_SW_WRITE_MASK,
                                 0, 0, width, height, &vaddr)) {
-
-        /* Our cam sensor is configured in normal (not mirror mode)
-         * but the Android expects the front cameras to be working
-         * in mirror mode, so in result we have a preview rotated
-         * by 180 degrees. For some reason this issue not appears
-         * in ICS so we put the frame as it is there.
-         * On JB we're flipping the frame horizontally and vertically
-         * to compensate this rotation.
-         * To flip horizontally the YUV420SP frame we are reverting
-         * the order of data in the rows (horizontally) and the order
-         * of rows (vertically).
-         */
-#ifdef ANDROID_ICS
         memcpy(vaddr, frame, width * height * 3 / 2);
-#else
-        if (dev->preview_mode != 0) {
-            memcpy(vaddr, frame, width * height * 3 / 2);
-        } else {
-            /*
-             * The YUV420 Semi-Planar frame is constructed as follows:
-             *
-             * - the Y values are stored in one plane:
-             * |-------------------------------|   _
-             * | Y0 | Y1 | Y2 | Y3 | ...       |   |
-             * | ...                           | height
-             * |                               |   |
-             * |-------------------------------|   -
-             * <------------ width ------------>
-             *
-             * - the U and V values (sub-sampled by 2) are stored in another plane:
-             * |-------------------------------|   _
-             * | U0 | V0 | U2 | V2 | ....      |   |
-             * | ...                           | height/2
-             * |                               |   |
-             * |-------------------------------|   -
-             * <------------ width ------------>
-             */
-
-            uint8_t *buff = (uint8_t *)vaddr;
-            int pos_in = 0, pos_out = 0;
-
-            //swap Y plane
-            for (int y = 0; y < height; ++y)
-            {
-                pos_in = y * width;
-                pos_out = (height - y) * width;
-                for (int x = 0; x < width; ++x)
-                    buff[pos_in + x] = frame[pos_out + width - x];
-            }
-
-            //swap UV plane
-            pos_out = pos_in + width + width * height/2;
-            for (int y = 0; y < height/2; ++y)
-            {
-                pos_in += width;
-                pos_out -= width;
-                for (int x = 0; x < width; ++x)
-                    buff[pos_in + x] = frame[pos_out + width - x];
-            }
-        }
-#endif
         ALOGV("%s: copy frame to gralloc buffer", __FUNCTION__);
     } else {
         ALOGE("%s: could not lock gralloc buffer", __FUNCTION__);
@@ -1255,7 +1195,7 @@ int camera_get_camera_info(int camera_id, struct camera_info *info)
     info->facing = cameraInfo.facing;
     info->orientation = cameraInfo.orientation;
 
-    if (read_mode_from_config("preview_mode") == 2) {
+    if (read_mode_from_config("preview_mode") == 1) {
         info->facing = CAMERA_FACING_BACK;
     }
 
