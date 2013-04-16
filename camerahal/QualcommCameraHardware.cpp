@@ -184,9 +184,9 @@ union zoomimage
     struct mdp_blit_req_list list;
 } zoomImage;
 
-//Default to QVGA
-#define DEFAULT_PREVIEW_WIDTH 352
-#define DEFAULT_PREVIEW_HEIGHT 288
+//Default to VGA
+#define DEFAULT_PREVIEW_WIDTH 640
+#define DEFAULT_PREVIEW_HEIGHT 480
 
 //Default to VGA
 #define DEFAULT_VIDEO_WIDTH 640
@@ -3859,7 +3859,7 @@ status_t QualcommCameraHardware::sendCommand(int32_t command, int32_t arg1,
                                    }
                                    setFaceDetection("off");
                                    return runFaceDetection();
-      case CAMERA_CMD_HISTOGRAM_ON:
+      /*case CAMERA_CMD_HISTOGRAM_ON:
                                    ALOGV("histogram set to on");
                                    return setHistogramOn();
       case CAMERA_CMD_HISTOGRAM_OFF:
@@ -3870,7 +3870,7 @@ status_t QualcommCameraHardware::sendCommand(int32_t command, int32_t arg1,
                                    if(mStatsOn == CAMERA_HISTOGRAM_ENABLE)
                                        mSendData = true;
                                    mStatsWaitLock.unlock();
-                                   return NO_ERROR;
+                                   return NO_ERROR;*/
       case CAMERA_CMD_START_SMOOTH_ZOOM:
       case CAMERA_CMD_STOP_SMOOTH_ZOOM:
                                    ALOGV("Smooth zoom is not supported yet");
