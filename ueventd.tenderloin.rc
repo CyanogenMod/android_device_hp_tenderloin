@@ -23,6 +23,8 @@
 /dev/controlC0          0660    system      audio
 /dev/pmem_audio         0660    system      audio
 /dev/tpa2051d3          0660    system      audio
+/dev/msm_aac_in         0660    system      audio
+/dev/msm_amrnb_in       0640    system      audio
 
 #camera
 /dev/pmem_smipool       0660    system      audio
