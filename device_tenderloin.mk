@@ -45,10 +45,6 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     device/hp/tenderloin/prebuilt/etc/init.d/10check_media_minor:system/etc/init.d/10check_media_minor
 
-## (2) Also get non-open-source GSM-specific aspects if available
-$(call inherit-product-if-exists, vendor/hp/tenderloin/tenderloin-vendor.mk)
-## (3)  Finally, the least specific parts, i.e. the non-GSM-specific aspects
-
 DEVICE_PACKAGE_OVERLAYS += device/hp/tenderloin/overlay
 
 PRODUCT_COPY_FILES += \
@@ -218,4 +214,5 @@ PRODUCT_COPY_FILES += \
     device/hp/tenderloin/prebuilt/boot/moboot.splash.CyanogenMod.tga:moboot.splash.CyanogenMod.tga
 
 $(call inherit-product, frameworks/native/build/tablet-dalvik-heap.mk)
-$(call inherit-product, build/target/product/full_base.mk)
+
+$(call inherit-product-if-exists, vendor/hp/tenderloin/tenderloin-vendor.mk)
