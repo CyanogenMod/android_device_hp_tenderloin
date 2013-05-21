@@ -7,4 +7,6 @@
 
     <!-- Allow tablets to set grid size in settings and have an effect in the Workspace -->
     <bool name="config_workspaceTabletGrid">true</bool>
+
+    <bool name="config_largeHeap">false</bool>
 </resources>
