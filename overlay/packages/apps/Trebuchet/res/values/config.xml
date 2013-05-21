@@ -1,7 +1,7 @@
 <resources>
     <!-- Workspace grid size defaults and maximums -->
-    <integer name="cell_count_x">8</integer>
-    <integer name="cell_count_y">7</integer>
+    <integer name="default_cell_count_x">8</integer>
+    <integer name="default_cell_count_y">7</integer>
     <integer name="config_maxWorkspaceColumns">11</integer>
     <integer name="config_maxWorkspaceRows">10</integer>
 

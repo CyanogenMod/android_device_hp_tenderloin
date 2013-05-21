@@ -37,13 +37,17 @@ on init
     # remount /boot read-only
     mount ext3 /dev/block/mmcblk0p13 /boot remount ro wait noatime barrier=1
 
+    mkdir /storage 0050 system sdcard_r	
 
-    export EXTERNAL_STORAGE /storage/sdcard0
-    mkdir /storage 0050 system sdcard_r
-    mkdir /storage/sdcard0 0000 system system
-    # for backwards compatibility
-    symlink /storage/sdcard0 /mnt/sdcard
-    symlink /mnt/sdcard /sdcard
+    mkdir /mnt/shell/sdcard 0700 shell shell
+    mkdir /storage/sdcard 0555 root root
+
+    export EXTERNAL_STORAGE /storage/sdcard
+
+    # Support legacy paths
+    symlink /storage/sdcard /sdcard
+    symlink /storage/sdcard /mnt/sdcard
+    symlink /storage/sdcard /storage/sdcard0
 
 on post-fs
     # camera calibration
@@ -185,12 +189,12 @@ service bugreport /system/bin/dumpstate -d -v -o /sdcard/bugreports/bugreport
     oneshot
     keycodes 158 139
 
-service hciattach /system/bin/sh /system/etc/init.qcom.bt.sh
-    user bluetooth
-    class main
-    group qcom_oncrpc bluetooth net_bt_admin system
-    disabled
-    oneshot
+#service hciattach /system/bin/sh /system/etc/init.qcom.bt.sh
+#    user bluetooth
+#    class main
+#    group qcom_oncrpc bluetooth net_bt_admin system
+#    disabled
+#    oneshot
 
 service tsdriver /system/bin/ts_srv
     class core

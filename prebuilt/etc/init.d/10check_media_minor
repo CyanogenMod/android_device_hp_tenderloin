@@ -12,7 +12,7 @@ then
 fi
 
 # get the minor device number for /dev/store/media
-MM=`/system/xbin/ls -lLn /dev/store/media | sed -e 's/ */	/g' | cut -f7`
+MM=`/system/xbin/ls -lLn /dev/store/media | sed -r -e 's/ +/\t/g' | cut -f6`
 
 # get the existing vold.fstab SDCARD= value
 OSTR=`sed -rn -e 's/.*(SDCARD=.*)$/\1/p' /system/etc/vold.fstab`
