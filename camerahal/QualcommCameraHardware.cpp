@@ -677,8 +677,8 @@ static const str_map skinToneEnhancement[] = {
 };
 
 static const str_map continuous_af[] = {
-    { CameraParameters::CONTINUOUS_AF_OFF, FALSE },
-    { CameraParameters::CONTINUOUS_AF_ON, TRUE }
+    { "caf-off", FALSE },
+    { "caf-on", TRUE }
 };
 
 static const str_map selectable_zone_af[] = {
@@ -1520,9 +1520,8 @@ void QualcommCameraHardware::initDefaultParameters()
 
     mParameters.set(CameraParameters::KEY_SUPPORTED_SCENE_MODES,
                     scenemode_values);
-    mParameters.set(CameraParameters::KEY_CONTINUOUS_AF,
-                    CameraParameters::CONTINUOUS_AF_OFF);
-    mParameters.set(CameraParameters::KEY_SUPPORTED_CONTINUOUS_AF,
+    mParameters.set("continuous-af", "caf-off");
+    mParameters.set("continuous-af-values",
                     continuous_af_values);
     mParameters.set(CameraParameters::KEY_TOUCH_AF_AEC,
                     CameraParameters::TOUCH_AF_AEC_OFF);
@@ -5625,13 +5624,13 @@ status_t QualcommCameraHardware::setLensshadeValue(const CameraParameters& param
 status_t QualcommCameraHardware::setContinuousAf(const CameraParameters& params)
 {
     if(mHasAutoFocusSupport){
-        const char *str = params.get(CameraParameters::KEY_CONTINUOUS_AF);
+        const char *str = params.get("continuous-af");
         if (str != NULL) {
             int value = attr_lookup(continuous_af,
                     sizeof(continuous_af) / sizeof(str_map), str);
             if (value != NOT_FOUND) {
                 int8_t temp = (int8_t)value;
-                mParameters.set(CameraParameters::KEY_CONTINUOUS_AF, str);
+                mParameters.set("continuous-af", str);
 
                 native_set_parms(CAMERA_PARM_CONTINUOUS_AF, sizeof(int8_t), (void *)&temp);
                 return NO_ERROR;

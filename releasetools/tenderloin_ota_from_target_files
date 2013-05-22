@@ -41,9 +41,9 @@ def WriteFullOTAPackage(input_zip, output_zip):
   # change very often.
   script = edify_generator.EdifyGenerator(3, OPTIONS.info_dict)
 
-  metadata = {"post-build": GetBuildProp("ro.build.fingerprint", input_zip),
-              "pre-device": GetBuildProp("ro.product.device", input_zip),
-              "post-timestamp": GetBuildProp("ro.build.date.utc", input_zip),
+  metadata = {"post-build": GetBuildProp("ro.build.fingerprint", OPTIONS.info_dict),
+              "pre-device": GetBuildProp("ro.product.device", OPTIONS.info_dict),
+              "post-timestamp": GetBuildProp("ro.build.date.utc", OPTIONS.info_dict),
               }
 
   device_specific = common.DeviceSpecificParams(
@@ -59,7 +59,7 @@ def WriteFullOTAPackage(input_zip, output_zip):
 #    ts = GetBuildProp("ro.build.date.utc", input_zip)
 #    script.AssertOlderBuild(ts)
 
-  AppendAssertions(script, input_zip)
+  AppendAssertions(script, OPTIONS.info_dict)
   device_specific.FullOTA_Assertions()
   if OPTIONS.backuptool:
     script.Mount("/system")
