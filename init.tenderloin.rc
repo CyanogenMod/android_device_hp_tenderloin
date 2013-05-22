@@ -124,11 +124,6 @@ on boot
     # Increase readahead buffers on MMC devices
     write /sys/block/mmcblk0/bdi/read_ahead_kb 1024
 
-    # Enable low memory killer to check file pages
-    write /sys/module/lowmemorykiller/parameters/minfree 8192,10240,12288,14336,16384,20480
-    write /sys/devices/system/cpu/cpufreq/ondemand/up_threshold 90
-    write /sys/devices/system/cpu/cpufreq/ondemand/sampling_rate 50000
-
     # Enable power collapse where always safe
     write /sys/module/pm_8x60/modes/cpu0/power_collapse/suspend_enabled 1
     write /sys/module/pm_8x60/modes/cpu0/power_collapse/idle_enabled 1
@@ -143,12 +138,6 @@ on boot
     write /sys/module/rpm_resources/enable_low_power/L2_cache 1
     write /sys/module/rpm_resources/enable_low_power/pxo 1
 
-    # modules
-    insmod /system/lib/modules/nls_utf8.ko
-    insmod /system/lib/modules/cifs.ko
-    insmod /system/lib/modules/ntfs.ko
-    insmod /system/lib/modules/tun.ko
-
     # compat-wireless modules needed for ath6kl
     insmod /system/lib/modules/compat.ko
     insmod /system/lib/modules/cfg80211.ko
@@ -156,12 +145,6 @@ on boot
     # change permissions for i2c-2 device
 	chmod 0660 /dev/i2c-2
 	chown media media /dev/i2c-2
-
-on property:persist.service.adb.enable=1
-    start adbd
-
-on property:persist.service.adb.enable=0
-    stop adbd
 
 service wpa_supplicant /system/bin/wpa_supplicant -Dnl80211 -iwlan0 -c/data/misc/wifi/wpa_supplicant.conf
 	#   we will start as root and wpa_supplicant will switch to user wifi
