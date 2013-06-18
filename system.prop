@@ -1,9 +1,6 @@
 #
 # system.prop for tenderloin
 #
-#ro.sf.hwrotation=270
-
-ro.additionalmounts=/mnt/usbdisk
 
 ro.cwm.forbid_format=/boot
 
@@ -30,9 +27,6 @@ ro.phone_storage = 1
 
 # Make rmt_storage start at init
 ro.emmc = 1
-
-# bluetooth
-net.bt.name=Android
 
 persist.service.adb.enable=1
 persist.sys.usb.config=mtp,adb
