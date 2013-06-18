@@ -21,7 +21,7 @@ TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_CPU_SMP := true
 ARCH_ARM_HAVE_TLS_REGISTER := true
 
-#TARGET_DISABLE_ARM_PIE := true
+TARGET_DISABLE_ARM_PIE := true
 TARGET_NO_RADIOIMAGE := true
 TARGET_HAVE_TSLIB := false
 TARGET_GLOBAL_CFLAGS += -mfpu=neon -mfloat-abi=softfp
