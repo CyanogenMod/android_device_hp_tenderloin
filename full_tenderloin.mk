@@ -28,6 +28,6 @@ $(call inherit-product, device/hp/tenderloin/device_tenderloin.mk)
 # Discard inherited values and use our own instead.
 PRODUCT_NAME := full_tenderloin
 PRODUCT_DEVICE := tenderloin
-PRODUCT_BRAND := hp
+PRODUCT_BRAND := HP
 PRODUCT_MODEL := TouchPad
-PRODUCT_MANUFACTURER := hp
+PRODUCT_MANUFACTURER := HP
