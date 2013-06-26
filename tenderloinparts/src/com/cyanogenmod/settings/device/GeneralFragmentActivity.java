@@ -35,11 +35,12 @@ import android.util.Log;
 
 import com.cyanogenmod.settings.device.R;
 
-public class TouchscreenFragmentActivity extends PreferenceFragment {
+public class GeneralFragmentActivity extends PreferenceFragment {
 
-    private static final String TAG = "TenderloinParts_Touchscreen";
+    private static final String TAG = "TenderloinParts_General";
 
     private static final String TOUCHSCREEN_SET_BIN = "/system/bin/ts_srv_set";
+    private static final String LED_FILE = "/data/misc/batled";
     private SharedPreferences mSharedPrefs;
 
     @Override
@@ -54,7 +55,7 @@ public class TouchscreenFragmentActivity extends PreferenceFragment {
         mSharedPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         syncPreferences();
 
-        addPreferencesFromResource(R.xml.touchscreen_preferences);
+        addPreferencesFromResource(R.xml.general_preferences);
         setModePrefTitle(null);
 
         Preference tsModePref = findPreference("touchscreen_mode_preference");
@@ -67,6 +68,15 @@ public class TouchscreenFragmentActivity extends PreferenceFragment {
                 } else {
                     return false;
                 }
+            }
+        });
+        
+        Preference batledModePref = findPreference("batled_mode_preference");
+        batledModePref.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                Utils.writeValue(LED_FILE, (Boolean)newValue?"1":"0");
+                return true;
             }
         });
     }

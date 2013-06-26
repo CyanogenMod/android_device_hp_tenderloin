@@ -6,5 +6,11 @@
             android:entryValues="@array/touchscreen_mode_values"
             android:dialogTitle="@string/touchscreen_mode_dialog_title" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="@string/led_title">
+		<CheckBoxPreference android:key="batled_mode_preference"
+            android:title="@string/batled_title"
+            android:summary="@string/batled_summary"
+            android:defaultValue="true" />
+    </PreferenceCategory>
 
 </PreferenceScreen>

@@ -3,7 +3,7 @@
     <string name="app_name">HP TouchPad Settings</string>
 
     <!-- Page Headers -->
-    <string name="touchscreen_title">TOUCHSCREEN</string>
+    <string name="general_title">GENERAL</string>
     <string name="camera_title">CAMERA</string>
 
     <!-- Touchscreen mode -->
@@ -13,6 +13,11 @@
     <string name="touchscreen_mode_preference_title_stylus">Stylus</string>
     <string name="touchscreen_mode_preference_summary_finger">Touchscreen optimized for finger input</string>
     <string name="touchscreen_mode_preference_summary_stylus">Touchscreen optimized for stylus input</string>
+    
+    <!-- charging led -->
+    <string name="led_title">LEDs</string>
+    <string name="batled_title">Charging LED</string>
+    <string name="batled_summary">Indicate charging status via buttonlight (requires reboot)</string>
 
     <!-- Camera mode -->
     <string name="camera_mode_title">Camera Profile</string>

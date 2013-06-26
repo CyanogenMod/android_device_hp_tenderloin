@@ -60,8 +60,8 @@ public class DeviceSettings extends Activity {
         bar.setTitle(R.string.app_name);
 
         mTabsAdapter = new TabsAdapter(this, mViewPager);
-        mTabsAdapter.addTab(bar.newTab().setText(R.string.touchscreen_title),
-                TouchscreenFragmentActivity.class, null);
+        mTabsAdapter.addTab(bar.newTab().setText(R.string.general_title),
+                GeneralFragmentActivity.class, null);
         mTabsAdapter.addTab(bar.newTab().setText(R.string.camera_title),
                 CameraFragmentActivity.class, null);
 
