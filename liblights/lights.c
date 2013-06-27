@@ -1,6 +1,8 @@
 /*
  * Copyright (C) 2008 The Android Open Source Project
  * Copyright (C) 2011 <kang@insecure.ws>
+ * Copyright (C) 2012 James Sullins <jcsullins@gmail.com>
+ * Copyright (C) 2013 Micha LaQua <micha.laqua@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +17,7 @@
  * limitations under the License.
  */
 
+//#define LOG_NDEBUG 0
 #define LOG_TAG "lights"
 #include <cutils/log.h>
 #include <stdint.h>
@@ -34,8 +37,14 @@
 static pthread_once_t g_init = PTHREAD_ONCE_INIT;
 static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
 
+static int g_batled_on = 0;
+static int g_enable_batled = 1;
+
 char const *const LCD_FILE = "/sys/class/leds/lcd-backlight/brightness";
 char const *const LED_FILE = "/dev/lm8502";
+
+char const *const LEFTNAVI_FILE = "/sys/class/leds/core_navi_left/brightness";
+char const *const RIGHTNAVI_FILE = "/sys/class/leds/core_navi_right/brightness";
 
 /* copied from kernel include/linux/i2c_lm8502_led.h */
 #define LM8502_DOWNLOAD_MICROCODE       1
@@ -80,6 +89,24 @@ void send_ts_socket(char *send_data) {
 	}
 }
 
+void
+load_settings()
+{
+    FILE* fp = fopen("/data/misc/batled", "r");
+    if (!fp) {
+        ALOGV("load_settings failed to open /data/misc/batled - leaving batled enabled\n");
+        g_enable_batled = -1;
+    } else {
+        g_enable_batled = (int)(fgetc(fp));
+        if (g_enable_batled == '0')
+            g_enable_batled = 0;
+        else
+            g_enable_batled = 1;
+
+        fclose(fp);
+    }
+}
+
 static int write_int(char const *path, int value)
 {
 	int fd;
@@ -103,6 +130,21 @@ static int write_int(char const *path, int value)
 		}
 		return -errno;
 	}
+}
+
+static int read_int(char const *path)
+{
+    int fd;
+    char buffer[2];
+
+    fd = open(path, O_RDONLY);
+
+    if (fd >= 0) {
+        read(fd, buffer, 1);
+    }
+    close(fd);
+
+    return atoi(buffer);
 }
 
 static int rgb_to_brightness(struct light_state_t const *state)
@@ -207,8 +249,42 @@ static int set_light_notifications(struct light_device_t* dev,
 		close(fd);
 	}
 
+	/* dirty hack: rewrite the charging values if battery led was on 
+	 * and notification is cleared */
+	if (g_batled_on && !on) {
+		write_int(LEFTNAVI_FILE, read_int(LEFTNAVI_FILE)?100:0);
+		write_int(RIGHTNAVI_FILE, read_int(RIGHTNAVI_FILE)?100:0);
+	}
+
 	pthread_mutex_unlock(&g_lock);
+
 	return ret;
+}
+
+static int set_light_battery (struct light_device_t* dev,
+			struct light_state_t const* state)
+{
+	int err = 0;
+	unsigned int colorRGB = state->color & 0xFFFFFF;
+	int red = (colorRGB >> 16)&0xFF;
+	int green = (colorRGB >> 8)&0xFF;
+
+	g_batled_on = green?1:0;
+
+	ALOGD("Calling battery light with state %d - red: %i, green: %i",
+			g_batled_on, red, green);
+
+	pthread_mutex_lock(&g_lock);
+	if (g_batled_on) {
+		write_int(LEFTNAVI_FILE, 100);
+		write_int(RIGHTNAVI_FILE, !red?100:0);
+	} else {
+		write_int(LEFTNAVI_FILE, 0);
+		write_int(RIGHTNAVI_FILE, 0);
+	}
+	pthread_mutex_unlock(&g_lock);
+
+	return err;
 }
 
 static int set_light_backlight(struct light_device_t *dev,
@@ -259,8 +335,13 @@ static int open_lights(const struct hw_module_t *module, char const *name,
 		set_light = set_light_backlight;
 	else if (0 == strcmp(LIGHT_ID_NOTIFICATIONS, name))
 		set_light = set_light_notifications;
+	else if (0 == strcmp(LIGHT_ID_BATTERY, name) &&
+			(g_enable_batled == -1 || g_enable_batled > 0))
+		set_light = set_light_battery;
 	else
 		return -EINVAL;
+
+	load_settings();
 
 	pthread_mutex_init(&g_lock, NULL);
 
