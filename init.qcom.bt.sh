@@ -26,21 +26,32 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+TAG=init.qcom.bt
+
 start_hciattach ()
 {
   /system/bin/hciattach_awesome -n /dev/ttyHS0 bcsp &
   hciattach_pid=$!
-  logi "start_hciattach: pid = $hciattach_pid"
+  log -p i -t $TAG "start_hciattach: pid = $hciattach_pid"
 }
 
 kill_hciattach ()
 {
-  logi "kill_hciattach: pid = $hciattach_pid"
+  log -p i -t $TAG "kill_hciattach: pid = $hciattach_pid"
   ## careful not to kill zero or null!
   kill -TERM $hciattach_pid
   # this shell doesn't exit now -- wait returns for normal exit
 }
 
+# Android (esp. CM10) can restart the hciattach service (this script)
+# immediately after closing the hsuart. This can happen so fast that
+# the hsuart isn't fully closed by the time bcattach is run. This
+# can cause kernel crash. Add delay below (sleep 2) to avoid.
+## DO NOT REMOVE 'sleep 2' below
+sleep 2
+## DO NOT REMOVE 'sleep 2' above
+
+log -p i -t $TAG "bcattach"
 /system/bin/bcattach
 
 # init does SIGTERM on ctl.stop for service
@@ -50,6 +61,6 @@ start_hciattach
 
 wait $hciattach_pid
 
-logi "Bluetooth stopped"
+log -p i -t $TAG "Bluetooth stopped"
 
 exit 0
