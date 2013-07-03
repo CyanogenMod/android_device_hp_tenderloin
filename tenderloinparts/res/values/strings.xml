@@ -4,6 +4,7 @@
 
     <!-- Page Headers -->
     <string name="touchscreen_title">TOUCHSCREEN</string>
+    <string name="camera_title">CAMERA</string>
 
     <!-- Touchscreen mode -->
     <string name="touchscreen_mode_title">Touchscreen Mode</string>
@@ -12,4 +13,20 @@
     <string name="touchscreen_mode_preference_title_stylus">Stylus</string>
     <string name="touchscreen_mode_preference_summary_finger">Touchscreen optimized for finger input</string>
     <string name="touchscreen_mode_preference_summary_stylus">Touchscreen optimized for stylus input</string>
+
+    <!-- Camera mode -->
+    <string name="camera_mode_title">Camera Profile</string>
+    <string name="preview_mode_dialog_title">Camera Profile</string>
+    <string name="preview_mode_preference_title_mirrored">Front Android Camera</string>
+    <string name="preview_mode_preference_title_normal">Front WebOS Camera</string>
+    <string name="preview_mode_preference_title_rear">Rear Camera</string>
+    <string name="preview_mode_preference_summary_mirrored">Front Camera with mirrored preview (Android default)</string>
+    <string name="preview_mode_preference_summary_normal">Front Camera without mirrored preview (WebOS default)</string>
+    <string name="preview_mode_preference_summary_rear">Rear Camera</string>
+
+    <!-- Image rotation -->
+    <string name="rotation_mode_title">Rotation</string>
+    <string name="rotation_mode_dialog_title">Image/Video Rotation</string>
+    <string name="rotation_unit"> degrees</string>
+
 </resources>

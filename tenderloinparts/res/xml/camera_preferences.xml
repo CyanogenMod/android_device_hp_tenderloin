@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/camera_mode_title">
+        <ListPreference android:key="preview_mode_preference"
+            android:entries="@array/preview_modes"
+            android:entryValues="@array/preview_mode_values"
+            android:dialogTitle="@string/preview_mode_dialog_title"
+            android:defaultValue="0" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/rotation_mode_title">
+        <ListPreference android:key="rotation_mode_preference"
+            android:entries="@array/rotation_mode_values"
+            android:entryValues="@array/rotation_mode_values"
+            android:dialogTitle="@string/rotation_mode_dialog_title"
+            android:defaultValue="0" />
+    </PreferenceCategory>
+
+</PreferenceScreen>
