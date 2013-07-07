@@ -49,6 +49,11 @@ on init
     symlink /storage/sdcard /mnt/sdcard
     symlink /storage/sdcard /storage/sdcard0
 
+    # create directory for mounting usb drives
+    mkdir /storage/usbdisk 0666 system system
+    symlink /storage/usbdisk /mnt/usbdisk
+    symlink /mnt/usbdisk /usbdisk
+
 on post-fs
     # camera calibration
     mkdir /data/misc/camera 0770 media system
@@ -79,9 +84,6 @@ on init
     chown system system /dev/lm8502
     chown system system /sys/class/leds/core_navi_left/brightness
     chown system system /sys/class/leds/core_navi_right/brightness
-
-    #  for mounting USB storage
-    mkdir /mnt/usbdisk 0000 system system
 
     # For TS control
     chown system system /sys/devices/platform/cy8ctma395/vdd

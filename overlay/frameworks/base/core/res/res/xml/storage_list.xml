@@ -35,10 +35,15 @@
 <StorageList xmlns:android="http://schemas.android.com/apk/res/android">
 
     <storage android:mountPoint="/storage/sdcard"
-             android:storageDescription="@string/storage_sd_card"
-             android:primary="true"
-             android:removable="true"
-			 android:allowMassStorage="true" />
+        android:storageDescription="@string/storage_sd_card"
+        android:primary="true"
+        android:removable="true"
+        android:allowMassStorage="true" />
+    <!-- external USB OTG storage -->
+    <storage android:mountPoint="/storage/usbdisk"
+        android:storageDescription="@string/storage_usb"
+        android:primary="false"
+        android:removable="true" />
 </StorageList>
 
 

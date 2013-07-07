@@ -17,4 +17,4 @@
 dev_mount sdcard /storage/sdcard auto SDCARD=/dev/block/dm-6
 
 # for mounting usb storage
-#dev_mount usbdisk /mnt/usbdisk auto /devices/platform/msm_hsusb_host.0
+dev_mount usbdisk /storage/usbdisk auto /devices/platform/msm_hsusb_host.0
