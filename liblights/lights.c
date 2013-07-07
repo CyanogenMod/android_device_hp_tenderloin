@@ -132,21 +132,6 @@ static int write_int(char const *path, int value)
 	}
 }
 
-static int read_int(char const *path)
-{
-    int fd;
-    char buffer[2];
-
-    fd = open(path, O_RDONLY);
-
-    if (fd >= 0) {
-        read(fd, buffer, 1);
-    }
-    close(fd);
-
-    return atoi(buffer);
-}
-
 static int rgb_to_brightness(struct light_state_t const *state)
 {
 	int color = state->color & 0x00ffffff;
@@ -252,8 +237,8 @@ static int set_light_notifications(struct light_device_t* dev,
 	/* dirty hack: rewrite the charging values if battery led was on 
 	 * and notification is cleared */
 	if (g_batled_on && !on) {
-		write_int(LEFTNAVI_FILE, read_int(LEFTNAVI_FILE)?100:0);
-		write_int(RIGHTNAVI_FILE, read_int(RIGHTNAVI_FILE)?100:0);
+		write_int(LEFTNAVI_FILE, 100);
+		write_int(RIGHTNAVI_FILE, 100);
 	}
 
 	pthread_mutex_unlock(&g_lock);
@@ -269,7 +254,7 @@ static int set_light_battery (struct light_device_t* dev,
 	int red = (colorRGB >> 16)&0xFF;
 	int green = (colorRGB >> 8)&0xFF;
 
-	g_batled_on = green?1:0;
+	g_batled_on = red&&green?1:0;
 
 	ALOGD("Calling battery light with state %d - red: %i, green: %i",
 			g_batled_on, red, green);
@@ -277,7 +262,7 @@ static int set_light_battery (struct light_device_t* dev,
 	pthread_mutex_lock(&g_lock);
 	if (g_batled_on) {
 		write_int(LEFTNAVI_FILE, 100);
-		write_int(RIGHTNAVI_FILE, !red?100:0);
+		write_int(RIGHTNAVI_FILE, 100);
 	} else {
 		write_int(LEFTNAVI_FILE, 0);
 		write_int(RIGHTNAVI_FILE, 0);
