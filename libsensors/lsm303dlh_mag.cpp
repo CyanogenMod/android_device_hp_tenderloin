@@ -65,6 +65,7 @@ int Lsm303dlhMagSensor::enable(int32_t handle, int en)
         int bytes = sprintf(buffer, "%u\n", newState);
         err = write(fd, buffer, bytes);
         err = err < 0 ? -errno : 0;
+        close(fd);
     } else {
         err = -errno;
     }
@@ -97,6 +98,7 @@ int Lsm303dlhMagSensor::setDelay(int32_t handle, int64_t ns)
             int bytes = sprintf(buffer, "%lu\n", delay);
             err = write(fd, buffer, bytes);
             err = err < 0 ? -errno : 0;
+            close(fd);
         } else {
             err = -errno;
         }
