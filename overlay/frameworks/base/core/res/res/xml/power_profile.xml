@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+**
+** Copyright 2011, The Android Open Source Project
+**
+** Licensed under the Apache License, Version 2.0 (the "License")
+** you may not use this file except in compliance with the License.
+** You may obtain a copy of the License at
+**
+**     http://www.apache.org/licenses/LICENSE-2.0
+**
+** Unless required by applicable law or agreed to in writing, software
+** distributed under the License is distributed on an "AS IS" BASIS,
+** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+** See the License for the specific language governing permissions and
+** limitations under the License.
+*/
+-->
+
+<device name="Android">
+    <item name="none">0</item>
+    <item name="screen.on">500</item>
+    <item name="screen.full">900</item>
+    <item name="bluetooth.active">120</item>
+    <item name="bluetooth.on">0.3</item>
+    <item name="bluetooth.at">35690</item>
+    <item name="wifi.on">20</item>
+    <item name="wifi.active">160</item>
+    <item name="wifi.scan">220</item>
+    <item name="dsp.audio">180</item>
+    <item name="dsp.video">180</item>
+    <item name="radio.active">150</item>
+    <item name="radio.scanning">70</item>
+    <item name="gps.on">70</item>
+    <item name="battery.capacity">6000</item>
+    <array name="radio.on">
+        <value>3</value>
+        <value>3</value>
+    </array>
+    <array name="cpu.speeds">
+        <value>192000</value>
+        <value>384000</value>
+        <value>432000</value>
+        <value>486000</value>
+        <value>540000</value>
+        <value>594000</value>
+        <value>648000</value>
+        <value>702000</value>
+        <value>756000</value>
+        <value>810000</value>
+        <value>864000</value>
+        <value>918000</value>
+        <value>972000</value>
+        <value>1026000</value>
+        <value>1080000</value>
+        <value>1134000</value>
+        <value>1188000</value>
+        <value>1242000</value>
+        <value>1296000</value>
+        <value>1350000</value>
+        <value>1404000</value>
+        <value>1458000</value>
+        <value>1512000</value>
+        <value>1620000</value>
+        <value>1728000</value>
+        <value>1782000</value>
+    </array>
+    <item name="cpu.idle">2.8</item>
+    <item name="cpu.awake">10</item>
+    <array name="cpu.active">
+        <value>60</value>
+        <value>110</value>
+        <value>125</value>
+        <value>140</value>
+        <value>155</value>
+        <value>170</value>
+        <value>185</value>
+        <value>200</value>
+        <value>215</value>
+        <value>230</value>
+        <value>245</value>
+        <value>260</value>
+        <value>275</value>
+        <value>290</value>
+        <value>305</value>
+        <value>320</value>
+        <value>335</value>
+        <value>350</value>
+        <value>365</value>
+        <value>380</value>
+        <value>395</value>
+        <value>410</value>
+        <value>425</value>
+        <value>455</value>
+        <value>485</value>
+        <value>500</value>
+    </array>
+</device>
