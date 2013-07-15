@@ -26,7 +26,7 @@ PRODUCT_AAPT_CONFIG := xlarge mdpi hdpi
 PRODUCT_AAPT_PREF_CONFIG := mdpi
 
 PRODUCT_PACKAGES += \
-	make_ext4fs
+    make_ext4fs
 
 PRODUCT_COPY_FILES += \
     device/hp/tenderloin/init.tenderloin.usb.rc:root/init.tenderloin.usb.rc \
@@ -74,32 +74,25 @@ PRODUCT_PACKAGES += \
 
 # QCOM OMX
 PRODUCT_PACKAGES += \
-	libstagefrighthw \
-	libOmxCore \
-	libmm-omxcore \
-	libdivxdrmdecrypt \
-	libOmxVdec \
-	libOmxAacEnc \
-	libOmxAmrEnc
+    libstagefrighthw \
+    libOmxCore \
+    libmm-omxcore \
+    libdivxdrmdecrypt \
+    libOmxVdec \
+    libOmxAacEnc \
+    libOmxAmrEnc
 
 # QCOM OMX Video Encoding
 PRODUCT_PACKAGES += \
-	libOmxVenc
-
-# QCOM OMX Video Tests
-#PRODUCT_PACKAGES += \
-#	mm-vdev-omx-test \
-#	mm-video-driver-test \
-#	mm-venc-omx-test720p \
-#	mm-video-encdrv-test
+    libOmxVenc
 
 # Audio
 PRODUCT_PACKAGES += \
     audio.a2dp.default \
     audio.primary.tenderloin \
-	tinymix \
-	tinyplay \
-	tinycap
+    tinymix \
+    tinyplay \
+    tinycap
 
 # audio mixer paths
 PRODUCT_COPY_FILES += \
@@ -115,7 +108,7 @@ PRODUCT_PACKAGES += \
 
 # Sensors, misc
 PRODUCT_PACKAGES += \
-	power.tenderloin \
+    power.tenderloin \
     librs_jni \
     wpa_supplicant.conf \
     libmllite \
@@ -171,11 +164,18 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     device/hp/tenderloin/prebuilt/wifi/ath6k/AR6003/hw2.1.1/bdata.SD32.bin:/system/etc/firmware/ath6k/AR6003/hw2.1.1/bdata.bin
 
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.opengles.version=131072
+
+# Set default USB interface
+PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
+    persist.sys.usb.config=mtp,adb
+
 # we have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise
 
-# device uses high-density artwork where available
-PRODUCT_LOCALES += en_US mdpi
+PRODUCT_PROPERTY_OVERRIDES += \
+    dalvik.vm.dexopt-flags=m=y,u=n
 
 PRODUCT_COPY_FILES += \
     device/hp/tenderloin/configs/media_profiles.xml:system/etc/media_profiles.xml \

@@ -9,19 +9,7 @@ wifi.interface=wlan0
 
 debug.fb.rgb565 = 0
 debug.sf.hw=1
+debug.composition.type=cpu
 debug.enabletr=false
 
 com.qc.hardware=true
-
-#c2d
-debug.composition.type=cpu
-#ro.sf.compbypass.enable=1
-#debug.overlayui.enable=0
-
-# The OpenGL ES API level that is natively supported by this device.
-# This is a 16.16 fixed point number
-ro.opengles.version = 131072
-
-persist.service.adb.enable=1
-persist.sys.usb.config=mtp,adb
-
