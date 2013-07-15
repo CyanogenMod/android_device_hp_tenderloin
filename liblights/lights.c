@@ -31,8 +31,6 @@
 
 #include <sys/types.h>
 #include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <sys/un.h>
 
 static pthread_once_t g_init = PTHREAD_ONCE_INIT;
 static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -52,10 +50,6 @@ char const *const RIGHTNAVI_FILE = "/sys/class/leds/core_navi_right/brightness";
 #define LM8502_STOP_ENGINE              3
 #define LM8502_WAIT_FOR_ENGINE_STOPPED  8
 
-#define TS_SOCKET_LOCATION "/dev/socket/tsdriver"
-
-#define TS_SOCKET_DEBUG 1
-
 /* LED engine programs */
 static const uint16_t notif_led_program_pulse[] = {
     0x9c0f, 0x9c8f, 0xe004, 0x4000, 0x047f, 0x4c00, 0x057f, 0x4c00,
@@ -65,29 +59,6 @@ static const uint16_t notif_led_program_pulse[] = {
 static const uint16_t notif_led_program_reset[] = {
     0x9c0f, 0x9c8f, 0x03ff, 0xc000
 };
-
-static int ts_state;
-
-void send_ts_socket(char *send_data) {
-	// Connects to the touchscreen socket
-	struct sockaddr_un unaddr;
-	int ts_fd, len;
-
-	ts_fd = socket(AF_UNIX, SOCK_STREAM, 0);
-
-	if (ts_fd >= 0) {
-		unaddr.sun_family = AF_UNIX;
-		strcpy(unaddr.sun_path, TS_SOCKET_LOCATION);
-		len = strlen(unaddr.sun_path) + sizeof(unaddr.sun_family);
-		if (connect(ts_fd, (struct sockaddr *)&unaddr, len) >= 0) {
-#if TS_SOCKET_DEBUG
-                        ALOGD("Send ts socket %i byte(s): '%s'\n", sizeof(*send_data), send_data);
-#endif
-			send(ts_fd, send_data, sizeof(*send_data), 0);
-		}
-		close(ts_fd);
-	}
-}
 
 void
 load_settings()
@@ -280,18 +251,6 @@ static int set_light_backlight(struct light_device_t *dev,
 
 	pthread_mutex_lock(&g_lock);
 	err = write_int(LCD_FILE, brightness);
-
-	/* Tell touchscreen to turn on or off */
-	if (brightness > 0 && ts_state == 0) {
-		ALOGI("Enabling touch screen");
-		ts_state = 1;
-		send_ts_socket("O");
-	} else if (brightness == 0 && ts_state == 1) {
-		ALOGI("Disabling touch screen");
-		ts_state = 0;
-		send_ts_socket("C");
-	}
-
 	pthread_mutex_unlock(&g_lock);
 	return err;
 }
@@ -301,9 +260,6 @@ static int close_lights(struct light_device_t *dev)
 	ALOGV("close_light is called");
 	if (dev)
 		free(dev);
-
-	ts_state = 0;
-	send_ts_socket("C");
 
 	return 0;
 }

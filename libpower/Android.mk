@@ -21,7 +21,7 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
 LOCAL_SHARED_LIBRARIES := liblog libcutils
-LOCAL_SRC_FILES := power_tenderloin.c
+LOCAL_SRC_FILES := power.c
 LOCAL_MODULE := power.tenderloin
 LOCAL_MODULE_TAGS := optional
 include $(BUILD_SHARED_LIBRARY)

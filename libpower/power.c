@@ -25,14 +25,22 @@
 #include <hardware/hardware.h>
 #include <hardware/power.h>
 
+#include <sys/socket.h>
+#include <sys/un.h>
+
 #define SCALINGMAXFREQ_PATH "/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"
 #define BOOSTPULSE_PATH "/sys/devices/system/cpu/cpufreq/interactive/boostpulse"
 
 #define MAX_BUF_SZ  10
 
+#define TS_SOCKET_LOCATION "/dev/socket/tsdriver"
+#define TS_SOCKET_DEBUG 1
+
 /* initialize freqs*/
 static char screen_off_max_freq[MAX_BUF_SZ] = "702000";
 static char scaling_max_freq[MAX_BUF_SZ] = "1188000";
+
+static int ts_state;
 
 struct tenderloin_power_module {
     struct power_module base;
@@ -64,19 +72,40 @@ static void sysfs_write(char *path, char *s)
 
 int sysfs_read(const char *path, char *buf, size_t size)
 {
-  int fd, len;
+    int fd, len;
 
-  fd = open(path, O_RDONLY);
-  if (fd < 0)
-    return -1;
+    fd = open(path, O_RDONLY);
+    if (fd < 0)
+        return -1;
 
-  do {
-    len = read(fd, buf, size);
-  } while (len < 0 && errno == EINTR);
+    do {
+        len = read(fd, buf, size);
+    } while (len < 0 && errno == EINTR);
 
-  close(fd);
+    close(fd);
 
-  return len;
+    return len;
+}
+
+/* connects to the touchscreen socket */
+void send_ts_socket(char *send_data) {
+    struct sockaddr_un unaddr;
+    int ts_fd, len;
+
+    ts_fd = socket(AF_UNIX, SOCK_STREAM, 0);
+
+    if (ts_fd >= 0) {
+        unaddr.sun_family = AF_UNIX;
+        strcpy(unaddr.sun_path, TS_SOCKET_LOCATION);
+        len = strlen(unaddr.sun_path) + sizeof(unaddr.sun_family);
+        if (connect(ts_fd, (struct sockaddr *)&unaddr, len) >= 0) {
+#if TS_SOCKET_DEBUG
+            ALOGD("Send ts socket %i byte(s): '%s'\n", sizeof(*send_data), send_data);
+#endif
+            send(ts_fd, send_data, sizeof(*send_data), 0);
+        }
+        close(ts_fd);
+    }
 }
 
 static void tenderloin_power_init(struct power_module *module)
@@ -96,7 +125,6 @@ static void tenderloin_power_init(struct power_module *module)
                 "50");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay",
                 "100000");
-                
 }
 
 static int boostpulse_open(struct tenderloin_power_module *tenderloin)
@@ -144,6 +172,17 @@ static void tenderloin_power_set_interactive(struct power_module *module, int on
     else
         sysfs_write(SCALINGMAXFREQ_PATH,
                     on ? scaling_max_freq : screen_off_max_freq);
+
+    /* tell touchscreen to turn on or off */
+    if (on && ts_state == 0) {
+        ALOGI("Enabling touch screen");
+        ts_state = 1;
+        send_ts_socket("O");
+    } else if (!on && ts_state == 1) {
+        ALOGI("Disabling touch screen");
+        ts_state = 0;
+        send_ts_socket("C");
+    }
 }
 
 static void tenderloin_power_hint(struct power_module *module, power_hint_t hint,
