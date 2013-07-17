@@ -78,6 +78,26 @@ load_settings()
     }
 }
 
+int
+is_discharging()
+{
+    int ret;
+
+    FILE* fp = fopen("/sys/class/power_supply/battery/status", "r");
+    if (!fp) {
+        ALOGV("is_charging failed to open /sys/class/power_supply/battery/status - assuming discharging\n");
+        return 1;
+    } else {
+		if ((char)(fgetc(fp)) == 'D')
+            ret = 1;
+        else
+            ret = 0;
+
+        fclose(fp);
+        return ret;
+    }
+}
+
 static int write_int(char const *path, int value)
 {
 	int fd;
@@ -223,12 +243,11 @@ static int set_light_battery (struct light_device_t* dev,
 	int err = 0;
 	unsigned int colorRGB = state->color & 0xFFFFFF;
 	int red = (colorRGB >> 16)&0xFF;
-	int green = (colorRGB >> 8)&0xFF;
 
-	g_batled_on = red&&green?1:0;
+	g_batled_on = red&&!is_discharging();
 
-	ALOGD("Calling battery light with state %d - red: %i, green: %i",
-			g_batled_on, red, green);
+	ALOGD("Calling battery light with state %d",
+			g_batled_on);
 
 	pthread_mutex_lock(&g_lock);
 	if (g_batled_on) {
@@ -315,3 +334,4 @@ struct hw_module_t HAL_MODULE_INFO_SYM = {
 	.author = "Google, Inc.",
 	.methods = &lights_module_methods,
 };
+
