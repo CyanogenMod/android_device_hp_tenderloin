@@ -172,12 +172,6 @@ service iprenew_wlan0 /system/bin/dhcpcd -n
     disabled
     oneshot
 
-# bugreport is triggered by the KEY_BACK and KEY_MENU keycodes
-service bugreport /system/bin/dumpstate -d -v -o /sdcard/bugreports/bugreport
-    disabled
-    oneshot
-    keycodes 158 139
-
 service tsdriver /system/bin/ts_srv
     class core
     user root
