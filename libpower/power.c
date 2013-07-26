@@ -113,21 +113,18 @@ void send_ts_socket(char *send_data) {
 
 static void tenderloin_power_init(struct power_module *module)
 {
-    /*
-     * cpufreq interactive governor: timer 20ms, min sample 60ms,
-     * hispeed 702MHz at load 50%.
-     */
-
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/timer_rate",
                 TIMER_RATE_SCREEN_ON);
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/min_sample_time",
                 "60000");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/hispeed_freq",
                 "702000");
+    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/target_loads",
+                "70 918000:80 1188000:99");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load",
-                "50");
+                "99");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay",
-                "100000");
+                "80000");
 }
 
 static int boostpulse_open(struct tenderloin_power_module *tenderloin)

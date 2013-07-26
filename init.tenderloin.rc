@@ -123,6 +123,10 @@ on boot
     chown audio audio /dev/input/event5
     chmod 0660 /dev/input/event5
 
+    # allow system to modify target loads
+    chown system system /sys/devices/system/cpu/cpufreq/interactive/target_loads
+    chmod 0660 /sys/devices/system/cpu/cpufreq/interactive/target_loads
+
     # Increase readahead buffers on MMC devices
     write /sys/block/mmcblk0/bdi/read_ahead_kb 1024
 
