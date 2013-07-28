@@ -120,9 +120,9 @@ static void tenderloin_power_init(struct power_module *module)
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/hispeed_freq",
                 "702000");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/target_loads",
-                "70 918000:80 1188000:99");
+                "50 918000:70 1188000:90");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load",
-                "99");
+                "90");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay",
                 "80000");
 }
