@@ -1,19 +1,16 @@
 import init.tenderloin.usb.rc
 
 on early-init
-   start serial
+    start serial
 
 on init
-    mkdir /boot
-    mkdir /system
-    mkdir /data 0771 system system
-    mkdir /cache 0770 system cache
-
     # Enable LVM
 
     # We need to set LVM_SYSTEM_DIR for lvm to work and it does not work
     # with embedded export command until too late, so we exploit
     # the fact that there is /bin/sh on the 13th partition that we can use.
+
+    mkdir /boot
 
     mount ext3 /dev/block/mmcblk0p13 /boot wait noatime barrier=1
 
@@ -26,35 +23,49 @@ on init
     symlink /dev/block/mmcblk0p14 /dev/mmcblk0p14
     exec /boot/bin/sh -c "LVM_SYSTEM_DIR=/boot/etc/lvm /boot/usr/sbin/lvm.static vgchange -ay"
 
-    # regular mounts
-    mount ext4 /dev/store/cm-system /system wait ro barrier=1
-    mount ext4 /dev/store/cm-data /data wait noatime nosuid nodev barrier=1 noauto_da_alloc
-    mount ext4 /dev/store/cm-cache /cache wait noatime nosuid nodev barrier=1
-
     # remove all the lvm stuff as well as the moboot nextboot instruction
     exec /system/xbin/rm -rf /dev/mmcblk0p14 /lib /boot/moboot.next /var
 
     # remount /boot read-only
     mount ext3 /dev/block/mmcblk0p13 /boot remount ro wait noatime barrier=1
 
-    mkdir /storage 0050 system sdcard_r	
 
-    mkdir /mnt/shell/sdcard 0700 shell shell
-    mkdir /storage/sdcard 0555 root root
+    # set up additional storage
+    mkdir /mnt/shell/emulated 0700 shell shell
+    mkdir /storage/emulated 0555 root root
+    mkdir /storage/sdcard1 0000 system system
 
-    export EXTERNAL_STORAGE /storage/sdcard
+    export EXTERNAL_STORAGE /storage/emulated/legacy
+    export EMULATED_STORAGE_SOURCE /mnt/shell/emulated
+    export EMULATED_STORAGE_TARGET /storage/emulated
+    export SECONDARY_STORAGE /storage/sdcard1
 
     # Support legacy paths
-    symlink /storage/sdcard /sdcard
-    symlink /storage/sdcard /mnt/sdcard
-    symlink /storage/sdcard /storage/sdcard0
+    symlink /storage/emulated/legacy /sdcard
+    symlink /storage/emulated/legacy /mnt/sdcard
+    symlink /storage/emulated/legacy /storage/sdcard0
+    symlink /mnt/shell/emulated/0 /storage/emulated/legacy
+    symlink /storage/sdcard1 /external_sd
+    symlink /storage/sdcard1 /mnt/external_sd
 
     # create directory for mounting usb drives
     mkdir /storage/usbdisk 0666 system system
     symlink /storage/usbdisk /mnt/usbdisk
     symlink /mnt/usbdisk /usbdisk
 
-on post-fs
+on fs
+    # mount partitions
+    mount_all /fstab.tenderloin
+
+    setprop ro.crypto.fuse_sdcard true
+
+    # sdcard service is sometimes too slow and can't create nodes properly
+    start sdcard
+
+on post-fs-data
+    mkdir /data/media 0770 media_rw media_rw
+    chown media_rw media_rw /data/media
+
     # camera calibration
     mkdir /data/misc/camera 0770 media system
     mkdir /data/misc/camera/R5_MVEN003_LD2_ND0_IR0_SH0_FL1_SVEN003_DCCID1044 0770 media media
@@ -66,7 +77,8 @@ on post-fs
 
     setprop vold.post_fs_data_done 1
 
-on init
+on boot
+    mount debugfs /sys/kernel/debug /sys/kernel/debug
 
     chmod 0666 /proc/net/xt_qtaguid/ctrl
     chmod 0660 /dev/ctp_uart
@@ -93,9 +105,6 @@ on init
 
     # increase per-process file limit to prevent warning
     setrlimit 7 10000 10000
-
-on boot
-    mount debugfs /sys/kernel/debug /sys/kernel/debug
 
     mkdir /data/misc/wifi 0770 system wifi
     mkdir /data/misc/wifi/sockets 0770 system wifi
@@ -152,6 +161,10 @@ on boot
 	chmod 0660 /dev/i2c-2
 	chown media media /dev/i2c-2
 
+    # virtual sdcard daemon running as media_rw (1023)
+service sdcard /system/bin/sdcard /data/media /mnt/shell/emulated 1023 1023
+    class late_start
+
 service wpa_supplicant /system/bin/wpa_supplicant \
 	-iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
 	-I/system/etc/wifi/wpa_supplicant_overlay.conf
@@ -189,11 +202,6 @@ service dcvs1 /system/bin/dcvs --cpu=1 --slacktime=64
     user root
     disabled
 
-#service mpdecision /system/bin/mpdecision --no_sleep --avg_comp
-#    class core
-#    user root
-#    disabled
-
 service thermald /system/bin/thermald
     class core
     user root
@@ -206,6 +214,3 @@ service serial /sbin/serial
 
 on property:init.svc.bootanim=stopped
     start thermald
-#    start mpdecision
-
-

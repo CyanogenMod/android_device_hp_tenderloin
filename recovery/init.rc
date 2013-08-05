@@ -11,6 +11,8 @@ on init
 
     mkdir /boot
     mkdir /sdcard
+    mkdir /internal_sd
+    mkdir /external_sd
     mkdir /sd-ext
     mkdir /datadata
     mkdir /emmc
@@ -18,6 +20,9 @@ on init
     mkdir /data
     mkdir /cache
     mount /tmp /tmp tmpfs
+
+    chown root shell /tmp
+    chmod 0775 /tmp
 
     # Enable LVM
 
@@ -65,8 +70,7 @@ service adbd /sbin/adbd recovery
 
 # Always start adbd on userdebug and eng builds
 on property:ro.debuggable=1
-    write /sys/class/android_usb/android0/enable 1
-    start adbd
+    setprop service.adb.root 1
 
 # Restart adbd so it can run as root
 on property:service.adb.root=1
