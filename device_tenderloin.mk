@@ -41,10 +41,6 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     device/hp/tenderloin/moboot_control:system/bin/moboot_control
 
-# media minor check boot script
-PRODUCT_COPY_FILES += \
-    device/hp/tenderloin/prebuilt/etc/init.d/10check_media_minor:system/etc/init.d/10check_media_minor
-
 DEVICE_PACKAGE_OVERLAYS += device/hp/tenderloin/overlay
 
 PRODUCT_COPY_FILES += \
@@ -181,7 +177,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_COPY_FILES += \
     device/hp/tenderloin/configs/media_profiles.xml:system/etc/media_profiles.xml \
     device/hp/tenderloin/configs/media_codecs.xml:system/etc/media_codecs.xml \
-    device/hp/tenderloin/vold.fstab:system/etc/vold.fstab \
     device/hp/tenderloin/makemulti.sh:makemulti.sh \
     device/hp/tenderloin/prebuilt/boot/moboot.splash.CyanogenMod.tga:moboot.splash.CyanogenMod.tga
 

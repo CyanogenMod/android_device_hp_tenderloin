@@ -129,6 +129,8 @@ BOARD_CUSTOM_RECOVERY_KEYMAPPING := ../../device/hp/tenderloin/recovery/recovery
 BOARD_UMS_LUNFILE := "/sys/devices/virtual/android_usb/android0/f_mass_storage/lun/file"
 TARGET_RECOVERY_INITRC := device/hp/tenderloin/recovery/init.rc
 BOARD_HAS_NO_SELECT_BUTTON := false
+RECOVERY_FSTAB_VERSION=2
+TARGET_RECOVERY_FSTAB = device/hp/tenderloin/fstab.tenderloin
 
 # tenderloin - these partition sizes are temporary to complete build
 TARGET_USERIMAGES_USE_EXT4 := true

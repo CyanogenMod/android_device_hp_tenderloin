@@ -1,5 +1,0 @@
-# sd partition (webOS media)
-dev_mount sdcard1 /storage/sdcard1 auto SDCARD=/dev/block/dm-6
-
-# usb storage mount
-dev_mount usbdisk /storage/usbdisk auto /devices/platform/msm_hsusb_host.0
