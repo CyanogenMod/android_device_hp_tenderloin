@@ -6727,6 +6727,7 @@ extern "C" void HAL_getCameraInfo(int cameraId, struct CameraInfo* cameraInfo)
                 cameraInfo->orientation = ((APP_ORIENTATION - HAL_cameraInfo[i].sensor_mount_angle) + 360)%360;
 
             ALOGI("%s: orientation = %d", __FUNCTION__, cameraInfo->orientation);
+			/*
             cameraInfo->mode = 0;
             if(HAL_cameraInfo[i].modes_supported & CAMERA_MODE_2D)
                 cameraInfo->mode |= CAMERA_SUPPORT_MODE_2D;
@@ -6734,6 +6735,7 @@ extern "C" void HAL_getCameraInfo(int cameraId, struct CameraInfo* cameraInfo)
                 cameraInfo->mode |= CAMERA_SUPPORT_MODE_3D;
 
             ALOGI("%s: modes supported = %d", __FUNCTION__, cameraInfo->mode);
+			*/
             return;
         }
     }

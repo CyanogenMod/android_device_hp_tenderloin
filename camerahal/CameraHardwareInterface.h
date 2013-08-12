@@ -27,8 +27,6 @@
 # define ALOGD LOGD
 # define ALOGV LOGV
 # define ALOGW LOGW
-#else
-# include <gui/ISurface.h>
 #endif
 #include <camera/Camera.h>
 #include <camera/CameraParameters.h>
