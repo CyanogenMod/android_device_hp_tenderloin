@@ -88,7 +88,10 @@ PRODUCT_PACKAGES += \
 # Audio
 PRODUCT_PACKAGES += \
     audio.a2dp.default \
-    audio.primary.tenderloin
+    audio.primary.tenderloin \
+    tinymix \
+    tinyplay \
+    tinycap
 
 # audio mixer paths
 PRODUCT_COPY_FILES += \
