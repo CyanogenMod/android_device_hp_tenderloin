@@ -36,6 +36,7 @@ PRODUCT_COPY_FILES += \
     device/hp/tenderloin/initlogo.rle:root/initlogo.rle \
     device/hp/tenderloin/recovery/initlogo.rle:recovery/root/initlogo.rle \
     device/hp/tenderloin/prebuilt/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
+    device/hp/tenderloin/prebuilt/wifi/wpa_supplicant_overlay.conf:system/etc/wifi/wpa_supplicant_overlay.conf \
     device/hp/tenderloin/HPTouchpad.idc:system/usr/idc/HPTouchpad.idc
 
 # Dualboot Magic
