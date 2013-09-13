@@ -120,8 +120,7 @@ PRODUCT_PACKAGES += \
     dosfsck \
     serial \
     com.android.future.usb.accessory \
-    rebootcmd \
-    TenderloinParts
+    rebootcmd
 
 # Keylayouts
 PRODUCT_COPY_FILES += \
