@@ -1272,11 +1272,8 @@ void process_socket_buffer(char buffer[], int buffer_len, int *uart_fd,
 		buf = (int)buffer[i];
 
 		if (buf == 67 /* 'C' */ && *uart_fd >= 0) {
-			return_val = close(*uart_fd);
+			close(uart_fd);
 			*uart_fd = -1;
-#if DEBUG_SOCKET
-			ALOGD("uart closed: %i\n", return_val);
-#endif
 			touchscreen_power(0);
 		}
 		if (buf == 79 /* 'O' */ && *uart_fd < 0) {
