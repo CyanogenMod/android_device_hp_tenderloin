@@ -31,8 +31,8 @@
 #define SCALINGMAXFREQ_PATH "/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"
 #define BOOSTPULSE_PATH "/sys/devices/system/cpu/cpufreq/interactive/boostpulse"
 
-#define TIMER_RATE_SCREEN_ON "20000"
-#define TIMER_RATE_SCREEN_OFF "200000"
+#define TIMER_RATE_SCREEN_ON "30000"
+#define TIMER_RATE_SCREEN_OFF "500000"
 
 #define MAX_BUF_SZ  10
 
@@ -116,15 +116,15 @@ static void tenderloin_power_init(struct power_module *module)
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/timer_rate",
                 TIMER_RATE_SCREEN_ON);
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/min_sample_time",
-                "60000");
+                "90000");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/hispeed_freq",
-                "918000");
+                "1026000");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/target_loads",
-                "50 1026000:70 1188000:90");
+                "70 1188000:90");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load",
                 "90");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay",
-                "80000");
+                "30000");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/boostpulse_duration",
                 "100000");
 }
