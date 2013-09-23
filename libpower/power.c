@@ -198,16 +198,22 @@ static void tenderloin_power_hint(struct power_module *module, power_hint_t hint
     switch (hint) {
     case POWER_HINT_INTERACTION:
     case POWER_HINT_CPU_BOOST:
-        if (data != NULL)
-            duration = (int) data;
-
         if (boostpulse_open(tenderloin) >= 0) {
+            if (data != NULL)
+                duration = (int) data;
+
             snprintf(buf, sizeof(buf), "%d", duration);
             len = write(tenderloin->boostpulse_fd, buf, strlen(buf));
 
             if (len < 0) {
                 strerror_r(errno, buf, sizeof(buf));
-                ALOGE("Error writing to %s: %s\n", BOOSTPULSE_PATH, buf);
+	            ALOGE("Error writing to boostpulse: %s\n", buf);
+
+                pthread_mutex_lock(&tenderloin->lock);
+                close(tenderloin->boostpulse_fd);
+                tenderloin->boostpulse_fd = -1;
+                tenderloin->boostpulse_warned = 0;
+                pthread_mutex_unlock(&tenderloin->lock);
             }
         }
         break;
