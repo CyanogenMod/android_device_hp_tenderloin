@@ -161,4 +161,11 @@
          config to 7. -->
     <integer name="config_deviceHardwareKeys">1</integer>
 
+    <!-- Shutdown if the battery temperature exceeds (this value * 0.1) Celsius. -->
+    <integer name="config_shutdownBatteryTemperature">600</integer>
+
+    <!-- The duration (in milliseconds) that the radio will scan for a signal
+         when there's no network connection. If the scan doesn't timeout, use zero -->
+    <integer name="config_radioScanningTimeout">9000</integer>
+
 </resources>
