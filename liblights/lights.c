@@ -36,7 +36,6 @@ static pthread_once_t g_init = PTHREAD_ONCE_INIT;
 static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static int g_batled_on = 0;
-static int g_enable_batled = 1;
 
 char const *const LCD_FILE = "/sys/class/leds/lcd-backlight/brightness";
 char const *const LED_FILE = "/dev/lm8502";
@@ -59,24 +58,6 @@ static const uint16_t notif_led_program_pulse[] = {
 static const uint16_t notif_led_program_reset[] = {
     0x9c0f, 0x9c8f, 0x03ff, 0xc000
 };
-
-void
-load_settings()
-{
-    FILE* fp = fopen("/data/misc/batled", "r");
-    if (!fp) {
-        ALOGV("load_settings failed to open /data/misc/batled - leaving batled enabled\n");
-        g_enable_batled = -1;
-    } else {
-        g_enable_batled = (int)(fgetc(fp));
-        if (g_enable_batled == '0')
-            g_enable_batled = 0;
-        else
-            g_enable_batled = 1;
-
-        fclose(fp);
-    }
-}
 
 int
 is_discharging()
@@ -295,13 +276,10 @@ static int open_lights(const struct hw_module_t *module, char const *name,
 		set_light = set_light_backlight;
 	else if (0 == strcmp(LIGHT_ID_NOTIFICATIONS, name))
 		set_light = set_light_notifications;
-	else if (0 == strcmp(LIGHT_ID_BATTERY, name) &&
-			(g_enable_batled == -1 || g_enable_batled > 0))
+	else if (0 == strcmp(LIGHT_ID_BATTERY, name))
 		set_light = set_light_battery;
 	else
 		return -EINVAL;
-
-	load_settings();
 
 	pthread_mutex_init(&g_lock, NULL);
 
