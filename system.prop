@@ -11,5 +11,6 @@ debug.fb.rgb565 = 0
 debug.sf.hw=1
 #debug.composition.type=cpu
 debug.enabletr=false
+debug.hwc.dynThreshold=1.9
 
 com.qc.hardware=true
