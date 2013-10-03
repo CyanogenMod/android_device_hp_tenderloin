@@ -28,7 +28,6 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
-#define SCALINGMAXFREQ_PATH "/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq"
 #define BOOSTPULSE_PATH "/sys/devices/system/cpu/cpufreq/interactive/boostpulse"
 
 #define TIMER_RATE_SCREEN_ON "30000"
@@ -38,10 +37,6 @@
 
 #define TS_SOCKET_LOCATION "/dev/socket/tsdriver"
 #define TS_SOCKET_DEBUG 1
-
-/* initialize freqs*/
-static char screen_off_max_freq[MAX_BUF_SZ] = "702000";
-static char scaling_max_freq[MAX_BUF_SZ] = "1188000";
 
 static int ts_state;
 
@@ -153,25 +148,6 @@ static int boostpulse_open(struct tenderloin_power_module *tenderloin)
 
 static void tenderloin_power_set_interactive(struct power_module *module, int on)
 {
-    int len;
-
-    char buf[MAX_BUF_SZ];
-
-    /*
-     * Lower maximum frequency when screen is off.  CPU 0 and 1 share a
-     * cpufreq policy.
-     */
-    if (!on) {
-        /* read the current scaling max freq and save it before updating */
-        len = sysfs_read(SCALINGMAXFREQ_PATH, buf, sizeof(buf));
-
-        if (len != -1)
-            memcpy(scaling_max_freq, buf, sizeof(buf));
-
-    }
-
-    sysfs_write(SCALINGMAXFREQ_PATH,
-                on ? scaling_max_freq : screen_off_max_freq);
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/timer_rate",
                 on ? TIMER_RATE_SCREEN_ON : TIMER_RATE_SCREEN_OFF);
 
