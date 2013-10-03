@@ -205,6 +205,11 @@ service dcvs1 /system/bin/dcvs --cpu=1 --slacktime=64
     user root
     disabled
 
+service mpdecision /system/bin/mpdecision --no_sleep --avg_comp
+    class core
+    user root
+    disabled
+
 service thermald /system/bin/thermald
     class core
     user root
@@ -217,3 +222,4 @@ service serial /sbin/serial
 
 on property:init.svc.bootanim=stopped
     start thermald
+    start mpdecision
