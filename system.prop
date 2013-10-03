@@ -9,7 +9,7 @@ wifi.interface=wlan0
 
 debug.fb.rgb565 = 0
 debug.sf.hw=1
-debug.composition.type=cpu
+#debug.composition.type=cpu
 debug.enabletr=false
 
 com.qc.hardware=true
