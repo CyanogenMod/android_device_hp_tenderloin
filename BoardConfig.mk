@@ -61,6 +61,7 @@ BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/hp/tenderloin/bluetooth
 BOARD_EGL_CFG := device/hp/tenderloin/egl.cfg
 BOARD_EGL_NEEDS_LEGACY_FB := true
 TARGET_QCOM_DISPLAY_VARIANT := legacy
+TARGET_QCOM_MEDIA_VARIANT := legacy
 USE_OPENGL_RENDERER := true
 
 # QCOM HAL
