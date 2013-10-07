@@ -142,6 +142,8 @@ BOARD_FLASH_BLOCK_SIZE := 131072
 
 TARGET_RELEASETOOLS_EXTENSIONS := device/hp/common
 
+BOARD_HARDWARE_CLASS := device/hp/tenderloin/cmhw/
+
 TARGET_USE_CUSTOM_LUN_FILE_PATH := "/sys/devices/virtual/android_usb/android0/f_mass_storage/lun/file"
 BOARD_HAS_SDCARD_INTERNAL := false
 BOARD_USES_MMCUTILS := true

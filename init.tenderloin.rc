@@ -93,9 +93,13 @@ on boot
     chmod 0664 /dev/lm8502
     chmod 0664 /sys/class/leds/core_navi_left/brightness
     chmod 0664 /sys/class/leds/core_navi_right/brightness
+    chmod 0664 /sys/devices/i2c-3/3-0033/vibrator/vib0/vib_enable
+    chmod 0664 /sys/devices/i2c-3/3-0033/vibrator/vib0/vib_duty_cycle
     chown system system /dev/lm8502
     chown system system /sys/class/leds/core_navi_left/brightness
     chown system system /sys/class/leds/core_navi_right/brightness
+    chown system system /sys/devices/i2c-3/3-0033/vibrator/vib0/vib_enable
+    chown system system /sys/devices/i2c-3/3-0033/vibrator/vib0/vib_duty_cycle
 
     # For TS control
     chown system system /sys/devices/platform/cy8ctma395/vdd
