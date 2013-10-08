@@ -31,10 +31,10 @@ public class VibratorHW {
         return 100;
     }
     public static int getMinIntensity()  {
-        return 0;
+        return 25;
     }
     public static int getWarningThreshold()  {
-        return 25;
+        return -1;
     }
     public static int getCurIntensity()  {
         return Integer.parseInt(FileUtils.readOneLine(LEVEL_PATH));
