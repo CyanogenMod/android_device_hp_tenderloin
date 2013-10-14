@@ -8,6 +8,3 @@
 /dev/store/cm-cache                   /cache             ext4     noatime,nosuid,nodev,barrier=1,noauto_da_alloc        wait
 /devices/virtual/block/dm-6           /storage/sdcard1   vfat     defaults                                              voldmanaged=sdcard:auto,nonremovable
 /devices/platform/msm_hsusb_host.0    /storage/usbdisk   auto     defaults                                              voldmanaged=usbdisk:auto
-
-/dev/block/mmcblk0p13                 /boot              ext3     ro,noatime,barrier=1                                  recoveryonly
-/dev/store/media                      /external_sd       vfat     defaults                                              recoveryonly          
