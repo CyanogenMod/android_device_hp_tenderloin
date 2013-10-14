@@ -37,11 +37,11 @@ PRODUCT_COPY_FILES += \
     device/hp/tenderloin/recovery/initlogo.rle:recovery/root/initlogo.rle \
     device/hp/tenderloin/prebuilt/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
     device/hp/tenderloin/prebuilt/wifi/wpa_supplicant_overlay.conf:system/etc/wifi/wpa_supplicant_overlay.conf \
-    device/hp/tenderloin/HPTouchpad.idc:system/usr/idc/HPTouchpad.idc
+    device/hp/tenderloin/configs/HPTouchpad.idc:system/usr/idc/HPTouchpad.idc
 
 # Dualboot Magic
 PRODUCT_COPY_FILES += \
-    device/hp/tenderloin/moboot_control.sh:system/bin/moboot_control.sh
+    device/hp/tenderloin/prebuilt/moboot_control.sh:system/bin/moboot_control.sh
 
 DEVICE_PACKAGE_OVERLAYS += device/hp/tenderloin/overlay
 
@@ -179,7 +179,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_COPY_FILES += \
     device/hp/tenderloin/configs/media_profiles.xml:system/etc/media_profiles.xml \
     device/hp/tenderloin/configs/media_codecs.xml:system/etc/media_codecs.xml \
-    device/hp/tenderloin/makemulti.sh:makemulti.sh \
+    device/hp/tenderloin/releasetools/makemulti.sh:makemulti.sh \
     device/hp/tenderloin/prebuilt/boot/moboot.splash.CyanogenMod.tga:moboot.splash.CyanogenMod.tga
 
 $(call inherit-product, frameworks/native/build/tablet-dalvik-heap.mk)

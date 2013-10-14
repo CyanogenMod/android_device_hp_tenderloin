@@ -58,7 +58,7 @@ BOARD_HAVE_BLUETOOTH_CSR := true
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/hp/tenderloin/bluetooth
 
 # Define egl.cfg location
-BOARD_EGL_CFG := device/hp/tenderloin/egl.cfg
+BOARD_EGL_CFG := device/hp/tenderloin/configs/egl.cfg
 BOARD_EGL_NEEDS_LEGACY_FB := true
 TARGET_QCOM_DISPLAY_VARIANT := legacy
 TARGET_QCOM_MEDIA_VARIANT := legacy
@@ -152,8 +152,8 @@ BOARD_HAS_SDCARD_INTERNAL := false
 BOARD_USES_MMCUTILS := true
 BOARD_HAS_NO_MISC_PARTITION := true
 BOARD_HAS_NO_SELECT_BUTTON := true
-BOARD_CUSTOM_GRAPHICS:= ../../../device/hp/tenderloin/graphics.c
-BOARD_CUSTOM_BOOTIMG_MK := device/hp/tenderloin/uboot-bootimg.mk
+BOARD_CUSTOM_GRAPHICS:= ../../../device/hp/tenderloin/recovery/graphics.c
+BOARD_CUSTOM_BOOTIMG_MK := device/hp/tenderloin/releasetools/uboot-bootimg.mk
 
 # Multiboot stuff
 TARGET_RECOVERY_PRE_COMMAND := "/system/bin/rebootcmd"
