@@ -7,4 +7,4 @@
 /dev/store/cm-data                    /data              ext4     noatime,nosuid,nodev,barrier=1,noauto_da_alloc        wait
 /dev/store/cm-cache                   /cache             ext4     noatime,nosuid,nodev,barrier=1,noauto_da_alloc        wait
 /devices/virtual/block/dm-6           /storage/sdcard1   vfat     defaults                                              voldmanaged=sdcard:auto,nonremovable
-/devices/platform/msm_hsusb_host.0    /storage/usbdisk   auto     defaults                                              voldmanaged=usbdisk:auto
+/devices/platform/msm_hsusb_host.0    /storage/usbdisk   auto     defaults                                              voldmanaged=sda:auto
