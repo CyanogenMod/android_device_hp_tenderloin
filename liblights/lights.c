@@ -29,12 +29,11 @@
 #include <sys/types.h>
 #include <hardware/lights.h>
 
-#include <sys/types.h>
-#include <sys/ioctl.h>
-
 static pthread_once_t g_init = PTHREAD_ONCE_INIT;
 static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
 
+static int g_btnled_on = 0;
+static int g_notled_on = 0;
 static int g_batled_on = 0;
 
 char const *const LCD_FILE = "/sys/class/leds/lcd-backlight/brightness";
@@ -50,7 +49,27 @@ char const *const RIGHTNAVI_FILE = "/sys/class/leds/core_navi_right/brightness";
 #define LM8502_WAIT_FOR_ENGINE_STOPPED  8
 
 /* LED engine programs */
-static const uint16_t notif_led_program_pulse[] = {
+static const uint16_t notif_led_program_pulse_quick[] = {
+    0x9c0f, 0x9c8f, 0xe004, 0x4000, 0x047f, 0x4c00, 0x047f, 0x4c00,
+    0x047f, 0x4c00, 0x057f, 0x4c00, 0xa30a, 0x0000, 0x0000, 0x0007,
+    0x9c1f, 0x9c9f, 0xe080, 0x03ff, 0xc800
+};
+static const uint16_t notif_led_program_pulse_quickshort[] = {
+    0x9c0f, 0x9c8f, 0xe004, 0x4000, 0x047f, 0x4c00, 0x057f, 0x4c00,
+    0x057f, 0x4c00, 0x057f, 0x4c00, 0xa30a, 0x0000, 0x0000, 0x0007,
+    0x9c1f, 0x9c9f, 0xe080, 0x03ff, 0xc800
+};
+static const uint16_t notif_led_program_pulse_long[] = {
+    0x9c0f, 0x9c8f, 0xe004, 0x4000, 0x047f, 0x4c00, 0x047f, 0x4c00,
+    0x057f, 0x4c00, 0x057f, 0x7c00, 0xa30a, 0x0000, 0x0000, 0x0007,
+    0x9c1f, 0x9c9f, 0xe080, 0x03ff, 0xc800
+};
+static const uint16_t notif_led_program_pulse_longshort[] = {
+    0x9c0f, 0x9c8f, 0xe004, 0x4000, 0x047f, 0x4c00, 0x057f, 0x4c00,
+    0x057f, 0x4c00, 0x057f, 0x6c00, 0xa30a, 0x0000, 0x0000, 0x0007,
+    0x9c1f, 0x9c9f, 0xe080, 0x03ff, 0xc800
+};
+static const uint16_t notif_led_program_pulse_double[] = {
     0x9c0f, 0x9c8f, 0xe004, 0x4000, 0x047f, 0x4c00, 0x057f, 0x4c00,
     0x047f, 0x4c00, 0x057f, 0x7c00, 0xa30a, 0x0000, 0x0000, 0x0007,
     0x9c1f, 0x9c9f, 0xe080, 0x03ff, 0xc800
@@ -112,6 +131,12 @@ static int rgb_to_brightness(struct light_state_t const *state)
 		+ (150*((color>>8) & 0x00ff)) + (29*(color & 0x00ff))) >> 8;
 }
 
+static int
+is_lit(struct light_state_t const* state)
+{
+    return state->color & 0x00ffffff;
+}
+
 static void init_notification_led(void)
 {
 	uint16_t microcode[96];
@@ -140,22 +165,29 @@ static void init_notification_led(void)
 	close(fd);
 }
 
-static int set_light_notifications(struct light_device_t* dev,
-			struct light_state_t const* state)
+static int
+program_notification_led(int state)
 {
-	int on = state->color & 0x00ffffff;
 	uint16_t microcode[96];
 	int fd, ret;
 
-	ALOGI("%sabling notification light", on ? "En" : "Dis");
+	ALOGV("%sabling notification light", state ? "En" : "Dis");
+
 	memset(microcode, 0, sizeof(microcode));
-	if (on) {
-		memcpy(microcode, notif_led_program_pulse, sizeof(notif_led_program_pulse));
+
+	if (state == 1) {
+		memcpy(microcode, notif_led_program_pulse_quick, sizeof(notif_led_program_pulse_quick));
+	} else if (state == 2) {
+		memcpy(microcode, notif_led_program_pulse_quickshort, sizeof(notif_led_program_pulse_quickshort));
+	} else if (state == 3) {
+		memcpy(microcode, notif_led_program_pulse_long, sizeof(notif_led_program_pulse_long));
+	} else if (state == 4) {
+		memcpy(microcode, notif_led_program_pulse_longshort, sizeof(notif_led_program_pulse_longshort));
+	} else if (state == 5) {
+		memcpy(microcode, notif_led_program_pulse_double, sizeof(notif_led_program_pulse_double));
 	} else {
 		memcpy(microcode, notif_led_program_reset, sizeof(notif_led_program_reset));
 	}
-
-	pthread_mutex_lock(&g_lock);
 
 	fd = open(LED_FILE, O_RDWR);
 	if (fd < 0) {
@@ -169,7 +201,7 @@ static int set_light_notifications(struct light_device_t* dev,
 			ALOGE("Copying notification microcode failed - %d", errno);
 			ret = -errno;
 		}
-		if (ret == 0 && on) {
+		if (ret == 0 && state) {
 			if (ioctl(fd, LM8502_START_ENGINE, 2) < 0) {
 				ALOGE("Starting notification LED engine 2 failed - %d", errno);
 				ret = -errno;
@@ -181,8 +213,8 @@ static int set_light_notifications(struct light_device_t* dev,
 				ret = -errno;
 			}
 		}
-		if (ret == 0 && !on) {
-		    ALOGI("stop engine 1");
+		if (ret == 0 && !state) {
+		    ALOGV("stop engine 1");
 			if (ioctl(fd, LM8502_STOP_ENGINE, 1) < 0) {
 				ALOGE("Stopping notification LED engine 1 failed - %d", errno);
 				ret = -errno;
@@ -192,55 +224,102 @@ static int set_light_notifications(struct light_device_t* dev,
 				ret = -errno;
 			}
 		}
-		if (ret == 0 && !on) {
-			ALOGD("Waiting for notification LED engine to stop after reset");
+		if (ret == 0 && !state) {
+			ALOGV("Waiting for notification LED engine to stop after reset");
 			int state;
 			/* make sure the reset is complete */
 			if (ioctl(fd, LM8502_WAIT_FOR_ENGINE_STOPPED, &state) < 0) {
 				ALOGW("Waiting for notification LED reset failed - %d", errno);
 				ret = -errno;
 			}
-			ALOGD("Notification LED reset finished with stop state %d", state);
+			ALOGV("Notification LED reset finished with stop state %d", state);
 		}
 
 		close(fd);
 	}
 
-	/* dirty hack: rewrite the charging values if battery led was on 
-	 * and notification is cleared */
-	if (g_batled_on && !on) {
+	return ret;
+
+}
+
+static int
+set_light_buttons(struct light_device_t* dev,
+        struct light_state_t const* state)
+{
+	ALOGV("set_light_buttons called with state = %d", g_btnled_on);
+
+    pthread_mutex_lock(&g_lock);
+    g_btnled_on = is_lit(state);
+    if (g_btnled_on) {
 		write_int(LEFTNAVI_FILE, 100);
 		write_int(RIGHTNAVI_FILE, 100);
+	} else if (!g_btnled_on && !g_notled_on && !g_batled_on) {
+		write_int(LEFTNAVI_FILE, 0);
+		write_int(RIGHTNAVI_FILE, 0);
 	}
+    pthread_mutex_unlock(&g_lock);
 
-	pthread_mutex_unlock(&g_lock);
+    return 0;
+}
 
-	return ret;
+static int set_light_notifications(struct light_device_t* dev,
+			struct light_state_t const* state)
+{
+	ALOGV("set_light_notifications called with state = %d", g_notled_on);
+	ALOGV("flashOFF %i, flashON: %i", state->flashOffMS, state->flashOnMS);
+
+    pthread_mutex_lock(&g_lock);
+    g_notled_on = is_lit(state);
+    if (g_notled_on) {
+		if (state->flashOnMS == 1) {
+			write_int(LEFTNAVI_FILE, 100);
+			write_int(RIGHTNAVI_FILE, 100);
+		} else if (state->flashOffMS < 2500) {
+			if (state->flashOnMS >= 1000) {
+				program_notification_led(1);
+			} else {
+				program_notification_led(2);
+			}
+		} else if (state->flashOffMS >= 2500) {
+			if (state->flashOnMS >= 1000) {
+				program_notification_led(3);
+			} else {
+				program_notification_led(4);
+			}
+		}
+	} else if (!g_notled_on) {
+		program_notification_led(0);
+		if (g_btnled_on || g_batled_on) {
+			write_int(LEFTNAVI_FILE, 100);
+			write_int(RIGHTNAVI_FILE, 100);
+		}
+	}
+    pthread_mutex_unlock(&g_lock);
+
+    return 0;
 }
 
 static int set_light_battery (struct light_device_t* dev,
 			struct light_state_t const* state)
 {
-	int err = 0;
 	unsigned int colorRGB = state->color & 0xFFFFFF;
 	int red = (colorRGB >> 16)&0xFF;
 
+    ALOGV("set_light_battery called with state = %d", g_batled_on);
+
+    pthread_mutex_lock(&g_lock);
 	g_batled_on = red&&!is_discharging();
 
-	ALOGD("Calling battery light with state %d",
-			g_batled_on);
-
-	pthread_mutex_lock(&g_lock);
-	if (g_batled_on) {
+    if (g_batled_on && !g_notled_on) {
 		write_int(LEFTNAVI_FILE, 100);
 		write_int(RIGHTNAVI_FILE, 100);
-	} else {
+	} else if (!g_batled_on && !g_notled_on && !g_btnled_on) {
 		write_int(LEFTNAVI_FILE, 0);
 		write_int(RIGHTNAVI_FILE, 0);
 	}
-	pthread_mutex_unlock(&g_lock);
+    pthread_mutex_unlock(&g_lock);
 
-	return err;
+    return 0;
 }
 
 static int set_light_backlight(struct light_device_t *dev,
@@ -274,6 +353,8 @@ static int open_lights(const struct hw_module_t *module, char const *name,
 
 	if (0 == strcmp(LIGHT_ID_BACKLIGHT, name))
 		set_light = set_light_backlight;
+	else if (0 == strcmp(LIGHT_ID_BUTTONS, name))
+		set_light = set_light_buttons;
 	else if (0 == strcmp(LIGHT_ID_NOTIFICATIONS, name))
 		set_light = set_light_notifications;
 	else if (0 == strcmp(LIGHT_ID_BATTERY, name))
