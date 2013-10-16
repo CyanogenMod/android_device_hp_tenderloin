@@ -201,16 +201,6 @@ service tsdriver /system/bin/ts_srv
     user root
     critical
 
-service dcvs0 /system/bin/dcvs --cpu=0 --slacktime=64
-    class core
-    user root
-    disabled
-
-service dcvs1 /system/bin/dcvs --cpu=1 --slacktime=64
-    class core
-    user root
-    disabled
-
 service mpdecision /system/bin/mpdecision --no_sleep --avg_comp
     class core
     user root
