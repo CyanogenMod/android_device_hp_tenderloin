@@ -200,10 +200,10 @@ service tsdriver /system/bin/ts_srv
     user root
     critical
 
-#service mpdecision /system/bin/mpdecision --no_sleep --avg_comp
-#    class core
-#    user root
-#    disabled
+service mpdecision /system/bin/mpdecision --no_sleep --avg_comp
+    class core
+    user root
+    disabled
 
 #service thermald /system/bin/thermald
 #    class core
