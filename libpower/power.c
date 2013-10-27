@@ -47,6 +47,34 @@ struct tenderloin_power_module {
     int boostpulse_warned;
 };
 
+static int sysfs_read(char *path, char *s, int num_bytes)
+{
+    char buf[80];
+    int count;
+    int ret = 0;
+    int fd = open(path, O_RDONLY);
+
+    if (fd < 0) {
+        strerror_r(errno, buf, sizeof(buf));
+        ALOGE("Error opening %s: %s\n", path, buf);
+
+        return -1;
+    }
+
+    if ((count = read(fd, s, num_bytes - 1)) < 0) {
+        strerror_r(errno, buf, sizeof(buf));
+        ALOGE("Error writing to %s: %s\n", path, buf);
+
+        ret = -1;
+    } else {
+        s[count] = '\0';
+    }
+
+    close(fd);
+
+    return ret;
+}
+
 static void sysfs_write(char *path, char *s)
 {
     char buf[80];
@@ -66,23 +94,6 @@ static void sysfs_write(char *path, char *s)
     }
 
     close(fd);
-}
-
-int sysfs_read(const char *path, char *buf, size_t size)
-{
-    int fd, len;
-
-    fd = open(path, O_RDONLY);
-    if (fd < 0)
-        return -1;
-
-    do {
-        len = read(fd, buf, size);
-    } while (len < 0 && errno == EINTR);
-
-    close(fd);
-
-    return len;
 }
 
 /* connects to the touchscreen socket */
@@ -113,15 +124,9 @@ static void tenderloin_power_init(struct power_module *module)
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/min_sample_time",
                 "90000");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/hispeed_freq",
-                "1026000");
-    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/target_loads",
-                "70 1188000:90");
-    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load",
-                "90");
+                "1134000");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay",
                 "30000");
-    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/boostpulse_duration",
-                "100000");
 }
 
 static int boostpulse_open(struct tenderloin_power_module *tenderloin)
@@ -133,12 +138,10 @@ static int boostpulse_open(struct tenderloin_power_module *tenderloin)
     if (tenderloin->boostpulse_fd < 0) {
         tenderloin->boostpulse_fd = open(BOOSTPULSE_PATH, O_WRONLY);
 
-        if (tenderloin->boostpulse_fd < 0) {
-            if (!tenderloin->boostpulse_warned) {
-                strerror_r(errno, buf, sizeof(buf));
-                ALOGE("Error opening %s: %s\n", BOOSTPULSE_PATH, buf);
-                tenderloin->boostpulse_warned = 1;
-            }
+        if (tenderloin->boostpulse_fd < 0 && !tenderloin->boostpulse_warned) {
+            strerror_r(errno, buf, sizeof(buf));
+            ALOGE("Error opening %s: %s\n", BOOSTPULSE_PATH, buf);
+            tenderloin->boostpulse_warned = 1;
         }
     }
 
