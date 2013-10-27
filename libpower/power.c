@@ -36,7 +36,7 @@
 #define MAX_BUF_SZ  10
 
 #define TS_SOCKET_LOCATION "/dev/socket/tsdriver"
-#define TS_SOCKET_DEBUG 1
+#define TS_SOCKET_DEBUG 0
 
 static int ts_state;
 

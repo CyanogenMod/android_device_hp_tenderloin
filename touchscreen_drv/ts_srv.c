@@ -60,7 +60,7 @@
 
 #define TS_SOCKET_LOCATION "/dev/socket/tsdriver"
 // Set to 1 to enable socket debug information
-#define DEBUG_SOCKET 1
+#define DEBUG_SOCKET 0
 
 #define TS_SETTINGS_FILE "/data/tssettings"
 // Set to 1 to enable settings file debug information
@@ -1166,20 +1166,14 @@ void create_ts_socket(int *socket_fd) {
 		if (bind_fd >= 0) {
 			int listen_fd;
 			listen_fd = listen(*socket_fd, 3);
-#if DEBUG_SOCKET
 			if (listen_fd < 0)
 				ALOGE("Error listening to socket\n");
-#endif
 		}
-#if DEBUG_SOCKET
 		else
 			ALOGE("Error binding socket\n");
-#endif
 	}
-#if DEBUG_SOCKET
 	else
 		ALOGE("Error creating socket\n");
-#endif
 	// change perms to 0666 (438 decimal)
 	chmod(TS_SOCKET_LOCATION, 438);
 }
@@ -1307,9 +1301,9 @@ void process_socket_buffer(char buffer[], int buffer_len, int *uart_fd,
 			current_mode[0] = read_settings_file();
 			send_ret = send(accept_fd, (char*)current_mode,
 				sizeof(*current_mode), 0);
-#if DEBUG_SOCKET
 			if (send_ret <= 0)
 				ALOGE("Unable to send data to socket\n");
+#if DEBUG_SOCKET
 			else
 				ALOGD("Sent current mode of %i to socket\n",
 					(int)current_mode[0]);
@@ -1436,7 +1430,6 @@ int main(int argc, char** argv)
 					process_socket_buffer(recv_str, recv_ret,
 						&uart_fd, accept_fd);
 				}
-#if DEBUG_SOCKET
 				else {
 					if (recv_ret < 0)
 						ALOGE("Receive error\n");
@@ -1446,7 +1439,6 @@ int main(int argc, char** argv)
 				close(accept_fd);
 			} else {
 				ALOGE("Accept failed\n");
-#endif
 			}
 		}
 	}
