@@ -124,9 +124,15 @@ static void tenderloin_power_init(struct power_module *module)
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/min_sample_time",
                 "90000");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/hispeed_freq",
-                "1134000");
+                "1026000");
+    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/target_loads",
+                "70 1188000:80 1512000:90");
+    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load",
+                "90");
     sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay",
                 "30000");
+    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/boostpulse_duration",
+                "100000");
 }
 
 static int boostpulse_open(struct tenderloin_power_module *tenderloin)
