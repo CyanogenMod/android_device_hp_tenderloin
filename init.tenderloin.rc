@@ -29,11 +29,11 @@ on init
     # remount /boot read-only
     mount ext3 /dev/block/mmcblk0p13 /boot remount ro wait noatime barrier=1
 
-
     # set up additional storage
     mkdir /mnt/shell/emulated 0700 shell shell
     mkdir /storage/emulated 0555 root root
-    mkdir /storage/sdcard1 0000 system system
+    mkdir /mnt/media_rw/sdcard1 0700 media_rw media_rw
+    mkdir /storage/sdcard1 0700 root root
 
     export EXTERNAL_STORAGE /storage/emulated/legacy
     export EMULATED_STORAGE_SOURCE /mnt/shell/emulated
@@ -49,9 +49,10 @@ on init
     symlink /storage/sdcard1 /mnt/external_sd
 
     # create directory for mounting usb drives
-    mkdir /storage/usbdisk 0666 system system
+    mkdir /mnt/media_rw/usbdisk 0700 media_rw media_rw
+    mkdir /storage/usbdisk 0700 root root
+    symlink /storage/usbdisk /usbdisk
     symlink /storage/usbdisk /mnt/usbdisk
-    symlink /mnt/usbdisk /usbdisk
 
 on fs
     # mount partitions
@@ -168,14 +169,22 @@ on boot
 	chown media media /dev/i2c-2
 
     # virtual sdcard daemon running as media_rw (1023)
-service sdcard /system/bin/sdcard /data/media /mnt/shell/emulated 1023 1023
+service sdcard /system/bin/sdcard -u 1023 -g 1023 -l /data/media /mnt/shell/emulated
     class late_start
+
+service fuse_sdcard1 /system/bin/sdcard -u 1023 -g 1023 -d /mnt/media_rw/sdcard1 /storage/sdcard1
+    class late_start
+    disabled
+ 
+service fuse_usbdisk /system/bin/sdcard -u 1023 -g 1023 -d /mnt/media_rw/usbdisk /storage/usbdisk
+    class late_start
+    disabled
 
 service wpa_supplicant /system/bin/wpa_supplicant \
 	-iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
 	-I/system/etc/wifi/wpa_supplicant_overlay.conf \
 	-O/data/misc/wifi/sockets \
-    -e/data/misc/wifi/entropy.bin -g@android:wpa_wlan0
+	-e/data/misc/wifi/entropy.bin -g@android:wpa_wlan0
 	#   we will start as root and wpa_supplicant will switch to user wifi
 	#   after setting up the capabilities required for WEXT
 	#   user wifi
