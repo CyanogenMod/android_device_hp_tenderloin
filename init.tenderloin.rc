@@ -214,11 +214,6 @@ service mpdecision /system/bin/mpdecision --no_sleep --avg_comp
     user root
     disabled
 
-#service thermald /system/bin/thermald
-#    class core
-#    user root
-#    disabled
-
 service serial /sbin/serial
     class core
     disabled
@@ -235,5 +230,4 @@ on property:sys.reboot.recovery=1
 	start reboot_recovery
 
 on property:init.svc.bootanim=stopped
-    start thermald
     start mpdecision
