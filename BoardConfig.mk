@@ -48,8 +48,10 @@ BOARD_WITH_ALSA_UTILS := false
 
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true
-BOARD_HAVE_BLUETOOTH_CSR := true
+BOARD_HAVE_BLUETOOTH_HCI := true
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/hp/tenderloin/bluetooth
+BLUETOOTH_HCIATTACH_USING_PROPERTY = true
+
 
 # Define egl.cfg location
 BOARD_EGL_CFG := device/hp/tenderloin/configs/egl.cfg
