@@ -121,6 +121,7 @@ PRODUCT_PACKAGES += \
     libmlplatform \
     sensors.tenderloin \
     lights.tenderloin \
+    memtrack.msm8660 \
     ts_srv \
     ts_srv_set \
     dosfsck \
