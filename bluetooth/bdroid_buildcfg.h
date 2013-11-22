@@ -19,4 +19,9 @@
 
 #define BTM_DEF_LOCAL_NAME   "HP TouchPad"
 
+// Networking, Capturing, Object Transfer
+// MAJOR CLASS: COMPUTER
+// MINOR CLASS: LAPTOP
+#define BTA_DM_COD {0x1A, 0x01, 0x0C}
+
 #endif
