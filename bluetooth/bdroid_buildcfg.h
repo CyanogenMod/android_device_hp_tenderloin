@@ -24,4 +24,8 @@
 // MINOR CLASS: LAPTOP
 #define BTA_DM_COD {0x1A, 0x01, 0x0C}
 
+#define BLE_INCLUDED FALSE
+#define BTA_GATT_INCLUDED FALSE
+#define SMP_INCLUDED FALSE
+
 #endif
