@@ -155,3 +155,10 @@ TARGET_RECOVERY_PRE_COMMAND := "/system/bin/rebootcmd"
 TARGET_RECOVERY_PRE_COMMAND_CLEAR_REASON := true
 
 ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0
+
+# SELinux
+BOARD_SEPOLICY_DIRS += \
+        device/hp/tenderloin/sepolicy
+
+BOARD_SEPOLICY_UNION += \
+        healthd.te
