@@ -173,9 +173,6 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
 # we have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise
 
-PRODUCT_PROPERTY_OVERRIDES += \
-    dalvik.vm.dexopt-flags=m=y,u=n
-
 PRODUCT_COPY_FILES += \
     device/hp/tenderloin/configs/media_profiles.xml:system/etc/media_profiles.xml \
     device/hp/tenderloin/configs/media_codecs.xml:system/etc/media_codecs.xml \
