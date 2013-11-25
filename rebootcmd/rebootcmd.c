@@ -10,8 +10,14 @@ int main(int argc, char**argv, char *envp[])
 {
 	if(strcmp(argv[1], "recovery") == 0){
 		//returns 1 if error
-		ALOGD("Setting property sys.reboot.recovery return = %d",
-				property_set("sys.reboot.recovery", "1"));
+		ALOGD("Rebooting into recovery");
+		system("/system/bin/moboot_control.sh recovery");
+	} else {
+		if(strcmp(argv[1], "altos") == 0){
+			//returns 1 if error
+			ALOGD("Rebooting into WebOS");
+			system("/system/bin/moboot_control.sh altos");
+		}
 	}
 
 	//Needed to allow the script to write to /boot/moboot.next
