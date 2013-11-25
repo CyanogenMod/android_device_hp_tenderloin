@@ -126,8 +126,6 @@ KERNEL_WIFI_MODULES:
 
 TARGET_KERNEL_MODULES := KERNEL_WIFI_MODULES
 
-# Define Prebuilt kernel locations
-TARGET_PREBUILT_KERNEL := device/hp/tenderloin/prebuilt/boot/kernel
 BOARD_UMS_LUNFILE := "/sys/devices/virtual/android_usb/android0/f_mass_storage/lun/file"
 TARGET_RECOVERY_INITRC := device/hp/tenderloin/recovery/init.rc
 RECOVERY_FSTAB_VERSION=2
