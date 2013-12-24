@@ -102,9 +102,6 @@ TARGET_RELEASETOOL_OTA_FROM_TARGET_SCRIPT := device/hp/tenderloin/releasetools/t
 BOARD_KERNEL_IMAGE_NAME := uImage
 BOARD_USES_UBOOT_MULTIIMAGE := true
 
-# use dosfsck from dosfstools
-BOARD_USES_CUSTOM_FSCK_MSDOS := true
-
 # Define kernel config for inline building
 TARGET_KERNEL_CONFIG := cyanogenmod_tenderloin_defconfig
 TARGET_KERNEL_SOURCE := kernel/hp/tenderloin
