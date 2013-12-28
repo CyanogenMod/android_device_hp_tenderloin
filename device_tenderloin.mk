@@ -15,18 +15,12 @@
 #
 
 PRODUCT_PROPERTY_OVERRIDES += \
-    ro.sf.lcd_density=160 \
-    ro.com.google.networklocation=1 \
-    dalvik.vm.lockprof.threshold=500 \
-    dalvik.vm.dexopt-flags=m=y
+    ro.sf.lcd_density=160
 
 PRODUCT_CHARACTERISTICS := tablet
 
 PRODUCT_AAPT_CONFIG := xlarge mdpi hdpi
 PRODUCT_AAPT_PREF_CONFIG := mdpi
-
-PRODUCT_PACKAGES += \
-    make_ext4fs
 
 PRODUCT_COPY_FILES += \
     device/hp/tenderloin/init.tenderloin.usb.rc:root/init.tenderloin.usb.rc \
@@ -40,7 +34,6 @@ PRODUCT_COPY_FILES += \
     device/hp/tenderloin/configs/HPTouchpad.idc:system/usr/idc/HPTouchpad.idc
 
 # Bluetooth
-#
 PRODUCT_COPY_FILES += \
 	  $(LOCAL_PATH)/bluetooth/bt_vendor.conf:/system/etc/bluetooth/bt_vendor.conf \
 	  $(LOCAL_PATH)/bluetooth/bluecore6.psr:/system/etc/bluetooth/bluecore6.psr
@@ -67,30 +60,41 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.usb.host.xml:system/etc/permissions/android.hardware.usb.host.xml \
     frameworks/native/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml
 
-# QCOM Hal
+# common HALs
 PRODUCT_PACKAGES += \
     copybit.msm8660 \
-    hwcomposer.msm8660 \
     gralloc.msm8660 \
-    liboverlay \
-    libmemalloc \
-    libtilerenderer \
+    hwcomposer.msm8660 \
+    memtrack.msm8660
+
+# QCOM Display
+PRODUCT_PACKAGES += \
     libgenlock \
-    libQcomUI
+    libmemalloc \
+    liboverlay \
+    libqdutils \
+    libtilerenderer \
+    libI420colorconvert
 
-# QCOM OMX
+# Omx
 PRODUCT_PACKAGES += \
-    libstagefrighthw \
-    libOmxCore \
-    libmm-omxcore \
     libdivxdrmdecrypt \
+    libmm-omxcore \
+    libOmxCore \
+    libstagefrighthw \
     libOmxVdec \
+    libOmxVenc \
     libOmxAacEnc \
-    libOmxAmrEnc
+    libOmxAmrEnc \
+    libOmxEvrcEnc \
+    libOmxQcelp13Enc \
+    libdashplayer
 
-# QCOM OMX Video Encoding
+# Filesystem management tools
 PRODUCT_PACKAGES += \
-    libOmxVenc
+    make_ext4fs \
+    e2fsck \
+    setup_fs
 
 # Audio
 PRODUCT_PACKAGES += \
@@ -99,6 +103,10 @@ PRODUCT_PACKAGES += \
     tinymix \
     tinyplay \
     tinycap
+
+# libnetcmdiface
+PRODUCT_PACKAGES += \
+    libnetcmdiface
 
 # audio mixer paths
 PRODUCT_COPY_FILES += \
@@ -111,13 +119,8 @@ PRODUCT_COPY_FILES += \
 # Sensors, misc
 PRODUCT_PACKAGES += \
     power.tenderloin \
-    librs_jni \
-    wpa_supplicant.conf \
-    libmllite \
-    libmlplatform \
     sensors.tenderloin \
     lights.tenderloin \
-    memtrack.msm8660 \
     ts_srv \
     ts_srv_set \
     serial \
@@ -171,6 +174,13 @@ PRODUCT_PROPERTY_OVERRIDES += \
 # Set default USB interface
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     persist.sys.usb.config=mtp,adb
+
+# Live Wallpapers
+PRODUCT_PACKAGES += \
+    LiveWallpapers \
+    LiveWallpapersPicker \
+    VisualizationWallpapers \
+    librs_jni
 
 # we have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise

@@ -4,13 +4,12 @@
 
 ro.cwm.forbid_format=/boot
 
-wifi.supplicant_scan_interval=45
 wifi.interface=wlan0
-
-debug.fb.rgb565 = 0
-debug.sf.hw=1
-#debug.composition.type=cpu
-debug.enabletr=false
-debug.hwc.dynThreshold=1.9
+wifi.supplicant_scan_interval=45
 
 com.qc.hardware=true
+debug.mdpcomp.maxlayer=3
+debug.hwc.dynThreshold=1.9
+debug.sf.hw=1
+debug.egl.hw=1
+debug.composition.type=dyn

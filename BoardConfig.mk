@@ -3,9 +3,6 @@
 
 TARGET_SPECIFIC_HEADER_PATH := device/hp/tenderloin/include
 
-# We have so much memory 3:1 split is detrimental to us.
-TARGET_USES_2G_VM_SPLIT := true
-
 TARGET_NO_BOOTLOADER := true
 TARGET_NO_KERNEL := false
 
@@ -21,11 +18,10 @@ TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_CPU_VARIANT := cortex-a8
 TARGET_CPU_SMP := true
 
-TARGET_DISABLE_ARM_PIE := true
+#TARGET_DISABLE_ARM_PIE := true
 TARGET_NO_RADIOIMAGE := true
-TARGET_HAVE_TSLIB := false
 
-COMMON_GLOBAL_CFLAGS += -DREFRESH_RATE=59 -DQCOM_HARDWARE -DQCOM_NO_SECURE_PLAYBACK
+COMMON_GLOBAL_CFLAGS += -DREFRESH_RATE=59 -DQCOM_HARDWARE -DNEEDS_VECTORIMPL_SYMBOLS
 
 # Boot animation
 TARGET_SCREEN_HEIGHT := 768
@@ -40,6 +36,7 @@ WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/ath6kl.ko"
 WIFI_DRIVER_MODULE_NAME     := "ath6kl"
 
 # Audio
+BOARD_USES_LEGACY_ALSA_AUDIO := true
 TARGET_QCOM_AUDIO_VARIANT := caf
 COMMON_GLOBAL_CFLAGS += -DHTC_ACOUSTIC_AUDIO -DLEGACY_QCOM_VOICE
 
@@ -49,24 +46,24 @@ BOARD_HAVE_BLUETOOTH_HCI := true
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/hp/tenderloin/bluetooth
 BLUETOOTH_HCIATTACH_USING_PROPERTY = true
 
-
 # Define egl.cfg location
 BOARD_EGL_CFG := device/hp/tenderloin/configs/egl.cfg
-BOARD_EGL_NEEDS_LEGACY_FB := true
+
+# QCOM hardware
+BOARD_USES_QCOM_HARDWARE := true
+TARGET_QCOM_AUDIO_VARIANT := caf
 TARGET_QCOM_DISPLAY_VARIANT := caf
-TARGET_QCOM_MEDIA_VARIANT := caf
-USE_OPENGL_RENDERER := true
 
 # QCOM HAL
-BOARD_USES_QCOM_HARDWARE := true
-TARGET_USES_OVERLAY := false
-TARGET_DISPLAY_USE_RETIRE_FENCE := true
+USE_OPENGL_RENDERER := true
 TARGET_USES_C2D_COMPOSITION := true
 TARGET_USES_ION := true
-TARGET_DISPLAY_INSECURE_MM_HEAP := true
-PRODUCT_PROPERTY_OVERRIDES += debug.mdpcomp.maxlayer=3
 
-COMMON_GLOBAL_CFLAGS += -DNEEDS_VECTORIMPL_SYMBOLS
+# Use legacy MM heap behavior
+TARGET_DISPLAY_INSECURE_MM_HEAP := true
+
+# Use retire fence from MDP driver
+TARGET_DISPLAY_USE_RETIRE_FENCE := true
 
 # Webkit workaround
 TARGET_FORCE_CPU_UPLOAD := true
@@ -74,16 +71,14 @@ TARGET_FORCE_CPU_UPLOAD := true
 # Enable WEBGL in WebKit
 ENABLE_WEBGL := true
 
-SKIP_SET_METADATA := true
-TARGET_RUNNING_WITHOUT_SYNC_FRAMEWORK := true
+# QCOM enhanced A/V
+TARGET_ENABLE_QC_AV_ENHANCEMENTS := true
 
-BOARD_USES_QCOM_LIBS := true
-BOARD_USES_QCOM_LIBRPC := true
-BOARD_USE_QCOM_PMEM := true
+# camera
 BOARD_CAMERA_USE_GETBUFFERINFO := true
 BOARD_FIRST_CAMERA_FRONT_FACING := true
 BOARD_CAMERA_USE_ENCODEDATA := true
-BOARD_NEEDS_MEMORYHEAPPMEM := true
+#BOARD_NEEDS_MEMORYHEAPPMEM := true
 
 BOARD_OVERLAY_FORMAT_YCbCr_420_SP := true
 USE_CAMERA_STUB := false
@@ -92,8 +87,6 @@ USE_CAMERA_STUB := false
 BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.hardware=qcom
 BOARD_KERNEL_BASE := 0x40200000
 BOARD_PAGE_SIZE := 2048
-
-BOARD_NEEDS_CUTILS_LOG := true
 
 TARGET_PROVIDES_RELEASETOOLS := true
 TARGET_RELEASETOOL_IMG_FROM_TARGET_SCRIPT := device/hp/tenderloin/releasetools/tenderloin_img_from_target_files
@@ -116,8 +109,12 @@ TARGET_KERNEL_MODULES := KERNEL_WIFI_MODULES
 
 BOARD_UMS_LUNFILE := "/sys/devices/virtual/android_usb/android0/f_mass_storage/lun/file"
 TARGET_RECOVERY_INITRC := device/hp/tenderloin/recovery/init.rc
+BOARD_CUSTOM_RECOVERY_KEYMAPPING := ../../device/hp/tenderloin/recovery/recovery_ui.c
+BOARD_CUSTOM_GRAPHICS:= ../../../device/hp/tenderloin/recovery/graphics.c
 RECOVERY_FSTAB_VERSION=2
 TARGET_RECOVERY_FSTAB = device/hp/tenderloin/recovery/recovery.fstab
+TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
+BOARD_RECOVERY_SWIPE := true
 
 # tenderloin - these partition sizes are temporary to complete build
 TARGET_USERIMAGES_USE_EXT4 := true
@@ -143,10 +140,3 @@ TARGET_RECOVERY_PRE_COMMAND := "/system/bin/rebootcmd"
 TARGET_RECOVERY_PRE_COMMAND_CLEAR_REASON := true
 
 ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=0
-
-# SELinux
-BOARD_SEPOLICY_DIRS += \
-        device/hp/tenderloin/sepolicy
-
-BOARD_SEPOLICY_UNION += \
-        healthd.te
