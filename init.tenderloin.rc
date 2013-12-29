@@ -232,4 +232,4 @@ service serial /sbin/serial
 
 on property:sys.boot_completed=1
     start mpdecision
-    start thermald
+    #start thermald
