@@ -114,7 +114,6 @@ BOARD_CUSTOM_GRAPHICS:= ../../../device/hp/tenderloin/recovery/graphics.c
 RECOVERY_FSTAB_VERSION=2
 TARGET_RECOVERY_FSTAB = device/hp/tenderloin/recovery/recovery.fstab
 TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
-BOARD_RECOVERY_SWIPE := true
 
 # tenderloin - these partition sizes are temporary to complete build
 TARGET_USERIMAGES_USE_EXT4 := true
