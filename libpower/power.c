@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2012 The Android Open Source Project
+ * Copyright (c) 2012 The CyanogenMod Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,17 +29,16 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
-#define BOOSTPULSE_PATH "/sys/devices/system/cpu/cpufreq/interactive/boostpulse"
-
-#define TIMER_RATE_SCREEN_ON "30000"
-#define TIMER_RATE_SCREEN_OFF "500000"
-
-#define MAX_BUF_SZ  10
+#define SCALING_GOVERNOR_PATH "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"
+#define BOOSTPULSE_ONDEMAND "/sys/devices/system/cpu/cpufreq/ondemand/boostpulse"
+#define BOOSTPULSE_INTERACTIVE "/sys/devices/system/cpu/cpufreq/interactive/boostpulse"
+#define NOTIFY_ON_MIGRATE "/dev/cpuctl/apps/cpu.notify_on_migrate"
 
 #define TS_SOCKET_LOCATION "/dev/socket/tsdriver"
 #define TS_SOCKET_DEBUG 0
 
 static int ts_state;
+static char governor[20];
 
 struct tenderloin_power_module {
     struct power_module base;
@@ -46,6 +46,8 @@ struct tenderloin_power_module {
     int boostpulse_fd;
     int boostpulse_warned;
 };
+
+static char governor[20];
 
 static int sysfs_read(char *path, char *s, int num_bytes)
 {
@@ -96,8 +98,25 @@ static void sysfs_write(char *path, char *s)
     close(fd);
 }
 
+static int get_scaling_governor() {
+    if (sysfs_read(SCALING_GOVERNOR_PATH, governor,
+                sizeof(governor)) == -1) {
+        return -1;
+    } else {
+        // Strip newline at the end.
+        int len = strlen(governor);
+
+        len--;
+
+        while (len >= 0 && (governor[len] == '\n' || governor[len] == '\r'))
+            governor[len--] = '\0';
+    }
+
+    return 0;
+}
+
 /* connects to the touchscreen socket */
-void send_ts_socket(char *send_data) {
+static void send_ts_socket(char *send_data) {
     struct sockaddr_un unaddr;
     int ts_fd, len;
 
@@ -117,48 +136,10 @@ void send_ts_socket(char *send_data) {
     }
 }
 
-static void tenderloin_power_init(struct power_module *module)
-{
-    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/timer_rate",
-                TIMER_RATE_SCREEN_ON);
-    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/min_sample_time",
-                "90000");
-    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/hispeed_freq",
-                "1026000");
-    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/target_loads",
-                "70 1188000:80 1512000:90");
-    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/go_hispeed_load",
-                "90");
-    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay",
-                "30000");
-    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/boostpulse_duration",
-                "100000");
-}
-
-static int boostpulse_open(struct tenderloin_power_module *tenderloin)
-{
-    char buf[80];
-
-    pthread_mutex_lock(&tenderloin->lock);
-
-    if (tenderloin->boostpulse_fd < 0) {
-        tenderloin->boostpulse_fd = open(BOOSTPULSE_PATH, O_WRONLY);
-
-        if (tenderloin->boostpulse_fd < 0 && !tenderloin->boostpulse_warned) {
-            strerror_r(errno, buf, sizeof(buf));
-            ALOGE("Error opening %s: %s\n", BOOSTPULSE_PATH, buf);
-            tenderloin->boostpulse_warned = 1;
-        }
-    }
-
-    pthread_mutex_unlock(&tenderloin->lock);
-    return tenderloin->boostpulse_fd;
-}
-
 static void tenderloin_power_set_interactive(struct power_module *module, int on)
 {
-    sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/timer_rate",
-                on ? TIMER_RATE_SCREEN_ON : TIMER_RATE_SCREEN_OFF);
+    if (strncmp(governor, "ondemand", 8) == 0)
+        sysfs_write(NOTIFY_ON_MIGRATE, on ? "1" : "0");
 
     /* tell touchscreen to turn on or off */
     if (on && ts_state == 0) {
@@ -170,6 +151,63 @@ static void tenderloin_power_set_interactive(struct power_module *module, int on
         ts_state = 0;
         send_ts_socket("C");
     }
+}
+
+static void configure_governor()
+{
+    tenderloin_power_set_interactive(NULL, 1);
+
+    if (strncmp(governor, "ondemand", 8) == 0) {
+        sysfs_write("/sys/devices/system/cpu/cpufreq/ondemand/up_threshold", "90");
+        sysfs_write("/sys/devices/system/cpu/cpufreq/ondemand/io_is_busy", "1");
+        sysfs_write("/sys/devices/system/cpu/cpufreq/ondemand/sampling_down_factor", "2");
+        sysfs_write("/sys/devices/system/cpu/cpufreq/ondemand/down_differential", "10");
+        sysfs_write("/sys/devices/system/cpu/cpufreq/ondemand/up_threshold_multi_core", "70");
+        sysfs_write("/sys/devices/system/cpu/cpufreq/ondemand/down_differential_multi_core", "3");
+        sysfs_write("/sys/devices/system/cpu/cpufreq/ondemand/optimal_freq", "918000");
+        sysfs_write("/sys/devices/system/cpu/cpufreq/ondemand/sync_freq", "1026000");
+        sysfs_write("/sys/devices/system/cpu/cpufreq/ondemand/up_threshold_any_cpu_load", "80");
+        sysfs_write("/sys/devices/system/cpu/cpufreq/ondemand/input_boost", "1134000");
+        sysfs_write("/sys/devices/system/cpu/cpufreq/ondemand/sampling_rate", "50000");
+
+    } else if (strncmp(governor, "interactive", 11) == 0) {
+        sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/min_sample_time", "90000");
+        sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/io_is_busy", "1");
+        sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/hispeed_freq", "1134000");
+        sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/above_hispeed_delay", "30000");
+        sysfs_write("/sys/devices/system/cpu/cpufreq/interactive/timer_rate", "30000");
+    }
+}
+
+static int boostpulse_open(struct tenderloin_power_module *tenderloin)
+{
+    char buf[80];
+
+    pthread_mutex_lock(&tenderloin->lock);
+
+    if (tenderloin->boostpulse_fd < 0) {
+        if (get_scaling_governor() < 0) {
+            ALOGE("Can't read scaling governor.");
+            tenderloin->boostpulse_warned = 1;
+        } else {
+            if (strncmp(governor, "ondemand", 8) == 0)
+                tenderloin->boostpulse_fd = open(BOOSTPULSE_ONDEMAND, O_WRONLY);
+            else if (strncmp(governor, "interactive", 11) == 0)
+                tenderloin->boostpulse_fd = open(BOOSTPULSE_INTERACTIVE, O_WRONLY);
+
+            if (tenderloin->boostpulse_fd < 0 && !tenderloin->boostpulse_warned) {
+                strerror_r(errno, buf, sizeof(buf));
+                ALOGV("Error opening boostpulse: %s\n", buf);
+                tenderloin->boostpulse_warned = 1;
+            } else if (tenderloin->boostpulse_fd > 0) {
+                configure_governor();
+                ALOGD("Opened %s boostpulse interface", governor);
+            }
+        }
+    }
+
+    pthread_mutex_unlock(&tenderloin->lock);
+    return tenderloin->boostpulse_fd;
 }
 
 static void tenderloin_power_hint(struct power_module *module, power_hint_t hint,
@@ -192,7 +230,7 @@ static void tenderloin_power_hint(struct power_module *module, power_hint_t hint
 
             if (len < 0) {
                 strerror_r(errno, buf, sizeof(buf));
-	            ALOGE("Error writing to boostpulse: %s\n", buf);
+                ALOGE("Error writing to boostpulse: %s\n", buf);
 
                 pthread_mutex_lock(&tenderloin->lock);
                 close(tenderloin->boostpulse_fd);
@@ -211,9 +249,16 @@ static void tenderloin_power_hint(struct power_module *module, power_hint_t hint
     }
 }
 
+static void tenderloin_power_init(struct power_module *module)
+{
+    get_scaling_governor();
+    configure_governor();
+}
+
 static struct hw_module_methods_t power_module_methods = {
     .open = NULL,
 };
+
 
 struct tenderloin_power_module HAL_MODULE_INFO_SYM = {
     base: {
@@ -222,11 +267,10 @@ struct tenderloin_power_module HAL_MODULE_INFO_SYM = {
             module_api_version: POWER_MODULE_API_VERSION_0_2,
             hal_api_version: HARDWARE_HAL_API_VERSION,
             id: POWER_HARDWARE_MODULE_ID,
-            name: "Tenderloin Power HAL",
-            author: "The Android Open Source Project",
+            name: "TouchPad Power HAL",
+            author: "The CyanogenMod Project",
             methods: &power_module_methods,
         },
-
        init: tenderloin_power_init,
        setInteractive: tenderloin_power_set_interactive,
        powerHint: tenderloin_power_hint,
