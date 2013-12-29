@@ -78,6 +78,10 @@ on post-fs-data
 
     setprop vold.post_fs_data_done 1
 
+on early-boot
+    # set RLIMIT_MEMLOCK to 64MB
+    setrlimit 8 67108864 67108864
+
 on boot
     mount debugfs /sys/kernel/debug /sys/kernel/debug
 
@@ -107,9 +111,6 @@ on boot
     chown system system /sys/devices/platform/cy8ctma395/xres
     chown system system /sys/user_hw/pins/ctp/wake/level
     chown system system /dev/i2c-5
-
-    # increase per-process file limit to prevent warning
-    setrlimit 7 10000 10000
     
     # Create the directories used by the Wireless subsystem
     mkdir /data/misc/wifi 0770 wifi wifi
@@ -117,20 +118,19 @@ on boot
     mkdir /data/misc/wifi/wpa_supplicant 0770 wifi wifi
     mkdir /data/misc/dhcp 0770 dhcp dhcp
 
-    mount debugfs /sys/kernel/debug /sys/kernel/debug
 
     # bluetooth power up/down interface
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
-    chmod 0660                /sys/class/rfkill/rfkill0/state
+    chmod 0660 /sys/class/rfkill/rfkill0/state
 
     # fmtx
     chown bluetooth bluetooth /sys/class/rfkill/rfkill1/type
     chown bluetooth bluetooth /sys/class/rfkill/rfkill1/state
-    chmod 0660                /sys/class/rfkill/rfkill1/state
+    chmod 0660 /sys/class/rfkill/rfkill1/state
 
     chown bluetooth bluetooth /dev/rfkill
-    chmod 0660                /dev/rfkill
+    chmod 0660 /dev/rfkill
 
     chown bluetooth bluetooth /sys/user_hw/pins/bt/reset/level
     chown bluetooth bluetooth /sys/user_hw/pins/bt/host_wake/level
@@ -139,8 +139,9 @@ on boot
     chown audio audio /dev/input/event5
     chmod 0660 /dev/input/event5
 
-    # Increase readahead buffers on MMC devices
-    write /sys/block/mmcblk0/bdi/read_ahead_kb 1024
+    # increase dirty_writeback_interval
+    write /proc/sys/vm/dirty_writeback_centisecs 60000
+    write /proc/sys/vm/dirty_expire_centisecs 60000
 
     # Enable power collapse where always safe
     write /sys/module/pm_8x60/modes/cpu0/power_collapse/suspend_enabled 1
@@ -156,6 +157,11 @@ on boot
     write /sys/module/rpm_resources/enable_low_power/L2_cache 1
     write /sys/module/rpm_resources/enable_low_power/pxo 1
     write /sys/module/rpm_resources/enable_low_power/rpm_cpu 1
+
+    chown root system /sys/devices/system/cpu/mfreq
+    chmod 0220 /sys/devices/system/cpu/mfreq
+    chown root system /sys/devices/system/cpu/cpu1/online
+    chmod 0664 /sys/devices/system/cpu/cpu1/online
 
     write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 384000
     write /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq 384000
@@ -213,11 +219,17 @@ service mpdecision /system/bin/mpdecision --no_sleep --avg_comp
     class core
     user root
     disabled
+ 
+service thermald /system/bin/thermald
+    class core
+    user root
+    disabled
 
 service serial /sbin/serial
     class core
     disabled
     oneshot
 
-on property:init.svc.bootanim=stopped
+on property:sys.boot_completed=1
     start mpdecision
+    start thermald
