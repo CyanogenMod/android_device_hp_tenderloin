@@ -166,6 +166,9 @@ on boot
     write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 384000
     write /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq 384000
 
+    # allow Q6 bites to restart LPASS(Q6/audio) subsystem
+    write /sys/module/subsystem_restart/parameters/restart_level 3
+
     # compat-wireless modules needed for ath6kl
     insmod /system/lib/modules/compat.ko
     insmod /system/lib/modules/cfg80211.ko
