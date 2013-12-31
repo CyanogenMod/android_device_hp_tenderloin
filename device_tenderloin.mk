@@ -27,8 +27,6 @@ PRODUCT_COPY_FILES += \
     device/hp/tenderloin/init.tenderloin.rc:root/init.tenderloin.rc \
     device/hp/tenderloin/ueventd.tenderloin.rc:root/ueventd.tenderloin.rc \
     device/hp/tenderloin/fstab.tenderloin:root/fstab.tenderloin \
-    device/hp/tenderloin/initlogo.rle:root/initlogo.rle \
-    device/hp/tenderloin/recovery/initlogo.rle:recovery/root/initlogo.rle \
     device/hp/tenderloin/prebuilt/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
     device/hp/tenderloin/prebuilt/wifi/wpa_supplicant_overlay.conf:system/etc/wifi/wpa_supplicant_overlay.conf \
     device/hp/tenderloin/configs/HPTouchpad.idc:system/usr/idc/HPTouchpad.idc
