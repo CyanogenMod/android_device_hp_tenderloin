@@ -2,4 +2,3 @@
 /dev/store/cm-system            /system          ext4        defaults        defaults
 /dev/store/cm-data              /data            ext4        defaults        defaults
 /dev/store/cm-cache             /cache           ext4        defaults        defaults
-/devices/virtual/block/dm-6     /external_sd     vfat        defaults        voldmanaged=sdcard:auto,nonremovable
