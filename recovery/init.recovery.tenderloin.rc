@@ -1,0 +1,47 @@
+on init
+
+    mkdir /mnt 0775 root system
+
+    # We need to set LVM_SYSTEM_DIR for lvm to work and it does not work
+    # with embedded export command until too late, so we exploit
+    # the fact that there is /bin/sh on the 13th partition that we can use.
+    mount ext3 /dev/block/mmcblk0p13 /mnt wait noatime barrier=1
+    # Unfortunately it's dynamically linked so we need to create this
+    # /lib symlink first and kill it later when no longer needed.
+    symlink /mnt/lib /lib
+    # Also stupid lvm binary expects block devices to live in /dev,
+    # not /dev/block
+    symlink /dev/block/mmcblk0p14 /dev/mmcblk0p14
+    exec /mnt/bin/sh -c "LVM_SYSTEM_DIR=/mnt/etc/lvm /mnt/usr/sbin/lvm.static vgchange -ay"
+
+    # remove all the lvm stuff as well as the moboot nextboot instruction
+    exec /sbin/rm -rf /dev/mmcblk0p14 /lib /var /mnt/moboot.next
+    exec /sbin/umount /mnt
+
+on boot
+    # enable power modes and set the cpufreq sampling rates
+    write /sys/module/rpm_resources/enable_low_power/L2_cache 1
+    write /sys/module/rpm_resources/enable_low_power/pxo 1
+    write /sys/module/rpm_resources/enable_low_power/vdd_dig 1
+    write /sys/module/rpm_resources/enable_low_power/vdd_mem 1
+    write /sys/module/pm_8x60/modes/cpu0/power_collapse/suspend_enabled 1
+    write /sys/module/pm_8x60/modes/cpu1/power_collapse/suspend_enabled 1
+    write /sys/module/pm_8x60/modes/cpu0/power_collapse/idle_enabled 1
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 384000
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq 384000
+    write /sys/devices/system/cpu/cpu1/online 0
+    setprop recovery.perf.mode 0
+
+on property:recovery.perf.mode=1
+    write /sys/devices/system/cpu/cpu1/online 1
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor "performance"
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor "performance"
+
+on property:recovery.perf.mode=0
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor "ondemand"
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor "ondemand"
+    write /sys/devices/system/cpu/cpu1/online 0
+
+# Always start adbd on userdebug and eng builds
+on property:ro.debuggable=1
+    setprop service.adb.root 1

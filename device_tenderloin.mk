@@ -25,6 +25,7 @@ PRODUCT_AAPT_PREF_CONFIG := mdpi
 PRODUCT_COPY_FILES += \
     device/hp/tenderloin/init.tenderloin.usb.rc:root/init.tenderloin.usb.rc \
     device/hp/tenderloin/init.tenderloin.rc:root/init.tenderloin.rc \
+    device/hp/tenderloin/recovery/init.recovery.tenderloin.rc:root/init.recovery.tenderloin.rc \
     device/hp/tenderloin/ueventd.tenderloin.rc:root/ueventd.tenderloin.rc \
     device/hp/tenderloin/fstab.tenderloin:root/fstab.tenderloin \
     device/hp/tenderloin/prebuilt/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \

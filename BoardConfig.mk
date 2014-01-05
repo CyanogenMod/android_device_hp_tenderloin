@@ -108,7 +108,6 @@ KERNEL_WIFI_MODULES:
 TARGET_KERNEL_MODULES := KERNEL_WIFI_MODULES
 
 BOARD_UMS_LUNFILE := "/sys/devices/virtual/android_usb/android0/f_mass_storage/lun/file"
-TARGET_RECOVERY_INITRC := device/hp/tenderloin/recovery/init.rc
 BOARD_CUSTOM_RECOVERY_KEYMAPPING := ../../device/hp/tenderloin/recovery/recovery_ui.c
 BOARD_CUSTOM_GRAPHICS:= ../../../device/hp/tenderloin/recovery/graphics.c
 RECOVERY_FSTAB_VERSION=2
