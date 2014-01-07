@@ -5,6 +5,7 @@ TARGET_SPECIFIC_HEADER_PATH := device/hp/tenderloin/include
 
 TARGET_NO_BOOTLOADER := true
 TARGET_NO_KERNEL := false
+TARGET_NO_RADIOIMAGE := true
 
 TARGET_BOOTLOADER_BOARD_NAME := tenderloin
 TARGET_BOARD_PLATFORM := msm8660
@@ -17,9 +18,6 @@ TARGET_CPU_ABI2 := armeabi
 TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_CPU_VARIANT := scorpion
 TARGET_CPU_SMP := true
-
-#TARGET_DISABLE_ARM_PIE := true
-TARGET_NO_RADIOIMAGE := true
 
 COMMON_GLOBAL_CFLAGS += -DREFRESH_RATE=59 -DQCOM_HARDWARE -DNEEDS_VECTORIMPL_SYMBOLS
 
@@ -75,25 +73,25 @@ ENABLE_WEBGL := true
 TARGET_ENABLE_QC_AV_ENHANCEMENTS := true
 
 # camera
+USE_CAMERA_STUB := false
+#TARGET_DISABLE_ARM_PIE := true
 BOARD_CAMERA_USE_GETBUFFERINFO := true
 BOARD_FIRST_CAMERA_FRONT_FACING := true
 BOARD_CAMERA_USE_ENCODEDATA := true
 #BOARD_NEEDS_MEMORYHEAPPMEM := true
 
-BOARD_OVERLAY_FORMAT_YCbCr_420_SP := true
-USE_CAMERA_STUB := false
-
-# tenderloin- these kernel settings are temporary to complete build
+# kernel settings
 BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.hardware=qcom
 BOARD_KERNEL_BASE := 0x40200000
 BOARD_PAGE_SIZE := 2048
 
+# uboot
+BOARD_KERNEL_IMAGE_NAME := uImage
+BOARD_USES_UBOOT_MULTIIMAGE := true
+BOARD_CUSTOM_BOOTIMG_MK := device/hp/tenderloin/releasetools/uboot-bootimg.mk
 TARGET_PROVIDES_RELEASETOOLS := true
 TARGET_RELEASETOOL_IMG_FROM_TARGET_SCRIPT := device/hp/tenderloin/releasetools/tenderloin_img_from_target_files
 TARGET_RELEASETOOL_OTA_FROM_TARGET_SCRIPT := device/hp/tenderloin/releasetools/tenderloin_ota_from_target_files
-
-BOARD_KERNEL_IMAGE_NAME := uImage
-BOARD_USES_UBOOT_MULTIIMAGE := true
 
 # Define kernel config for inline building
 TARGET_KERNEL_CONFIG := cyanogenmod_tenderloin_defconfig
@@ -107,31 +105,24 @@ KERNEL_WIFI_MODULES:
 
 TARGET_KERNEL_MODULES := KERNEL_WIFI_MODULES
 
-BOARD_UMS_LUNFILE := "/sys/devices/virtual/android_usb/android0/f_mass_storage/lun/file"
 BOARD_CUSTOM_RECOVERY_KEYMAPPING := ../../device/hp/tenderloin/recovery/recovery_ui.c
 BOARD_CUSTOM_GRAPHICS:= ../../../device/hp/tenderloin/recovery/graphics.c
 RECOVERY_FSTAB_VERSION=2
 TARGET_RECOVERY_FSTAB = device/hp/tenderloin/recovery/recovery.fstab
 TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
+BOARD_HAS_NO_MISC_PARTITION := true
+BOARD_HAS_NO_SELECT_BUTTON := true
 
-# tenderloin - these partition sizes are temporary to complete build
+# partition sizes
 TARGET_USERIMAGES_USE_EXT4 := true
 BOARD_BOOTIMAGE_PARTITION_SIZE := 16777216
-BOARD_RECOVERYIMAGE_PARTITION_SIZE := 16776192
+BOARD_RECOVERYIMAGE_PARTITION_SIZE := 16777216
 BOARD_SYSTEMIMAGE_PARTITION_SIZE := 838860800
 BOARD_USERDATAIMAGE_PARTITION_SIZE := 20044333056
 BOARD_FLASH_BLOCK_SIZE := 131072
 
-TARGET_RELEASETOOLS_EXTENSIONS := device/hp/common
-
+# device specific settings menu
 BOARD_HARDWARE_CLASS := device/hp/tenderloin/cmhw/
-
-TARGET_USE_CUSTOM_LUN_FILE_PATH := "/sys/devices/virtual/android_usb/android0/f_mass_storage/lun/file"
-BOARD_HAS_SDCARD_INTERNAL := false
-BOARD_USES_MMCUTILS := true
-BOARD_HAS_NO_MISC_PARTITION := true
-BOARD_HAS_NO_SELECT_BUTTON := true
-BOARD_CUSTOM_BOOTIMG_MK := device/hp/tenderloin/releasetools/uboot-bootimg.mk
 
 # Multiboot stuff
 TARGET_RECOVERY_PRE_COMMAND := "/system/bin/rebootcmd"
