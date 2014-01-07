@@ -6,4 +6,4 @@
 /dev/store/cm-system                  /system            ext4     ro,barrier=1                                          wait
 /dev/store/cm-data                    /data              ext4     noatime,nosuid,nodev,barrier=1,noauto_da_alloc        wait
 /dev/store/cm-cache                   /cache             ext4     noatime,nosuid,nodev,barrier=1,noauto_da_alloc        wait
-/devices/platform/msm_hsusb_host.0    auto               vfat     defaults                                              voldmanaged=usbdisk:auto
+/devices/platform/msm_hsusb_host.0    auto               auto     defaults                                              voldmanaged=usbdisk:auto
