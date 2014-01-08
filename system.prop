@@ -12,3 +12,4 @@ debug.mdpcomp.maxlayer=3
 debug.hwc.dynThreshold=1.9
 debug.sf.hw=1
 debug.egl.hw=1
+debug.composition.type=dyn
