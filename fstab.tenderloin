@@ -3,7 +3,7 @@
 # The filesystem that contains the filesystem checker binary (typically /system) cannot
 # specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK
 
-/dev/store/cm-system                  /system            ext4     ro,barrier=1                                          wait
-/dev/store/cm-data                    /data              ext4     noatime,nosuid,nodev,barrier=1,noauto_da_alloc        wait
-/dev/store/cm-cache                   /cache             ext4     noatime,nosuid,nodev,barrier=1,noauto_da_alloc        wait
-/devices/platform/msm_hsusb_host.0    auto               auto     defaults                                              voldmanaged=usbdisk:auto
+/dev/store/cm-system                      /system            ext4     ro,barrier=1                                          wait
+/dev/store/cm-data                        /data              ext4     noatime,nosuid,nodev,barrier=1,noauto_da_alloc        wait
+/dev/store/cm-cache                       /cache             ext4     noatime,nosuid,nodev,barrier=1,noauto_da_alloc        wait
+/devices/platform/msm_hsusb_host.0/usb    auto               auto     defaults                                              voldmanaged=usbdisk:auto
