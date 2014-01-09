@@ -144,7 +144,7 @@ void Lsm303dlhMagSensor::processEvent(int code, int value)
 {
     switch (code) {
         case EVENT_TYPE_MAGV_X:
-            mPendingEvent.magnetic.x = value * CONVERT_M_X;
+            mPendingEvent.magnetic.x = (value * CONVERT_M_X) - 50; // offset for tenderloin
             break;
         case EVENT_TYPE_MAGV_Y:
             mPendingEvent.magnetic.y = value * CONVERT_M_Y;
