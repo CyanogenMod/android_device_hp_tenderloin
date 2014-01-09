@@ -38,7 +38,7 @@ static const struct sensor_t sSensorList[] = {
         { "LSM303DLH Magnetometer",
                 "ST Microelectronics",
                 1, SENSORS_HANDLE_BASE+ID_M,
-                SENSOR_TYPE_MAGNETIC_FIELD, 400.0f, 0.1f, 0.5f, 10000/*10ms*/, 0, 0, { } },
+                SENSOR_TYPE_MAGNETIC_FIELD, 130.0f, 0.05f, 0.5f, 10000/*10ms*/, 0, 0, { } },
         { "ISL29023 Light sensor",
                 "Intersil",
                 1, SENSORS_HANDLE_BASE+ID_L,

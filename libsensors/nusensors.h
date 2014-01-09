@@ -81,9 +81,16 @@ int init_nusensors(hw_module_t const* module, hw_device_t** device);
 #define CONVERT_M_Y (CONVERT_M)
 #define CONVERT_M_Z (CONVERT_M)
 
-#define SENSOR_STATE_MASK           (0x7FFF)
+// conversion of gyro data
+//#define M_PI 3.14159265358979
+#define CONVERT_GYRO   (M_PI / 180.0)
+#define CONVERT_GYRO_X (CONVERT_GYRO)
+#define CONVERT_GYRO_Y (CONVERT_GYRO)
+#define CONVERT_GYRO_Z (CONVERT_GYRO)
 
-#define RAD_P_DEG                   (3.14159f/180.0f)
+#define RAD_P_DEG      (3.14159f/180.0f)
+
+#define SENSOR_STATE_MASK           (0x7FFF)
 
 /*****************************************************************************/
 

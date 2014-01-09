@@ -144,10 +144,10 @@ void Lsm303dlhMagSensor::processEvent(int code, int value)
 {
     switch (code) {
         case EVENT_TYPE_MAGV_X:
-            mPendingEvent.magnetic.x = value * CONVERT_M_X;
+            mPendingEvent.magnetic.y = value * CONVERT_M_X;
             break;
         case EVENT_TYPE_MAGV_Y:
-            mPendingEvent.magnetic.y = value * CONVERT_M_Y;
+            mPendingEvent.magnetic.x = value * -CONVERT_M_Y;
             break;
         case EVENT_TYPE_MAGV_Z:
             mPendingEvent.magnetic.z = value * CONVERT_M_Z;
