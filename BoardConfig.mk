@@ -63,12 +63,6 @@ TARGET_DISPLAY_INSECURE_MM_HEAP := true
 # Use retire fence from MDP driver
 TARGET_DISPLAY_USE_RETIRE_FENCE := true
 
-# Webkit workaround
-TARGET_FORCE_CPU_UPLOAD := true
-
-# Enable WEBGL in WebKit
-ENABLE_WEBGL := true
-
 # QCOM enhanced A/V
 TARGET_ENABLE_QC_AV_ENHANCEMENTS := true
 
