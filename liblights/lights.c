@@ -98,18 +98,6 @@ is_discharging()
     }
 }
 
-static int set_navled(int on)
-{
-	if (on) {
-		write_int(LEFTNAVI_FILE, 25);
-		write_int(RIGHTNAVI_FILE, 25);
-	} else {
-		write_int(LEFTNAVI_FILE, 0);
-		write_int(RIGHTNAVI_FILE, 0);
-	}
-		
-}
-
 static int write_int(char const *path, int value)
 {
 	int fd;
@@ -147,6 +135,17 @@ static int
 is_lit(struct light_state_t const* state)
 {
     return state->color & 0x00ffffff;
+}
+
+static void set_navled(int on)
+{
+	if (on) {
+		write_int(LEFTNAVI_FILE, 25);
+		write_int(RIGHTNAVI_FILE, 25);
+	} else {
+		write_int(LEFTNAVI_FILE, 0);
+		write_int(RIGHTNAVI_FILE, 0);
+	}
 }
 
 static void init_notification_led(void)
