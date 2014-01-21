@@ -98,6 +98,18 @@ is_discharging()
     }
 }
 
+static int set_navled(int on)
+{
+	if (on) {
+		write_int(LEFTNAVI_FILE, 25);
+		write_int(RIGHTNAVI_FILE, 25);
+	} else {
+		write_int(LEFTNAVI_FILE, 0);
+		write_int(RIGHTNAVI_FILE, 0);
+	}
+		
+}
+
 static int write_int(char const *path, int value)
 {
 	int fd;
@@ -250,13 +262,10 @@ set_light_buttons(struct light_device_t* dev,
 
     pthread_mutex_lock(&g_lock);
     g_btnled_on = is_lit(state);
-    if (g_btnled_on) {
-		write_int(LEFTNAVI_FILE, 100);
-		write_int(RIGHTNAVI_FILE, 100);
-	} else if (!g_btnled_on && !g_notled_on && !g_batled_on) {
-		write_int(LEFTNAVI_FILE, 0);
-		write_int(RIGHTNAVI_FILE, 0);
-	}
+    if (g_btnled_on)
+        set_navled(1);
+    else if (!g_btnled_on && !g_notled_on && !g_batled_on)
+        set_navled(0);
     pthread_mutex_unlock(&g_lock);
 
     return 0;
@@ -272,8 +281,7 @@ static int set_light_notifications(struct light_device_t* dev,
     g_notled_on = is_lit(state);
     if (g_notled_on) {
 		if (state->flashOnMS == 1) {
-			write_int(LEFTNAVI_FILE, 100);
-			write_int(RIGHTNAVI_FILE, 100);
+			set_navled(1);
 		} else if (state->flashOffMS < 2500) {
 			if (state->flashOnMS >= 1000) {
 				program_notification_led(1);
@@ -289,10 +297,8 @@ static int set_light_notifications(struct light_device_t* dev,
 		}
 	} else if (!g_notled_on) {
 		program_notification_led(0);
-		if (g_btnled_on || g_batled_on) {
-			write_int(LEFTNAVI_FILE, 100);
-			write_int(RIGHTNAVI_FILE, 100);
-		}
+		if (g_btnled_on || g_batled_on)
+			set_navled(1);
 	}
     pthread_mutex_unlock(&g_lock);
 
@@ -310,13 +316,10 @@ static int set_light_battery (struct light_device_t* dev,
     pthread_mutex_lock(&g_lock);
 	g_batled_on = red&&!is_discharging();
 
-    if (g_batled_on && !g_notled_on) {
-		write_int(LEFTNAVI_FILE, 100);
-		write_int(RIGHTNAVI_FILE, 100);
-	} else if (!g_batled_on && !g_notled_on && !g_btnled_on) {
-		write_int(LEFTNAVI_FILE, 0);
-		write_int(RIGHTNAVI_FILE, 0);
-	}
+    if (g_batled_on && !g_notled_on)
+        set_navled(1);
+    else if (!g_batled_on && !g_notled_on && !g_btnled_on)
+        set_navled(0);
     pthread_mutex_unlock(&g_lock);
 
     return 0;
