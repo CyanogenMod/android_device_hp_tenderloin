@@ -38,15 +38,15 @@ struct mixer_state {
     struct mixer_ctl *ctl;
 	unsigned int ctl_vals;
 	unsigned int ignored;
-    int old_value[MAX_CTL_VALS];
-    int new_value[MAX_CTL_VALS];
-    int reset_value[MAX_CTL_VALS];
+    long old_value[MAX_CTL_VALS];
+    long new_value[MAX_CTL_VALS];
+    long reset_value[MAX_CTL_VALS];
 };
 
 struct mixer_setting {
     struct mixer_ctl *ctl;
 	unsigned int ctl_vals;
-    int value[MAX_CTL_VALS];
+    long value[MAX_CTL_VALS];
 };
 
 struct mixer_path {
@@ -262,8 +262,8 @@ static int path_apply(struct audio_route *ar, struct mixer_path *path)
 				path->setting[i].value[2]
 				);
 
-		mixer_ctl_set_multivalue(ctl, path->setting[i].ctl_vals,
-				path->setting[i].value);
+		mixer_ctl_set_array(ctl, path->setting[i].value,
+				path->setting[i].ctl_vals);
 #endif
        	ar->mixer_state[j].ctl_vals = path->setting[i].ctl_vals;
     }
