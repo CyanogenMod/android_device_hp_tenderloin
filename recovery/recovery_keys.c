@@ -4,11 +4,6 @@
 #include "common.h"
 #include "extendedcommands.h"
 
-
-int device_toggle_display(volatile char* key_pressed, int key_code) {
-    return 0;
-}
-
 int device_handle_key(int key_code, int visible) {
     if (visible) {
         switch (key_code) {
@@ -23,8 +18,10 @@ int device_handle_key(int key_code, int visible) {
             case KEY_HOME:  // menu button on tenderloin
                 return SELECT_ITEM;
 
-    	    case KEY_POWER:     // power button on tenderloin
-                return GO_BACK;
+            case KEY_POWER:     // power button on tenderloin
+                if (!ui_root_menu) {
+                    return GO_BACK;
+                }
         }
     }
 
